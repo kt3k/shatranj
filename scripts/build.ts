@@ -39,30 +39,26 @@ async function copyDir(src: string, dest: string) {
 const bundleFlags = watch ? [] : ["--minify"];
 
 async function buildJS() {
-  await Promise.all([
-    run(
-      [
-        "bundle",
-        "--platform=browser",
-        ...bundleFlags,
-        "-o",
-        `${DIST}/main.js`,
-        "src/ui/main.ts",
-      ],
-      "main.js",
-    ),
-    run(
-      [
-        "bundle",
-        "--platform=browser",
-        ...bundleFlags,
-        "-o",
-        `${DIST}/worker.js`,
-        "src/ui/worker.ts",
-      ],
+  // Run sequentially: on a cold cache, concurrent `deno bundle` processes
+  // race while downloading the esbuild binary.
+  for (
+    const [entry, out] of [["src/ui/main.ts", "main.js"], [
+      "src/ui/worker.ts",
       "worker.js",
-    ),
-  ]);
+    ]]
+  ) {
+    await run(
+      [
+        "bundle",
+        "--platform=browser",
+        ...bundleFlags,
+        "-o",
+        `${DIST}/${out}`,
+        entry,
+      ],
+      out,
+    );
+  }
 }
 
 async function buildCSS() {
