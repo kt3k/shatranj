@@ -104,6 +104,19 @@ function createWorker() {
     type: "module",
   });
   worker.onmessage = onWorkerMessage;
+  worker.onerror = (e) => {
+    // Recover instead of leaving the UI stuck in "thinking".
+    console.error("AI worker failed:", e.message);
+    e.preventDefault();
+    worker.terminate();
+    createWorker();
+    const wasHint = pendingHint;
+    state.thinking = false;
+    pendingHint = false;
+    state.requestId++;
+    render();
+    if (!wasHint) requestAIMove();
+  };
 }
 
 let pendingHint = false;

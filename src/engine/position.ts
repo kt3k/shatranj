@@ -22,6 +22,9 @@ export type Color = 1 | -1;
 
 export type Move = number;
 
+/** Sentinel for a null move (a pass); never a legal move. */
+export const NULL_MOVE = -1;
+
 /** Encodes a move. The promotion flag is implicit (baidaq reaching last rank). */
 export const encodeMove = (from: number, to: number): Move => from | (to << 7);
 export const moveFrom = (m: Move): number => m & 127;
@@ -331,8 +334,40 @@ export class Position {
     return !this.isAttacked(this.kingSq[ci], this.side);
   }
 
+  /** Number of moves (including null moves) currently made on top of the root. */
+  get ply(): number {
+    return this.undos.length;
+  }
+
+  /** Passes the turn without moving (used by null-move pruning in search). */
+  makeNullMove() {
+    this.undos.push({
+      move: NULL_MOVE,
+      captured: EMPTY,
+      promoted: false,
+      halfmove: this.halfmove,
+      hashLo: this.hashLo,
+      hashHi: this.hashHi,
+    });
+    this.side = -this.side as Color;
+    this.hashLo ^= Z_SIDE_LO;
+    this.hashHi ^= Z_SIDE_HI;
+    // A null move breaks any repetition sequence.
+    this.halfmove = 0;
+    this.hashHistory.push(this.hashLo);
+  }
+
   unmakeMove() {
-    const u = this.undos.pop()!;
+    const u = this.undos.pop();
+    if (!u) throw new Error("unmakeMove: nothing to undo");
+    if (u.move === NULL_MOVE) {
+      this.side = -this.side as Color;
+      this.halfmove = u.halfmove;
+      this.hashLo = u.hashLo;
+      this.hashHi = u.hashHi;
+      this.hashHistory.pop();
+      return;
+    }
     const from = moveFrom(u.move);
     const to = moveTo(u.move);
     const b = this.board;

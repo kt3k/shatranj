@@ -151,7 +151,7 @@ export class Searcher {
     const pos = this.pos;
     const random = opts.random ?? Math.random;
     const noise = opts.noise ?? 0;
-    const rootLen = pos.hashHistory.length;
+    const rootPly = pos.ply;
     this.deadline = performance.now() + opts.timeMs;
     this.nodes = 0;
     this.tt.clear();
@@ -216,7 +216,7 @@ export class Searcher {
       } catch (e) {
         if (e instanceof Abort) {
           // Unwind the board to the root.
-          while (pos.hashHistory.length > rootLen) pos.unmakeMove();
+          while (pos.ply > rootPly) pos.unmakeMove();
           break;
         }
         throw e;
@@ -301,9 +301,9 @@ export class Searcher {
     const ci = pos.side === WHITE ? 0 : 1;
     if (!inCheck && depth >= 3 && pos.count[ci] >= 4 && beta < MATE - 500) {
       if (evaluate(pos) >= beta) {
-        this.makeNull();
+        pos.makeNullMove();
         const s = -this.negamax(depth - 3, -beta, -beta + 1, ply + 1);
-        this.unmakeNull();
+        pos.unmakeMove();
         if (s >= beta) return beta;
       }
     }
@@ -446,27 +446,7 @@ export class Searcher {
     }
     return false;
   }
-
-  private makeNull() {
-    const pos = this.pos;
-    pos.side = -pos.side as Color;
-    pos.hashLo ^= NULL_LO;
-    pos.hashHi ^= NULL_HI;
-    pos.hashHistory.push(-1);
-  }
-
-  private unmakeNull() {
-    const pos = this.pos;
-    pos.side = -pos.side as Color;
-    pos.hashLo ^= NULL_LO;
-    pos.hashHi ^= NULL_HI;
-    pos.hashHistory.pop();
-  }
 }
-
-// A null move flips the side to move; reuse a distinct key for it.
-const NULL_LO = 0x2f6b1d3c;
-const NULL_HI = 0x51e7a9b3;
 
 function pickBest(moves: Move[], scores: Int32Array, i: number) {
   let bi = i;

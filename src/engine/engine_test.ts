@@ -156,3 +156,21 @@ Deno.test("SAN disambiguation", () => {
   assertEquals(pos.toSAN(mv("a1", "d1")), "Rad1");
   assertEquals(pos.toSAN(mv("h1", "d1")), "Rhd1");
 });
+
+Deno.test("search survives time-outs at any point (incl. null moves)", () => {
+  // A quiet middlegame where null-move pruning is active.
+  const pos = Position.initial();
+  for (
+    const [f, t] of [["e2", "e3"], ["d7", "d6"], ["g1", "f3"], ["b8", "c6"], [
+      "b1",
+      "c3",
+    ], ["g8", "f6"]]
+  ) pos.makeMove(mv(f, t));
+  const before = [pos.hashLo, pos.ply, pos.hashHistory.length];
+  for (let i = 0; i < 40; i++) {
+    const s = new Searcher(pos);
+    const r = s.search({ maxDepth: 64, timeMs: 1 + (i % 7) * 3 });
+    assert(pos.legalMoves().includes(r.move));
+    assertEquals([pos.hashLo, pos.ply, pos.hashHistory.length], before);
+  }
+});
