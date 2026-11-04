@@ -1190,8 +1190,8 @@ function applyLanguage(l: Lang) {
   const sec = $("brand-secondary");
   sec.lang = isArabicScript() ? "en" : "ar";
   sec.className = isArabicScript()
-    ? "font-display text-base text-gold"
-    : "font-arabic text-xl text-gold";
+    ? "font-display text-base text-gold max-sm:hidden"
+    : "font-arabic text-xl text-gold max-sm:hidden";
   $("brand-primary").classList.toggle("font-arabic", isArabicScript());
   $("brand-primary").classList.toggle("font-display", !isArabicScript());
   const sub = document.querySelector<HTMLElement>(
@@ -1199,6 +1199,9 @@ function applyLanguage(l: Lang) {
   );
   if (sub) sub.hidden = t("rules.subtitle") === "";
   $<HTMLSelectElement>("lang-select").value = l;
+  const info = LANGS.find((x) => x.code === l)!;
+  $("lang-current").innerHTML =
+    `<span class="max-sm:hidden">${info.name}</span><span class="sm:hidden">${l.toUpperCase()}</span>`;
   renderLevels();
   syncSetupInputs();
   renderRules();

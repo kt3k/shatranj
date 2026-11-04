@@ -777,7 +777,19 @@ const fa: Dict = {
     "یک خانه به جلو (هرگز دو خانه)، و یک خانهٔ مورب به جلو می‌زند. به فرزین ارتقا می‌یابد.",
 };
 
-const DICTS: Record<Lang, Dict> = { en, ja, ar, fa, es, de, fr, ru, tr, zh, ko };
+const DICTS: Record<Lang, Dict> = {
+  en,
+  ja,
+  ar,
+  fa,
+  es,
+  de,
+  fr,
+  ru,
+  tr,
+  zh,
+  ko,
+};
 
 const LOCALES: Record<Lang, string> = {
   en: "en",

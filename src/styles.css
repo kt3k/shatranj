@@ -888,23 +888,28 @@ html[lang="ja"] .font-display {
   outline: 2px solid var(--ring);
   outline-offset: 1px;
 }
-.lang-picker select {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  outline: none;
+/* The visible label shows the language; the native select sits invisibly
+   on top so the platform's own picker opens on tap/click. */
+.lang-current {
   font-size: 0.875rem;
   font-weight: 500;
-  padding-inline-end: 0.85rem;
-  cursor: pointer;
-  color: inherit;
+  padding-inline-end: 0.95rem;
   background-image: var(--chevron-down-icon);
   background-repeat: no-repeat;
   background-size: 0.8rem;
   background-position: right center;
+  white-space: nowrap;
 }
-[dir="rtl"] .lang-picker select {
+[dir="rtl"] .lang-current {
   background-position: left center;
+}
+.lang-picker select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 1rem; /* avoids iOS zoom on focus */
 }
 .lang-picker select option {
   color: var(--popover-foreground);
@@ -935,4 +940,15 @@ html[lang="ko"] .font-display {
 /* Marcellus has no Cyrillic: use a serif with good Cyrillic for display. */
 html[lang="ru"] .font-display {
   font-family: "Marcellus", "PT Serif", Georgia, "Times New Roman", serif;
+}
+
+/* Undo / Hint / Flip: share the row, wrap when labels are long. */
+.status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.status-actions > .btn {
+  flex: 1 1 auto;
+  white-space: nowrap;
 }
