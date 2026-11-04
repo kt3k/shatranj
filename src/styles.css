@@ -1158,3 +1158,12 @@ html[lang="ru"] .font-display {
 .board-col {
   scroll-margin-top: 4.75rem;
 }
+
+/* Coptic: Noto Sans Coptic (Inter has no Coptic glyphs). */
+html[lang="cop"] body,
+html[lang="cop"] .font-display {
+  font-family: "Inter", "Noto Sans Coptic", "Antinoou", sans-serif;
+}
+.lang-picker select option[lang="cop"] {
+  font-family: "Noto Sans Coptic", sans-serif;
+}

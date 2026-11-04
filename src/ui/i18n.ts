@@ -11,6 +11,7 @@ import { ru } from "./locales/ru.ts";
 import { tr } from "./locales/tr.ts";
 import { zh } from "./locales/zh.ts";
 import { ko } from "./locales/ko.ts";
+import { cop } from "./locales/cop.ts";
 
 export type Lang =
   | "en"
@@ -23,7 +24,8 @@ export type Lang =
   | "ru"
   | "tr"
   | "zh"
-  | "ko";
+  | "ko"
+  | "cop";
 
 export const LANGS: { code: Lang; name: string; dir: "ltr" | "rtl" }[] = [
   { code: "en", name: "English", dir: "ltr" },
@@ -37,6 +39,7 @@ export const LANGS: { code: Lang; name: string; dir: "ltr" | "rtl" }[] = [
   { code: "tr", name: "Türkçe", dir: "ltr" },
   { code: "zh", name: "中文", dir: "ltr" },
   { code: "ko", name: "한국어", dir: "ltr" },
+  { code: "cop", name: "ⲧⲙⲛ̄ⲧⲣⲙ̄ⲛ̄ⲕⲏⲙⲉ", dir: "ltr" },
 ];
 
 export type Dict = Record<string, string>;
@@ -805,6 +808,7 @@ const DICTS: Record<Lang, Dict> = {
   tr,
   zh,
   ko,
+  cop,
 };
 
 const LOCALES: Record<Lang, string> = {
@@ -819,6 +823,8 @@ const LOCALES: Record<Lang, string> = {
   tr: "tr",
   zh: "zh-Hans",
   ko: "ko",
+  // Coptic has no CLDR plural/number data; Intl falls back gracefully.
+  cop: "cop",
 };
 
 let lang: Lang = "en";
