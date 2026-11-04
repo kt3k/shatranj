@@ -673,3 +673,163 @@
     max-height: max(6rem, calc(100dvh - 40rem));
   }
 }
+
+/* ------------------------------------------------------ Game review */
+
+:root {
+  --cls-best: oklch(0.6 0.12 165);
+  --cls-good: oklch(0.6 0.03 262);
+  --cls-inaccuracy: oklch(0.72 0.14 85);
+  --cls-mistake: oklch(0.66 0.16 52);
+  --cls-blunder: oklch(0.57 0.2 27);
+}
+.dark {
+  --cls-best: oklch(0.72 0.12 165);
+  --cls-good: oklch(0.7 0.03 262);
+  --cls-inaccuracy: oklch(0.8 0.13 88);
+  --cls-mistake: oklch(0.74 0.15 55);
+  --cls-blunder: oklch(0.68 0.19 27);
+}
+
+.class-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.25rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  color: white;
+  background: var(--cls-good);
+}
+.class-badge.cls-best {
+  background: var(--cls-best);
+}
+.class-badge.cls-inaccuracy {
+  background: var(--cls-inaccuracy);
+  color: oklch(0.25 0.04 80);
+}
+.class-badge.cls-mistake {
+  background: var(--cls-mistake);
+}
+.class-badge.cls-blunder {
+  background: var(--cls-blunder);
+}
+
+.mv-mark {
+  margin-left: 0.15rem;
+  font-weight: 700;
+}
+.mv.cls-best .mv-mark {
+  color: var(--cls-best);
+  font-size: 0.7em;
+  vertical-align: 0.1em;
+}
+.mv.cls-inaccuracy .mv-mark {
+  color: var(--cls-inaccuracy);
+}
+.mv.cls-mistake .mv-mark {
+  color: var(--cls-mistake);
+}
+.mv.cls-blunder .mv-mark {
+  color: var(--cls-blunder);
+}
+.mv.cls-blunder {
+  background: color-mix(in oklch, var(--cls-blunder) 10%, transparent);
+}
+
+.eval-graph {
+  width: 100%;
+  height: 72px;
+  border-radius: calc(var(--radius) - 4px);
+  cursor: pointer;
+  box-shadow: 0 0 0 1px var(--border);
+}
+.graph-bg {
+  fill: var(--ebony-fill);
+}
+.graph-area {
+  fill: var(--ivory-fill);
+}
+.graph-mid {
+  stroke: var(--gold);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0.6;
+  vector-effect: non-scaling-stroke;
+}
+.graph-line {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.graph-cursor {
+  stroke: var(--turquoise);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.graph-mark {
+  stroke: white;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.graph-mark.cls-mistake {
+  fill: var(--cls-mistake);
+}
+.graph-mark.cls-blunder {
+  fill: var(--cls-blunder);
+}
+
+.review-progress {
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--muted);
+  overflow: hidden;
+}
+.review-progress span {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transition: width 200ms;
+}
+
+.review-table {
+  display: grid;
+  gap: 0.15rem;
+}
+.review-row {
+  display: grid;
+  grid-template-columns: 1.6rem 1fr 3.5rem 4.5rem;
+  align-items: center;
+  gap: 0.4rem;
+}
+.review-row > span:nth-child(n + 3) {
+  text-align: right;
+}
+.review-head {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.review-acc {
+  font-weight: 600;
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
+  border-bottom: 1px solid var(--border);
+}
+.review-acc > span:nth-child(n + 3) {
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.played-arrow {
+  stroke: oklch(0.45 0.02 262 / 0.75);
+  stroke-width: 13;
+  stroke-linecap: round;
+}
+.played-arrow-head {
+  fill: oklch(0.45 0.02 262 / 0.75);
+}

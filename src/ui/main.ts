@@ -13,6 +13,16 @@ import {
 } from "../engine/position.ts";
 import { LEVELS, VALUE } from "../engine/search.ts";
 import { PIECE_INFO, pieceSVG } from "./pieces.ts";
+import {
+  CLASS_INFO,
+  type Classification,
+  formatScore,
+  summarize,
+  whiteScore,
+  winChance,
+} from "../engine/analysis.ts";
+import * as Review from "./review.ts";
+import { review } from "./review.ts";
 import type { WorkerRequest, WorkerResponse } from "./worker.ts";
 
 // ---------------------------------------------------------------------------
@@ -98,6 +108,7 @@ function replay(moves: Move[]): boolean {
   state.captured = captured;
   state.pos = pos;
   state.result = pos.result();
+  Review.syncWithGame(state.moves);
   return true;
 }
 
@@ -266,6 +277,7 @@ function newGame() {
   state.targets = [];
   clearHint();
   state.viewPly = null;
+  Review.clear();
   replay([]);
   save();
   render();
@@ -309,29 +321,52 @@ function canInteract() {
 
 let viewCache: { ply: number; key: string; pos: Position } | null = null;
 
-/** The position shown on the board: the live one, or a past one under review. */
-function shownPosition(): Position {
-  if (state.viewPly === null) return state.pos;
-  const key = state.moves.slice(0, state.viewPly).join(",");
+/** The position after `ply` half-moves of the current game. */
+function positionAt(ply: number): Position {
+  if (ply >= state.moves.length) return state.pos;
+  const key = state.moves.slice(0, ply).join(",");
   if (viewCache?.key !== key) {
     const pos = Position.initial();
-    for (const m of state.moves.slice(0, state.viewPly)) pos.makeMove(m);
-    viewCache = { ply: state.viewPly, key, pos };
+    for (const m of state.moves.slice(0, ply)) pos.makeMove(m);
+    viewCache = { ply, key, pos };
   }
   return viewCache.pos;
+}
+
+const currentPly = () => state.viewPly ?? state.moves.length;
+
+/**
+ * Ply shown on the board. Normally the reviewed ply, but "show better move"
+ * steps back one ply to show the position the move was played from.
+ */
+function boardPly(): number {
+  const p = currentPly();
+  return review.showBest && p > 0 && Review.reviewOf(p - 1) ? p - 1 : p;
+}
+
+/** The position shown on the board: the live one, or a past one under review. */
+function shownPosition(): Position {
+  return positionAt(boardPly());
 }
 
 /** Shows the position after `ply` half-moves (clamped); the last ply means live. */
 function viewAt(ply: number) {
   const total = state.moves.length;
   const p = Math.max(0, Math.min(total, ply));
-  state.viewPly = p === total ? null : p;
+  // After the game, stay in review mode on the final move so its review shows.
+  const keep = p === total && state.result.over && !!Review.reviewOf(p - 1);
+  state.viewPly = p === total && !keep ? null : p;
+  review.showBest = false;
   state.selected = -1;
   state.targets = [];
   render();
 }
 
-const currentPly = () => state.viewPly ?? state.moves.length;
+function goLive() {
+  state.viewPly = null;
+  review.showBest = false;
+  render();
+}
 
 function isOwnPiece(s: number) {
   const pc = state.pos.board[s];
@@ -507,7 +542,7 @@ function render() {
 
 function renderBoard() {
   const pos = shownPosition();
-  const ply = currentPly();
+  const ply = boardPly();
   const last = ply > 0 ? state.moves[ply - 1] : -1;
   boardEl.closest(".board-frame")?.classList.toggle(
     "reviewing",
@@ -580,29 +615,58 @@ function squareCentre(s: number): [number, number] {
   return [col * 100 + 50, row * 100 + 50];
 }
 
-function renderOverlay() {
-  const overlay = $("board-overlay");
-  if (state.hint.length !== 2 || state.viewPly !== null) {
-    overlay.innerHTML = "";
-    return;
-  }
-  const [x1, y1] = squareCentre(state.hint[0]);
-  const [x2, y2] = squareCentre(state.hint[1]);
+function arrowSVG(from: number, to: number, cls: string, head: string) {
+  const [x1, y1] = squareCentre(from);
+  const [x2, y2] = squareCentre(to);
   const len = Math.hypot(x2 - x1, y2 - y1);
   const ux = (x2 - x1) / len, uy = (y2 - y1) / len;
   // Start a little off the origin centre, stop before the arrow head.
   const sx = x1 + ux * 22, sy = y1 + uy * 22;
   const ex = x2 - ux * 30, ey = y2 - uy * 30;
-  overlay.innerHTML = `
-    <defs>
-      <marker id="hint-head" viewBox="0 0 10 10" refX="3" refY="5"
-        markerWidth="3.2" markerHeight="3.2" orient="auto-start-reverse">
-        <path d="M0 0 L10 5 L0 10 z" class="hint-arrow-head"/>
-      </marker>
-    </defs>
-    <circle cx="${x1}" cy="${y1}" r="44" class="hint-ring"/>
-    <line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" class="hint-arrow"
-      marker-end="url(#hint-head)"/>`;
+  return `<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" class="${cls}"
+    marker-end="url(#${head})"/>`;
+}
+
+const ARROW_DEFS = `
+  <defs>
+    <marker id="hint-head" viewBox="0 0 10 10" refX="3" refY="5"
+      markerWidth="3.2" markerHeight="3.2" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" class="hint-arrow-head"/>
+    </marker>
+    <marker id="played-head" viewBox="0 0 10 10" refX="3" refY="5"
+      markerWidth="3.2" markerHeight="3.2" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" class="played-arrow-head"/>
+    </marker>
+  </defs>`;
+
+function renderOverlay() {
+  const overlay = $("board-overlay");
+  const parts: string[] = [];
+  if (state.viewPly === null && state.hint.length === 2) {
+    const [x1, y1] = squareCentre(state.hint[0]);
+    parts.push(`<circle cx="${x1}" cy="${y1}" r="44" class="hint-ring"/>`);
+    parts.push(
+      arrowSVG(state.hint[0], state.hint[1], "hint-arrow", "hint-head"),
+    );
+  } else if (review.showBest) {
+    const r = Review.reviewOf(currentPly() - 1);
+    if (r) {
+      parts.push(
+        arrowSVG(
+          moveFrom(r.played),
+          moveTo(r.played),
+          "played-arrow",
+          "played-head",
+        ),
+      );
+      if (r.best !== r.played) {
+        parts.push(
+          arrowSVG(moveFrom(r.best), moveTo(r.best), "hint-arrow", "hint-head"),
+        );
+      }
+    }
+  }
+  overlay.innerHTML = parts.length ? ARROW_DEFS + parts.join("") : "";
 }
 
 function turnIcon(c: Color) {
@@ -643,7 +707,8 @@ function renderStatus() {
   const title = $("status-title");
   const detail = $("status-detail");
   const res = state.result;
-  if (res.over) {
+  let extra = "";
+  if (res.over && state.viewPly === null) {
     icon.innerHTML = "";
     if (res.winner === 0) title.textContent = "Drawn game";
     else if (res.winner === state.player) title.textContent = "Victory!";
@@ -659,6 +724,37 @@ function renderStatus() {
       `<svg class="thinking-star" viewBox="0 0 100 100"><use href="#star8"/></svg>`;
     title.textContent = `${level.name} is thinking…`;
     detail.textContent = level.description;
+  } else if (state.viewPly !== null && Review.reviewOf(state.viewPly - 1)) {
+    const ply = state.viewPly;
+    const r = Review.reviewOf(ply - 1)!;
+    const info = CLASS_INFO[r.classification];
+    icon.innerHTML = classBadge(r.classification);
+    const who = r.color === state.player
+      ? "Your move"
+      : `${LEVELS.find((l) => l.id === state.level)!.name}'s move`;
+    title.textContent = `${moveLabel(ply - 1)}${
+      info.symbol.replace("★", "")
+    } · ${info.label}`;
+    const sign = r.color === WHITE ? 1 : -1;
+    const evalText = `Evaluation for Ivory ${formatScore(sign * r.before)} → ${
+      formatScore(sign * r.after)
+    }`;
+    if (r.classification === "best" || r.best === r.played) {
+      detail.textContent = `${who}. ${evalText}. ${
+        r.best === r.played
+          ? "The engine agrees."
+          : "As good as the engine's choice."
+      }`;
+    } else {
+      const bestSan = positionAt(ply - 1).toSAN(r.best);
+      detail.textContent = `${who}. Better was ${bestSan}. ${evalText}.`;
+      extra =
+        `<button type="button" class="btn" data-variant="outline" data-size="sm" id="show-best-btn" aria-pressed="${review.showBest}">${
+          review.showBest
+            ? "Back to the move played"
+            : `Show ${bestSan} on the board`
+        }</button>`;
+    }
   } else if (state.viewPly !== null) {
     const ply = state.viewPly;
     icon.innerHTML =
@@ -687,11 +783,14 @@ function renderStatus() {
         sideName(state.player).toLowerCase()
       } pieces — click or drag.`;
   }
+  $("status-extra").innerHTML = extra;
+  $("status-extra").hidden = extra === "";
   $<HTMLButtonElement>("undo-btn").disabled = state.moves.length === 0;
   $<HTMLButtonElement>("hint-btn").disabled = !canInteract();
   const newBtn = $("new-game-btn");
   newBtn.lastChild!.textContent = res.over ? " Play again" : " New game";
-  newBtn.dataset.variant = res.over ? "default" : "secondary";
+  if (res.over) delete newBtn.dataset.variant;
+  else newBtn.dataset.variant = "secondary";
 }
 
 function renderMoves() {
@@ -714,14 +813,22 @@ function renderMoves() {
         continue;
       }
       const cur = j === shown ? " current" : "";
+      const r = Review.reviewOf(j);
+      const mark =
+        r && r.classification !== "good" && r.classification !== "best"
+          ? `<span class="mv-mark">${
+            CLASS_INFO[r.classification].symbol
+          }</span>`
+          : "";
+      const cls = r ? ` cls-${r.classification}` : "";
       html.push(
-        `<button type="button" class="mv${cur}" data-ply="${
+        `<button type="button" class="mv${cur}${cls}" data-ply="${
           j + 1
         }" aria-label="Show position after ${n}${j % 2 ? "…" : "."} ${
           state.sans[j]
-        }"${j === shown ? ' aria-current="step"' : ""}>${
-          state.sans[j]
-        }</button>`,
+        }${r ? ` (${CLASS_INFO[r.classification].label})` : ""}"${
+          j === shown ? ' aria-current="step"' : ""
+        }>${state.sans[j]}${mark}</button>`,
       );
     }
   }
@@ -740,6 +847,154 @@ function renderMoveNav() {
   $<HTMLButtonElement>("nav-next").disabled = ply >= total;
   $<HTMLButtonElement>("nav-last").disabled = ply >= total;
   $("nav-live").hidden = state.viewPly === null;
+  const analyse = $<HTMLButtonElement>("analyse-btn");
+  analyse.hidden = state.result.over || review.running || Review.hasReview() ||
+    total < 2;
+}
+
+function moveLabel(i: number) {
+  return `${Math.floor(i / 2) + 1}${i % 2 ? "…" : "."} ${state.sans[i]}`;
+}
+
+function classBadge(c: Classification) {
+  const sym = CLASS_INFO[c].symbol || "✓";
+  return `<span class="class-badge cls-${c}" aria-hidden="true">${sym}</span>`;
+}
+
+// ---------------------------------------------------------------------------
+// Game review card
+// ---------------------------------------------------------------------------
+
+function startReview() {
+  Review.start(state.moves, () => render());
+  render();
+}
+
+function renderReview() {
+  const card = $("review-card");
+  const show = state.result.over || review.running || Review.hasReview();
+  card.hidden = !show;
+  // The opponent card gives way to the review once there is one.
+  $("opponent-card").hidden = show && (review.running || Review.hasReview());
+  if (!show) return;
+
+  const total = state.moves.length;
+  const done = Review.analysedCount();
+  const needed = total + 1;
+  const reviews = Review.reviews();
+  const level = LEVELS.find((l) => l.id === state.level)!;
+
+  let body = "";
+  if (!Review.hasReview() && !review.running) {
+    body = `
+      <p class="text-sm text-muted-foreground text-pretty">
+        Let the engine go over the game move by move: blunders, missed wins
+        and the better moves you could have played.
+      </p>
+      <button type="button" class="btn w-full" id="review-start-btn" ${
+      total < 2 ? "disabled" : ""
+    }>${STAR_ICON} Review this game</button>`;
+  } else {
+    const me = summarize(reviews, state.player);
+    const them = summarize(reviews, -state.player as Color);
+    const row = (c: Classification) =>
+      `<div class="review-row cls-${c}"><span class="class-badge cls-${c}">${
+        CLASS_INFO[c].symbol
+      }</span><span>${PLURAL[c]}</span><span class="tabular-nums">${
+        me.counts[c]
+      }</span><span class="tabular-nums">${them.counts[c]}</span></div>`;
+    const progress = review.running
+      ? `<div class="flex items-center gap-2 text-xs text-muted-foreground">
+          <svg class="thinking-star" viewBox="0 0 100 100"><use href="#star8"/></svg>
+          <span class="flex-1">Analysing… ${
+        Math.min(done, needed)
+      } / ${needed} positions</span>
+          <button type="button" class="btn" data-variant="ghost" data-size="xs" id="review-cancel-btn">Stop</button>
+        </div>
+        <div class="review-progress"><span style="width:${
+        (100 * done / needed).toFixed(1)
+      }%"></span></div>`
+      : !Review.isComplete()
+      ? `<button type="button" class="btn w-full" data-variant="outline" data-size="sm" id="review-start-btn">
+          Analyse the remaining ${needed - done} positions</button>`
+      : "";
+    body = `
+      ${evalGraph()}
+      ${progress}
+      <div class="review-table text-sm">
+        <div class="review-row review-head"><span></span><span></span>
+          <span>You</span><span class="truncate">${level.name}</span></div>
+        <div class="review-row review-acc"><span></span><span>Accuracy</span>
+          <span>${
+      reviewsFor(state.player) ? me.accuracy.toFixed(0) + "%" : "–"
+    }</span>
+          <span>${
+      reviewsFor(-state.player as Color) ? them.accuracy.toFixed(0) + "%" : "–"
+    }</span></div>
+        ${row("blunder")}${row("mistake")}${row("inaccuracy")}${row("best")}
+      </div>
+      <p class="text-xs text-muted-foreground">Click the graph or a move to see what the engine thought.</p>`;
+  }
+  card.innerHTML = `
+    <header class="px-5">
+      <h2 class="font-display text-lg">Game review</h2>
+    </header>
+    <section class="px-5 flex flex-col gap-3">${body}</section>`;
+}
+
+const PLURAL: Record<Classification, string> = {
+  best: "Best moves",
+  good: "Good",
+  inaccuracy: "Inaccuracies",
+  mistake: "Mistakes",
+  blunder: "Blunders",
+};
+
+const reviewsFor = (c: Color) => Review.reviews().some((r) => r.color === c);
+
+const STAR_ICON =
+  `<svg width="16" height="16" viewBox="0 0 100 100" fill="currentColor"><use href="#star8" /></svg>`;
+
+/** White's winning chances over the game as an area chart. */
+function evalGraph(): string {
+  const W = 300, H = 72;
+  const total = Math.max(1, state.moves.length);
+  const pts: [number, number][] = [];
+  for (let k = 0; k <= state.moves.length; k++) {
+    const ws = whiteScore(review.scores, k);
+    if (ws == null) break;
+    pts.push([(k / total) * W, (1 - winChance(ws)) * H]);
+  }
+  if (pts.length === 0) return "";
+  const line = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const last = pts[pts.length - 1];
+  const area = `M0,${H} L${line.replaceAll(" ", " L")} L${
+    last[0].toFixed(1)
+  },${H} Z`;
+  const marks = Review.reviews()
+    .filter((r) =>
+      r.classification === "blunder" || r.classification === "mistake"
+    )
+    .map((r) => {
+      const [x, y] = pts[r.ply + 1] ?? [0, 0];
+      return `<circle cx="${x.toFixed(1)}" cy="${
+        y.toFixed(1)
+      }" r="3.2" class="graph-mark cls-${r.classification}"/>`;
+    })
+    .join("");
+  const cx = (currentPly() / total) * W;
+  return `
+    <svg class="eval-graph" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"
+      role="img" aria-label="Evaluation graph. Ivory area shows ivory's chances." id="eval-graph">
+      <rect width="${W}" height="${H}" class="graph-bg"/>
+      <path d="${area}" class="graph-area"/>
+      <line x1="0" y1="${H / 2}" x2="${W}" y2="${H / 2}" class="graph-mid"/>
+      <polyline points="${line}" class="graph-line"/>
+      <line x1="${cx.toFixed(1)}" y1="0" x2="${
+    cx.toFixed(1)
+  }" y2="${H}" class="graph-cursor"/>
+      ${marks}
+    </svg>`;
 }
 
 function materialOf(pieces: number[]) {
@@ -791,6 +1046,7 @@ function renderPlayers() {
   $("top-player").innerHTML = row(topColor);
   $("bottom-player").innerHTML = row(bottomColor);
   renderOpponent();
+  renderReview();
 }
 
 function renderOpponent() {
@@ -902,6 +1158,7 @@ function init() {
       (state.player === WHITE ? "white" : "black");
     if (!replay(saved.moves)) replay([]);
   }
+  Review.restore(state.moves);
   renderLevels();
   syncSetupInputs();
   renderRules();
@@ -938,7 +1195,30 @@ function init() {
   $("nav-prev").addEventListener("click", () => viewAt(currentPly() - 1));
   $("nav-next").addEventListener("click", () => viewAt(currentPly() + 1));
   $("nav-last").addEventListener("click", () => viewAt(state.moves.length));
-  $("nav-live").addEventListener("click", () => viewAt(state.moves.length));
+  $("nav-live").addEventListener("click", goLive);
+  $("analyse-btn").addEventListener("click", startReview);
+  $("result-review-btn").addEventListener("click", () => {
+    $<HTMLDialogElement>("result-dialog").close();
+    startReview();
+  });
+  $("review-card").addEventListener("click", (e) => {
+    const t = e.target as Element;
+    if (t.closest("#review-start-btn")) startReview();
+    else if (t.closest("#review-cancel-btn")) {
+      Review.cancel();
+      render();
+    } else if (t.closest("#eval-graph")) {
+      const svg = t.closest("#eval-graph")!.getBoundingClientRect();
+      const x = ((e as MouseEvent).clientX - svg.left) / svg.width;
+      viewAt(Math.round(x * state.moves.length));
+    }
+  });
+  $("status-extra").addEventListener("click", (e) => {
+    if ((e.target as Element).closest("#show-best-btn")) {
+      review.showBest = !review.showBest;
+      render();
+    }
+  });
   boardEl.addEventListener("keydown", onBoardKey);
   boardEl.addEventListener("focus", () => boardEl.classList.add("kbd-nav"));
   boardEl.addEventListener("blur", () => boardEl.classList.remove("kbd-nav"));

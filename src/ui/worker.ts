@@ -1,8 +1,10 @@
 /// <reference lib="webworker" />
 import { Position } from "../engine/position.ts";
 import { chooseMove, Searcher } from "../engine/search.ts";
+import { analysePosition } from "../engine/analysis.ts";
 
 export interface WorkerRequest {
+  type?: "move";
   id: number;
   moves: number[];
   level: number;
@@ -10,7 +12,17 @@ export interface WorkerRequest {
   hint?: boolean;
 }
 
+/** Analyse the positions after `from`..`moves.length` plies, one by one. */
+export interface AnalyseRequest {
+  type: "analyse";
+  id: number;
+  moves: number[];
+  from: number;
+  timeMs: number;
+}
+
 export interface WorkerResponse {
+  type?: "move";
   id: number;
   move: number;
   score: number;
@@ -18,8 +30,22 @@ export interface WorkerResponse {
   error?: string;
 }
 
-self.onmessage = (e: MessageEvent<WorkerRequest>) => {
-  const { id, moves, level, hint } = e.data;
+export interface AnalysisResponse {
+  type: "analysis";
+  id: number;
+  ply: number;
+  score: number;
+  best: number | null;
+  done: boolean;
+}
+
+self.onmessage = (e: MessageEvent<WorkerRequest | AnalyseRequest>) => {
+  const data = e.data;
+  if (data.type === "analyse") {
+    analyse(data);
+    return;
+  }
+  const { id, moves, level, hint } = data;
   const pos = Position.initial();
   for (const m of moves) pos.makeMove(m);
   let res: WorkerResponse;
@@ -36,3 +62,27 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
   }
   self.postMessage(res);
 };
+
+function analyse({ id, moves, from, timeMs }: AnalyseRequest) {
+  const pos = Position.initial();
+  for (let k = 0; k < from; k++) pos.makeMove(moves[k]);
+  for (let k = from; k <= moves.length; k++) {
+    let score = 0;
+    let best: number | null = null;
+    try {
+      ({ score, best } = analysePosition(pos, timeMs));
+    } catch (err) {
+      console.error(err);
+    }
+    const res: AnalysisResponse = {
+      type: "analysis",
+      id,
+      ply: k,
+      score,
+      best,
+      done: k === moves.length,
+    };
+    self.postMessage(res);
+    if (k < moves.length) pos.makeMove(moves[k]);
+  }
+}

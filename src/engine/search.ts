@@ -122,6 +122,8 @@ export interface SearchOptions {
   /** Random noise (centipawns) added to each root move's score. */
   noise?: number;
   random?: () => number;
+  /** Search even with a single legal move (needed for an accurate score). */
+  alwaysSearch?: boolean;
 }
 
 export interface SearchResult {
@@ -173,7 +175,7 @@ export class Searcher {
       nodes: 0,
       pv: [rootMoves[0]],
     };
-    if (rootMoves.length === 1) {
+    if (rootMoves.length === 1 && !opts.alwaysSearch) {
       return best;
     }
 

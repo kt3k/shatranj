@@ -8,6 +8,8 @@ the computer, right in your browser.
 - Engine runs in a Web Worker (alpha-beta, transposition table, quiescence)
 - Drag-and-drop, click or keyboard play; take back, hints, dark mode
 - Click any move in the list (or use ← →) to review earlier positions
+- Game review: the engine classifies every move (best … blunder), shows the
+  better move on the board, an evaluation graph and accuracy for both sides
 - Your game is saved in the browser
 
 ## Development
