@@ -37,6 +37,7 @@ export const tr: Dict = {
   "btn.reviewGame": "Oyunu incele",
 
   "status.yourMove": "Hamle sırası sende",
+  "status.newcomer": "Yeni misin? Taşların nasıl oynadığını gör",
   "status.check": "Şah! Şahın tehdit altında",
   "status.check.detail":
     "Şahını güvenli bir kareye çek, araya taş koy ya da saldıran taşı al.",

@@ -37,6 +37,7 @@ export const ru: Dict = {
   "btn.reviewGame": "Разобрать партию",
 
   "status.yourMove": "Ваш ход",
+  "status.newcomer": "Впервые в шатрандже? Как ходят фигуры",
   "status.check": "Шах! Вашему королю шах",
   "status.check.detail":
     "Уведите короля из-под удара, закройтесь или возьмите нападающую фигуру.",

@@ -38,6 +38,7 @@ export const de: Dict = {
   "btn.reviewGame": "Partie analysieren",
 
   "status.yourMove": "Du bist am Zug",
+  "status.newcomer": "Neu bei Schatrandsch? So ziehen die Figuren",
   "status.check": "Schah! Dein König steht im Schach",
   "status.check.detail":
     "Bring deinen König in Sicherheit, blocke den Angriff oder schlage den Angreifer.",

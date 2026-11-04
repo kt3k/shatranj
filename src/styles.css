@@ -952,3 +952,33 @@ html[lang="ru"] .font-display {
   flex: 1 1 auto;
   white-space: nowrap;
 }
+
+/* ------------------------------------------------------ Review round 3 */
+
+/* Result dialog: actions wrap instead of spilling past the edges. */
+.dialog .result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.dialog .result-actions > .btn {
+  flex: 1 1 auto;
+}
+/* The main action leads, full width; the rest share the row below. */
+.dialog .result-actions > #result-new-btn {
+  order: -1;
+  flex-basis: 100%;
+}
+
+/* Newcomer link: a quiet text link under the first-move status. */
+.newcomer-link {
+  padding-inline: 0;
+  height: auto;
+  color: var(--primary);
+  white-space: normal;
+  text-align: start;
+}
+.dark .newcomer-link {
+  color: var(--gold);
+}

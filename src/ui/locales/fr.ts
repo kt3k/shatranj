@@ -37,6 +37,7 @@ export const fr: Dict = {
   "btn.reviewGame": "Analyser la partie",
 
   "status.yourMove": "À vous de jouer",
+  "status.newcomer": "Nouveau au shatranj ? Voir la marche des pièces",
   "status.check": "Shāh ! Votre roi est en échec",
   "status.check.detail":
     "Mettez votre roi à l’abri, interposez une pièce ou prenez l’attaquant.",

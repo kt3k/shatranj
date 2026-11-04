@@ -228,7 +228,7 @@
               dir="ltr"
               id="moves"></div>
           </section>
-          <footer class="px-5 flex items-center gap-1" dir="ltr">
+          <footer class="px-5 flex items-center gap-1" dir="ltr" id="moves-nav">
             <button type="button" class="btn" data-variant="ghost"
               data-size="icon-sm" id="nav-first"
               aria-label="First position (Home)" title="First position (Home)"
@@ -398,7 +398,7 @@
     <!-- Game over dialog -->
     <dialog
       id="result-dialog"
-      class="dialog w-full sm:max-w-md"
+      class="dialog w-full sm:max-w-lg"
       aria-labelledby="result-title"
       onclick="if (event.target === this) this.close()"
     >
@@ -408,7 +408,7 @@
           <h2 id="result-title" class="font-display text-2xl"></h2>
           <p id="result-detail"></p>
         </header>
-        <footer class="sm:justify-center">
+        <footer class="result-actions">
           <button type="button" class="btn" data-variant="ghost"
             onclick="this.closest('dialog').close()"
             data-i18n="btn.viewBoard">View the board</button>
@@ -418,7 +418,7 @@
           <button type="button" class="btn" data-variant="outline"
             id="result-review-btn"
             data-i18n="btn.reviewGame">Review game</button>
-          <button type="button" class="btn"
+          <button type="button" class="btn" autofocus
             id="result-new-btn" data-i18n="btn.playAgain">Play again</button>
         </footer>
       </div>

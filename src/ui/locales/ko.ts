@@ -37,6 +37,7 @@ export const ko: Dict = {
   "btn.reviewGame": "게임 복기",
 
   "status.yourMove": "당신 차례예요",
+  "status.newcomer": "샤트란지가 처음이신가요? 말의 움직임 보기",
   "status.check": "샤! 왕이 체크당했어요",
   "status.check.detail":
     "왕을 안전한 곳으로 옮기거나, 막거나, 공격하는 기물을 잡으세요.",

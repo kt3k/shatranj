@@ -78,6 +78,7 @@ const en: Dict = {
   "btn.reviewGame": "Review game",
 
   "status.yourMove": "Your move",
+  "status.newcomer": "New to shatranj? See how the pieces move",
   "status.check": "Shāh! Your king is in check",
   "status.check.detail":
     "Move your king to safety, block, or capture the attacker.",
@@ -269,6 +270,7 @@ const ja: Dict = {
   "btn.reviewGame": "対局を振り返る",
 
   "status.yourMove": "あなたの番です",
+  "status.newcomer": "シャトランジは初めて？駒の動きを見る",
   "status.check": "シャー！王手です",
   "status.check.detail":
     "王を逃がすか、間に駒を入れるか、王手をかけている駒を取ってください。",
@@ -452,6 +454,7 @@ const ar: Dict = {
   "btn.reviewGame": "راجع الدور",
 
   "status.yourMove": "دورك",
+  "status.newcomer": "جديد على الشطرنج؟ تعرّف على حركة القطع",
   "status.check": "شاه! ملكك مهدَّد",
   "status.check.detail":
     "انقل ملكك إلى مأمن، أو اعترض الهجوم، أو اقتنص القطعة المهاجِمة.",
@@ -631,6 +634,7 @@ const fa: Dict = {
   "btn.reviewGame": "بازبینی بازی",
 
   "status.yourMove": "نوبت شماست",
+  "status.newcomer": "تازه‌کار هستید؟ حرکت مهره‌ها را ببینید",
   "status.check": "کیش! شاه شما در خطر است",
   "status.check.detail":
     "شاه را به جای امن ببرید، راه را ببندید یا مهرهٔ مهاجم را بزنید.",

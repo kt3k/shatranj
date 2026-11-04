@@ -36,6 +36,7 @@ export const zh: Dict = {
   "btn.reviewGame": "复盘",
 
   "status.yourMove": "轮到你走棋",
+  "status.newcomer": "初次接触沙特兰兹？看看棋子怎么走",
   "status.check": "沙阿！你的王被将军了",
   "status.check.detail": "请让王避开、挡住攻击，或吃掉进攻的棋子。",
   "status.selected": "请选择一个高亮的格子，或改选其他棋子。",

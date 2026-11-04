@@ -37,6 +37,7 @@ export const es: Dict = {
   "btn.reviewGame": "Revisar partida",
 
   "status.yourMove": "Tu turno",
+  "status.newcomer": "¿Nuevo en el shatranj? Mira cómo se mueven las piezas",
   "status.check": "¡Shāh! Tu rey está en jaque",
   "status.check.detail":
     "Pon a salvo a tu rey, interpón una pieza o captura al atacante.",

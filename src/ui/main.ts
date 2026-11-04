@@ -723,7 +723,9 @@ function renderStatus() {
   const res = state.result;
   let extra = "";
   if (res.over && state.viewPly === null) {
-    icon.innerHTML = "";
+    icon.innerHTML = res.winner === state.player
+      ? `<svg class="size-6 text-gold" viewBox="0 0 100 100" fill="currentColor"><use href="#star8"/></svg>`
+      : `<span class="turn-icon">${pieceSVG(state.player * SHAH)}</span>`;
     if (res.winner === 0) title.textContent = t("status.draw");
     else if (res.winner === state.player) {
       title.textContent = t("status.victory");
@@ -795,6 +797,12 @@ function renderStatus() {
       : t(
         state.player === WHITE ? "status.pickUp.ivory" : "status.pickUp.ebony",
       );
+    if (state.moves.length < 2 && !inCheck) {
+      extra =
+        `<button type="button" class="btn newcomer-link" data-variant="link" data-size="sm" id="newcomer-btn">${
+          t("status.newcomer")
+        }</button>`;
+    }
   }
   $("status-extra").innerHTML = extra;
   $("status-extra").hidden = extra === "";
@@ -817,6 +825,7 @@ function renderMoves() {
       `<div class="col-span-3 text-muted-foreground py-2 text-center">${
         t("moves.empty")
       }</div>`;
+    renderMoveNav();
     return;
   }
   const html: string[] = [];
@@ -859,6 +868,7 @@ function renderMoves() {
 function renderMoveNav() {
   const ply = currentPly();
   const total = state.moves.length;
+  $("moves-nav").style.display = total === 0 ? "none" : "";
   $<HTMLButtonElement>("nav-first").disabled = ply === 0;
   $<HTMLButtonElement>("nav-prev").disabled = ply === 0;
   $<HTMLButtonElement>("nav-next").disabled = ply >= total;
@@ -949,9 +959,15 @@ function renderReview() {
         <div class="review-row review-acc"><span></span><span>${
       t("review.accuracy")
     }</span>
-          <span>${reviewsFor(state.player) ? percent(me.accuracy) : "–"}</span>
           <span>${
-      reviewsFor(-state.player as Color) ? percent(them.accuracy) : "–"
+      Review.isComplete() && reviewsFor(state.player)
+        ? percent(me.accuracy)
+        : "–"
+    }</span>
+          <span>${
+      Review.isComplete() && reviewsFor(-state.player as Color)
+        ? percent(them.accuracy)
+        : "–"
     }</span></div>
         ${row("blunder")}${row("mistake")}${row("inaccuracy")}${row("best")}
       </div>
@@ -1286,13 +1302,16 @@ function init() {
     }
   });
   $("status-extra").addEventListener("click", (e) => {
+    if ((e.target as Element).closest("#newcomer-btn")) {
+      $<HTMLDialogElement>("rules-dialog").showModal();
+      return;
+    }
     if ((e.target as Element).closest("#show-best-btn")) {
       review.showBest = !review.showBest;
       render();
     }
   });
   boardEl.addEventListener("keydown", onBoardKey);
-  boardEl.addEventListener("focus", () => boardEl.classList.add("kbd-nav"));
   boardEl.addEventListener("blur", () => boardEl.classList.remove("kbd-nav"));
   boardEl.addEventListener(
     "pointerdown",
