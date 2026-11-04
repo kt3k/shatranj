@@ -6,7 +6,8 @@ export const de: Dict = {
     "Spiele Schatrandsch, das mittelalterliche Schach des abbasidischen Hofes, gegen den Computer. Fünf Gegner aus Tausendundeiner Nacht, von Aladin bis zum Dschinn.",
   "brand.primary": "Schatrandsch",
   "brand.secondary": "شطرنج",
-  "header.tagline": "Das Spiel des abbasidischen Hofes · Bagdad, 9. Jahrhundert",
+  "header.tagline":
+    "Das Spiel des abbasidischen Hofes · Bagdad, 9. Jahrhundert",
   "header.rules": "Regeln",
   "header.theme": "Dunkelmodus umschalten",
   "header.language": "Sprache",
@@ -40,8 +41,7 @@ export const de: Dict = {
   "status.check": "Schah! Dein König steht im Schach",
   "status.check.detail":
     "Bring deinen König in Sicherheit, blocke den Angriff oder schlage den Angreifer.",
-  "status.selected":
-    "Wähle ein markiertes Feld oder nimm eine andere Figur.",
+  "status.selected": "Wähle ein markiertes Feld oder nimm eine andere Figur.",
   "status.pickUp.ivory":
     "Nimm eine deiner Elfenbeinfiguren auf — klicken oder ziehen.",
   "status.pickUp.ebony":
@@ -191,8 +191,7 @@ export const de: Dict = {
   "piece.4.move": "Zieht wie der heutige Springer.",
   "piece.5.name": "Ruch",
   "piece.5.meaning": "Streitwagen",
-  "piece.5.move":
-    "Beliebig weit entlang einer Reihe oder Linie, wie ein Turm.",
+  "piece.5.move": "Beliebig weit entlang einer Reihe oder Linie, wie ein Turm.",
   "piece.1.name": "Baidaq",
   "piece.1.meaning": "Fußsoldat",
   "piece.1.move":

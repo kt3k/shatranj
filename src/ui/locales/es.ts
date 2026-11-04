@@ -37,7 +37,7 @@ export const es: Dict = {
   "btn.reviewGame": "Revisar partida",
 
   "status.yourMove": "Tu turno",
-  "status.check": "¡Xaque! Tu rey está en jaque",
+  "status.check": "¡Shāh! Tu rey está en jaque",
   "status.check.detail":
     "Pon a salvo a tu rey, interpón una pieza o captura al atacante.",
   "status.selected": "Elige una casilla resaltada o toma otra pieza.",
@@ -57,7 +57,7 @@ export const es: Dict = {
   "status.reviewStart": "Revisando la posición inicial",
   "status.reviewMove": "Revisando la jugada {move}",
   "status.reviewHelp":
-    "Usa ← → o la lista de jugadas para recorrer la partida. Pulsa Fin (End) para volver.",
+    "Usa ← → o la lista de jugadas para recorrer la partida. Pulsa End para volver.",
 
   "reason.checkmate": "Shāh māt: el rey está indefenso.",
   "reason.stalemate":
@@ -189,8 +189,7 @@ export const es: Dict = {
   "piece.4.move": "Se mueve como el caballo moderno.",
   "piece.5.name": "Roque",
   "piece.5.meaning": "Rukh, el carro",
-  "piece.5.move":
-    "Cualquier distancia por fila o columna, como la torre.",
+  "piece.5.move": "Cualquier distancia por fila o columna, como la torre.",
   "piece.1.name": "Peón",
   "piece.1.meaning": "Baidaq, el infante",
   "piece.1.move":

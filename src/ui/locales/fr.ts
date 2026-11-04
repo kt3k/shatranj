@@ -6,13 +6,13 @@ export const fr: Dict = {
     "Jouez au shatranj, les échecs médiévaux de la cour abbasside, contre l’ordinateur. Cinq adversaires tirés des Mille et Une Nuits, d’Aladdin au Djinn.",
   "brand.primary": "Shatranj",
   "brand.secondary": "شطرنج",
-  "header.tagline": "Le jeu de la cour abbasside · Bagdad, IXe siècle",
+  "header.tagline": "Le jeu de la cour abbasside · Bagdad, IXᵉ siècle",
   "header.rules": "Règles",
   "header.theme": "Basculer le mode sombre",
   "header.language": "Langue",
   "board.aria":
     "Échiquier de shatranj. Utilisez les flèches pour déplacer le curseur et Entrée pour prendre ou poser une pièce.",
-  "square.piece": "{square}§: {piece} {side}",
+  "square.piece": "{square} : {piece} {side}",
   "board.reviewing": "Analyse en cours",
 
   "side.ivory": "Ivoire",
@@ -37,7 +37,7 @@ export const fr: Dict = {
   "btn.reviewGame": "Analyser la partie",
 
   "status.yourMove": "À vous de jouer",
-  "status.check": "Shāh§! Votre roi est en échec",
+  "status.check": "Shāh ! Votre roi est en échec",
   "status.check.detail":
     "Mettez votre roi à l’abri, interposez une pièce ou prenez l’attaquant.",
   "status.selected":
@@ -49,11 +49,11 @@ export const fr: Dict = {
   "status.thinking": "{name} réfléchit…",
   "status.hintThinking": "Consultation des traités…",
   "status.hintThinking.detail": "Recherche d’un bon coup pour vous.",
-  "status.hint": "Indice§: {move}",
+  "status.hint": "Indice : {move}",
   "status.hint.detail":
     "La flèche montre le coup suggéré. Jouez-le, ou choisissez le vôtre.",
   "status.draw": "Partie nulle",
-  "status.victory": "Victoire§!",
+  "status.victory": "Victoire !",
   "status.defeat": "Défaite",
   "status.reviewStart": "Position initiale",
   "status.reviewMove": "Position après {move}",
@@ -64,12 +64,10 @@ export const fr: Dict = {
   "reason.stalemate":
     "Pat — au shatranj, le roi qui ne peut plus bouger est vaincu.",
   "reason.bare-king": "Roi dépouillé — le shāh reste seul sur le champ.",
-  "reason.draw-bare":
-    "Les deux rois ont été dépouillés. La partie est nulle.",
+  "reason.draw-bare": "Les deux rois ont été dépouillés. La partie est nulle.",
   "reason.repetition":
     "La même position s’est présentée trois fois. La partie est nulle.",
-  "reason.move-limit":
-    "Soixante-dix coups sans progrès. La partie est nulle.",
+  "reason.move-limit": "Soixante-dix coups sans progrès. La partie est nulle.",
 
   "result.draw": "Partie nulle",
   "result.win": "Vous êtes victorieux",
@@ -111,9 +109,9 @@ export const fr: Dict = {
   "rules.desc":
     "Il se joue sur le même échiquier de 8×8 que les échecs, avec des pièces plus anciennes et plus modestes.",
   "rules.list":
-    `<li><strong>Shāh māt</strong> <span class="font-arabic" lang="ar">(شاه مات)</span> — «§le roi est sans recours§»§: l’échec et mat l’emporte.</li>
+    `<li><strong>Shāh māt</strong> <span class="font-arabic" lang="ar">(شاه مات)</span> — « le roi est sans recours » : l’échec et mat l’emporte.</li>
      <li><strong>Le pat gagne</strong> pour le joueur qui laisse son adversaire sans coup légal.</li>
-     <li><strong>Roi dépouillé</strong>§: prendre toutes les pièces adverses sauf le roi l’emporte — à moins que l’adversaire ne dépouille aussitôt votre roi au coup suivant, ce qui donne la nulle.</li>
+     <li><strong>Roi dépouillé</strong> : prendre toutes les pièces adverses sauf le roi l’emporte — à moins que l’adversaire ne dépouille aussitôt votre roi au coup suivant, ce qui donne la nulle.</li>
      <li>Il n’y a ni roque, ni double pas du baidaq, ni prise en passant.</li>
      <li>Un baidaq atteignant la dernière rangée devient firzān.</li>
      <li>La triple répétition, ou 70 coups de chaque camp sans prise ni coup de baidaq, donne la nulle.</li>`,
@@ -134,7 +132,7 @@ export const fr: Dict = {
 
   "review.title": "Analyse de la partie",
   "review.intro":
-    "Laissez le moteur passer la partie en revue coup par coup§: gaffes, gains manqués et meilleurs coups que vous auriez pu jouer.",
+    "Laissez le moteur passer la partie en revue coup par coup : gaffes, gains manqués et meilleurs coups que vous auriez pu jouer.",
   "review.start": "Analyser cette partie",
   "review.analysing": "Analyse… {done} / {total} positions",
   "review.stop": "Arrêter",
@@ -181,11 +179,11 @@ export const fr: Dict = {
   "piece.2.name": "Firzān",
   "piece.2.meaning": "Conseiller, vizir",
   "piece.2.move":
-    "Une case en diagonale. La « fierge » médiévale, ancêtre de la dame.",
+    "Une case en diagonale. La « fierge » médiévale, ancêtre de la dame.",
   "piece.3.name": "Fīl",
   "piece.3.meaning": "Éléphant",
   "piece.3.move":
-    "Saute exactement de deux cases en diagonale, par-dessus toute pièce intermédiaire. L’« aufin » des Français du Moyen Âge.",
+    "Saute exactement de deux cases en diagonale, par-dessus toute pièce intermédiaire. L’« aufin » des Français du Moyen Âge.",
   "piece.4.name": "Faras",
   "piece.4.meaning": "Cheval",
   "piece.4.move": "Se déplace comme le cavalier moderne.",

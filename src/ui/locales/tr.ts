@@ -41,8 +41,7 @@ export const tr: Dict = {
   "status.check.detail":
     "Şahını güvenli bir kareye çek, araya taş koy ya da saldıran taşı al.",
   "status.selected": "İşaretli bir kare seç ya da başka bir taş al.",
-  "status.pickUp.ivory":
-    "Fildişi taşlarından birini al — tıkla ya da sürükle.",
+  "status.pickUp.ivory": "Fildişi taşlarından birini al — tıkla ya da sürükle.",
   "status.pickUp.ebony": "Abanoz taşlarından birini al — tıkla ya da sürükle.",
   "status.thinking": "{name} düşünüyor…",
   "status.hintThinking": "Eski risalelere danışılıyor…",
@@ -59,13 +58,11 @@ export const tr: Dict = {
     "Oyunda ilerlemek için ← → tuşlarını ya da hamle listesini kullan. Dönmek için End'e bas.",
 
   "reason.checkmate": "Şah mat — şah çaresiz kaldı.",
-  "reason.stalemate":
-    "Pat — şatrancta hamlesi kalmayan şah yenilmiş sayılır.",
+  "reason.stalemate": "Pat — şatrancta hamlesi kalmayan şah yenilmiş sayılır.",
   "reason.bare-king": "Çıplak şah — şah meydanda yapayalnız kaldı.",
   "reason.draw-bare": "İki şah da yalnız kaldı. Oyun berabere.",
   "reason.repetition": "Aynı konum üç kez tekrarlandı. Oyun berabere.",
-  "reason.move-limit":
-    "Yetmiş hamle boyunca ilerleme olmadı. Oyun berabere.",
+  "reason.move-limit": "Yetmiş hamle boyunca ilerleme olmadı. Oyun berabere.",
 
   "result.draw": "Berabere bir oyun",
   "result.win": "Zafer senin",
@@ -153,7 +150,8 @@ export const tr: Dict = {
 
   "level.1.name": "Alaaddin",
   "level.1.title": "Sokak Çocuğu",
-  "level.1.desc": "Şehrin ara sokaklarından, taşların yürüyüşünü yeni öğrenmiş bir delikanlı.",
+  "level.1.desc":
+    "Şehrin ara sokaklarından, taşların yürüyüşünü yeni öğrenmiş bir delikanlı.",
   "level.2.name": "Mesrur",
   "level.2.title": "Kılıçtar",
   "level.2.desc":
@@ -163,8 +161,7 @@ export const tr: Dict = {
   "level.3.desc": "Bermekîlerin zeki veziri. Sağlam bir oyun oynar.",
   "level.4.name": "Harun Reşid",
   "level.4.title": "Halife",
-  "level.4.desc":
-    "Bizzat Emîrü'l-Mü'minîn; şatrancın tutkulu bir hamisi.",
+  "level.4.desc": "Bizzat Emîrü'l-Mü'minîn; şatrancın tutkulu bir hamisi.",
   "level.5.name": "Cin",
   "level.5.title": "Lambanın Cini",
   "level.5.desc":
@@ -178,8 +175,7 @@ export const tr: Dict = {
   "piece.2.move": "Çapraz bir kare. Vezirin atası.",
   "piece.3.name": "Fil",
   "piece.3.meaning": "Fil",
-  "piece.3.move":
-    "Çapraz tam iki kare sıçrar; aradaki taşın üzerinden atlar.",
+  "piece.3.move": "Çapraz tam iki kare sıçrar; aradaki taşın üzerinden atlar.",
   "piece.4.name": "Feres",
   "piece.4.meaning": "At",
   "piece.4.move": "Bugünkü at gibi hareket eder.",
