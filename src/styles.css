@@ -1167,3 +1167,16 @@ html[lang="cop"] .font-display {
 .lang-picker select option[lang="cop"] {
   font-family: "Noto Sans Coptic", sans-serif;
 }
+
+/* Hieroglyphs: a dedicated font, set a little larger so signs stay legible. */
+html[lang="egy"] body,
+html[lang="egy"] .font-display {
+  font-family: "Inter", "Noto Sans Egyptian Hieroglyphs", sans-serif;
+}
+html[lang="egy"] :is(.side-panel, dialog, header, .player-bar, .review-strip) {
+  font-size: 1.08em;
+  line-height: 1.6;
+}
+.lang-picker select option[lang="egy"] {
+  font-family: "Noto Sans Egyptian Hieroglyphs", sans-serif;
+}
