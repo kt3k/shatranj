@@ -92,41 +92,42 @@
     </header>
 
     <main
-      class="mx-auto max-w-6xl px-4 py-6 lg:py-10 grid gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      class="play-layout mx-auto max-w-6xl px-4 py-6 lg:py-10 grid gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <!-- Board column -->
-      <section class="flex flex-col gap-3 min-w-0">
-        <div class="flex items-center justify-between gap-2 text-sm"
-          id="top-player"></div>
-
+      <section class="min-w-0">
         <div
-          class="board-frame mx-auto w-full max-w-[min(100%,calc(100dvh-14rem))] lg:max-w-[min(100%,calc(100dvh-12rem))]">
-          <svg class="rosette left-1 top-1" fill="currentColor">
-            <use href="#star8" />
-          </svg>
-          <svg class="rosette right-1 top-1" fill="currentColor">
-            <use href="#star8" />
-          </svg>
-          <svg class="rosette left-1 bottom-1" fill="currentColor">
-            <use href="#star8" />
-          </svg>
-          <svg class="rosette right-1 bottom-1" fill="currentColor">
-            <use href="#star8" />
-          </svg>
-          <div class="relative">
-            <div class="board" id="board" role="grid" tabindex="0"
-              aria-label="Shatranj board. Use arrow keys to move the cursor and Enter to pick up or place a piece."></div>
-            <svg class="board-overlay" id="board-overlay" viewBox="0 0 800 800"
-              aria-hidden="true"></svg>
-          </div>
-        </div>
+          class="board-col mx-auto w-full flex flex-col gap-3 max-w-[min(100%,max(20rem,calc(100dvh-14rem)))] lg:max-w-[min(100%,max(24rem,calc(100dvh-12rem)))]">
+          <div class="player-bar" id="top-player"></div>
 
-        <div class="flex items-center justify-between gap-2 text-sm"
-          id="bottom-player"></div>
+          <div class="board-frame w-full">
+            <svg class="rosette left-1 top-1" fill="currentColor">
+              <use href="#star8" />
+            </svg>
+            <svg class="rosette right-1 top-1" fill="currentColor">
+              <use href="#star8" />
+            </svg>
+            <svg class="rosette left-1 bottom-1" fill="currentColor">
+              <use href="#star8" />
+            </svg>
+            <svg class="rosette right-1 bottom-1" fill="currentColor">
+              <use href="#star8" />
+            </svg>
+            <div class="relative">
+              <div class="board" id="board" role="grid" tabindex="0"
+                aria-label="Shatranj board. Use arrow keys to move the cursor and Enter to pick up or place a piece."></div>
+              <svg class="board-overlay" id="board-overlay"
+                viewBox="0 0 800 800"
+                aria-hidden="true"></svg>
+            </div>
+          </div>
+
+          <div class="player-bar" id="bottom-player"></div>
+        </div>
       </section>
 
       <!-- Side panel -->
       <aside
-        class="flex flex-col gap-4 min-w-0 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100dvh-7rem)]">
+        class="side-panel flex flex-col gap-4 min-w-0 lg:sticky lg:top-24 lg:self-start">
         <div class="card gap-4 py-5">
           <header class="px-5">
             <h2 class="flex items-center gap-2.5 text-base" aria-live="polite">
@@ -163,14 +164,17 @@
 
         <div class="card gap-3 py-5" id="opponent-card"></div>
 
-        <div class="card gap-3 py-5 min-h-0 lg:flex-1">
-          <header class="px-5 flex-row items-center justify-between">
-            <h2 class="font-display text-lg">Moves</h2>
-            <span class="text-xs text-muted-foreground" id="move-count"></span>
+        <div class="card gap-3 py-5">
+          <header class="px-5">
+            <h2
+              class="font-display text-lg flex items-baseline justify-between gap-2">
+              Moves
+              <span class="font-sans text-xs font-normal text-muted-foreground" id="move-count"></span>
+            </h2>
           </header>
-          <section class="px-5 min-h-0 flex flex-col">
+          <section class="px-5">
             <div
-              class="moves-grid text-sm max-h-56 lg:max-h-none lg:min-h-24 overflow-y-auto scrollbar"
+              class="moves-list moves-grid text-sm overflow-y-auto scrollbar"
               id="moves"></div>
           </section>
         </div>
@@ -242,8 +246,9 @@
     >
       <div>
         <header>
-          <h2 id="rules-title" class="font-display text-xl">
-            The rules of shatranj <span class="font-arabic text-gold ml-2" lang="ar">قواعد الشطرنج</span>
+          <h2 id="rules-title" class="font-display text-xl pr-8">
+            The rules of shatranj
+            <span class="block font-arabic text-gold text-lg mt-0.5" lang="ar">قواعد الشطرنج</span>
           </h2>
           <p>Played on the same 8×8 board as chess, with older, gentler pieces.</p>
         </header>

@@ -228,6 +228,9 @@ function syncSetupInputs() {
 function openNewGameDialog() {
   syncSetupInputs();
   $<HTMLDialogElement>("new-game-dialog").showModal();
+  // Focus the current choice rather than the first option.
+  document.querySelector<HTMLInputElement>('input[name="level"]:checked')
+    ?.focus();
 }
 
 /** Starts a new game with the settings chosen in the new-game dialog. */
@@ -564,6 +567,10 @@ function renderOverlay() {
       marker-end="url(#hint-head)"/>`;
 }
 
+function turnIcon(c: Color) {
+  return `<span class="turn-icon to-move">${pieceSVG(c * SHAH)}</span>`;
+}
+
 function sideName(c: Color) {
   return c === WHITE ? "Ivory" : "Ebony";
 }
@@ -615,16 +622,12 @@ function renderStatus() {
     title.textContent = `${level.name} is thinking…`;
     detail.textContent = level.description;
   } else if (state.hintSan) {
-    icon.innerHTML = `<span class="turn-chip turn-${
-      state.player === WHITE ? "ivory" : "ebony"
-    }"></span>`;
+    icon.innerHTML = turnIcon(state.player);
     title.textContent = `Hint: ${state.hintSan}`;
     detail.textContent =
       "The arrow shows the suggested move. Play it, or choose your own.";
   } else {
-    icon.innerHTML = `<span class="turn-chip turn-${
-      state.player === WHITE ? "ivory" : "ebony"
-    }"></span>`;
+    icon.innerHTML = turnIcon(state.player);
     const inCheck = state.pos.inCheck();
     title.textContent = inCheck ? "Shāh! Your king is in check" : "Your move";
     detail.textContent = inCheck
@@ -696,11 +699,9 @@ function renderPlayers() {
       : `<span class="font-medium">You</span>`;
     return `
       <div class="flex items-center gap-2 min-w-0">
-        <span class="size-3 rounded-full ring-1 ring-border ${
-      color === WHITE ? "bg-[var(--ivory-fill)]" : "bg-[var(--ebony-fill)]"
-    } ${
-      toMove ? "outline-2 outline-offset-2 outline-[var(--gold)]" : ""
-    }"></span>
+        <span class="turn-icon${toMove ? " to-move" : ""}" title="${
+      sideName(color)
+    }${toMove ? " — to move" : ""}">${pieceSVG(color * SHAH)}</span>
         ${name}
       </div>
       <div class="captured flex items-center min-w-0 overflow-hidden">

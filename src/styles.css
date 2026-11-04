@@ -545,3 +545,73 @@
     transition: none;
   }
 }
+
+/* ------------------------------------------------------ Review round 2 */
+
+.player-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 1.75rem;
+  font-size: 0.875rem;
+}
+
+/* Small king icon marking each side; ringed in gold when it is to move. */
+.turn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--muted);
+}
+.turn-icon .piece {
+  width: 88%;
+  height: 88%;
+  filter: none;
+}
+.turn-icon.to-move {
+  background: color-mix(in oklch, var(--gold) 22%, transparent);
+  box-shadow: 0 0 0 1.5px var(--gold);
+}
+
+/* Legal-move markers: stronger, with a light halo for dark squares. */
+.square.target::before {
+  background: oklch(0.3 0.09 262 / 0.5);
+  box-shadow: 0 0 0 2px oklch(1 0 0 / 0.25);
+}
+.square.target.occupied::before {
+  border-color: oklch(0.3 0.09 262 / 0.55);
+  box-shadow: none;
+}
+
+.moves-list {
+  max-height: 14rem;
+}
+@media (min-width: 1024px) {
+  /* Fill what is left of the viewport beside the board. */
+  .moves-list {
+    max-height: max(6rem, calc(100dvh - 37rem));
+  }
+}
+
+/* Phones in landscape: board and panel side by side, board sized to height. */
+@media (orientation: landscape) and (max-height: 520px) {
+  body > header {
+    position: static;
+  }
+  .play-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);
+    padding-top: 0.75rem;
+    gap: 1rem;
+  }
+  .play-layout .board-col {
+    max-width: min(100%, calc(100dvh - 5rem));
+  }
+  .play-layout .board-col .board-frame {
+    padding: 8px;
+  }
+}
