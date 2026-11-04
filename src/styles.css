@@ -1174,9 +1174,18 @@ html[lang="egy"] .font-display {
   font-family: "Inter", "Noto Sans Egyptian Hieroglyphs", sans-serif;
 }
 html[lang="egy"] :is(.side-panel, dialog, header, .player-bar, .review-strip) {
-  font-size: 1.08em;
+  font-size: 1.2em;
   line-height: 1.6;
 }
 .lang-picker select option[lang="egy"] {
   font-family: "Noto Sans Egyptian Hieroglyphs", sans-serif;
+}
+
+/* Segmented control: long colour names (e.g. Coptic) wrap instead of
+   being clipped. */
+.seg label {
+  min-width: 0;
+  text-align: center;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }

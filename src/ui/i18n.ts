@@ -895,7 +895,7 @@ export function detectLang(): Lang {
     // ignore
   }
   for (const l of navigator.languages ?? [navigator.language]) {
-    const code = l.slice(0, 2).toLowerCase();
+    const code = l.split("-")[0].toLowerCase();
     if (code in DICTS) return code as Lang;
   }
   return "en";
