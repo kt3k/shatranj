@@ -501,7 +501,7 @@ export interface Level {
 export const LEVELS: Level[] = [
   {
     id: 1,
-    name: "Mubtadi'",
+    name: "Mubtadiʾ",
     arabic: "مبتدئ",
     title: "The Novice",
     description: "A merchant's apprentice who just learned the moves.",

@@ -1,0 +1,452 @@
+@import "tailwindcss";
+@import "basecoat-css";
+
+@source "./";
+@source "../static/";
+
+/* -------------------------------------------------------------------------
+   Theme: modern UI, with the palette of Abbasid Baghdad — lapis lazuli,
+   gilded brass, palm-wood, terracotta and the parchment of the House of Wisdom.
+   ------------------------------------------------------------------------- */
+
+:root {
+  --radius: 0.75rem;
+  --background: oklch(0.972 0.014 85);
+  --foreground: oklch(0.24 0.035 262);
+  --card: oklch(0.99 0.008 85);
+  --card-foreground: oklch(0.24 0.035 262);
+  --popover: oklch(0.99 0.008 85);
+  --popover-foreground: oklch(0.24 0.035 262);
+  --primary: oklch(0.4 0.13 262);
+  --primary-foreground: oklch(0.97 0.02 85);
+  --secondary: oklch(0.935 0.03 82);
+  --secondary-foreground: oklch(0.3 0.04 262);
+  --muted: oklch(0.94 0.02 82);
+  --muted-foreground: oklch(0.5 0.03 262);
+  --accent: oklch(0.92 0.045 82);
+  --accent-foreground: oklch(0.28 0.04 262);
+  --border: oklch(0.86 0.03 80);
+  --input: oklch(0.86 0.03 80);
+  --ring: oklch(0.7 0.13 78);
+
+  --gold: oklch(0.72 0.13 78);
+  --gold-soft: oklch(0.82 0.09 82);
+  --lapis: oklch(0.36 0.12 262);
+  --terracotta: oklch(0.58 0.13 42);
+  --turquoise: oklch(0.62 0.09 195);
+  --pattern: oklch(0.4 0.13 262 / 0.07);
+
+  --sq-light: oklch(0.9 0.04 82);
+  --sq-dark: oklch(0.64 0.075 58);
+  --frame: oklch(0.3 0.09 262);
+
+  --ivory-fill: oklch(0.96 0.03 88);
+  --ivory-stroke: oklch(0.32 0.04 55);
+  --ivory-line: oklch(0.58 0.13 42);
+  --ebony-fill: oklch(0.25 0.045 262);
+  --ebony-stroke: oklch(0.14 0.03 262);
+  --ebony-line: oklch(0.76 0.12 80);
+}
+
+.dark {
+  --background: oklch(0.17 0.03 265);
+  --foreground: oklch(0.94 0.02 85);
+  --card: oklch(0.21 0.035 265);
+  --card-foreground: oklch(0.94 0.02 85);
+  --popover: oklch(0.22 0.035 265);
+  --popover-foreground: oklch(0.94 0.02 85);
+  --primary: oklch(0.78 0.12 80);
+  --primary-foreground: oklch(0.2 0.035 265);
+  --secondary: oklch(0.27 0.035 265);
+  --secondary-foreground: oklch(0.94 0.02 85);
+  --muted: oklch(0.26 0.03 265);
+  --muted-foreground: oklch(0.72 0.03 85);
+  --accent: oklch(0.3 0.045 265);
+  --accent-foreground: oklch(0.94 0.02 85);
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.78 0.12 80);
+  --pattern: oklch(0.78 0.12 80 / 0.06);
+
+  --sq-light: oklch(0.83 0.045 82);
+  --sq-dark: oklch(0.55 0.07 58);
+  --frame: oklch(0.13 0.03 265);
+}
+
+@theme inline {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Marcellus", ui-serif, Georgia, serif;
+  --font-arabic: "Reem Kufi", "Amiri", serif;
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-lapis: var(--lapis);
+  --color-terracotta: var(--terracotta);
+  --color-turquoise: var(--turquoise);
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    min-height: 100dvh;
+  }
+}
+
+/* 8-pointed star (khātam) lattice, the signature motif of Islamic geometry. */
+.girih-bg {
+  position: relative;
+  isolation: isolate;
+}
+.girih-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--pattern);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80' fill='none' stroke='black' stroke-width='1.2'%3E%3Cpath d='M40 16 L47 23 L57 23 L57 33 L64 40 L57 47 L57 57 L47 57 L40 64 L33 57 L23 57 L23 47 L16 40 L23 33 L23 23 L33 23Z'/%3E%3Cpath d='M40 0V16M40 64V80M0 40H16M64 40H80M57 23L80 0M23 23L0 0M57 57L80 80M23 57L0 80'/%3E%3Crect x='35' y='35' width='10' height='10' transform='rotate(45 40 40)'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80' fill='none' stroke='black' stroke-width='1.2'%3E%3Cpath d='M40 16 L47 23 L57 23 L57 33 L64 40 L57 47 L57 57 L47 57 L40 64 L33 57 L23 57 L23 47 L16 40 L23 33 L23 23 L33 23Z'/%3E%3Cpath d='M40 0V16M40 64V80M0 40H16M64 40H80M57 23L80 0M23 23L0 0M57 57L80 80M23 57L0 80'/%3E%3Crect x='35' y='35' width='10' height='10' transform='rotate(45 40 40)'/%3E%3C/svg%3E");
+  -webkit-mask-size: 80px 80px;
+  mask-size: 80px 80px;
+  pointer-events: none;
+}
+
+/* Ornamental divider (a stylised arabesque band). */
+.ornament {
+  height: 14px;
+  background-color: var(--gold);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14' viewBox='0 0 28 14' fill='none' stroke='black' stroke-width='1.4'%3E%3Cpath d='M0 7 Q7 0 14 7 T28 7'/%3E%3Cpath d='M0 7 Q7 14 14 7 T28 7'/%3E%3Ccircle cx='14' cy='7' r='1.6' fill='black'/%3E%3C/svg%3E")
+    repeat-x center / 28px 14px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14' viewBox='0 0 28 14' fill='none' stroke='black' stroke-width='1.4'%3E%3Cpath d='M0 7 Q7 0 14 7 T28 7'/%3E%3Cpath d='M0 7 Q7 14 14 7 T28 7'/%3E%3Ccircle cx='14' cy='7' r='1.6' fill='black'/%3E%3C/svg%3E")
+    repeat-x center / 28px 14px;
+  opacity: 0.8;
+}
+
+/* ---------------------------------------------------------------- Board */
+
+.board-frame {
+  background:
+    linear-gradient(135deg, oklch(1 0 0 / 0.08), transparent 40%),
+    var(--frame);
+  border-radius: calc(var(--radius) + 6px);
+  padding: clamp(10px, 2.6vmin, 22px);
+  box-shadow:
+    0 0 0 1px oklch(0 0 0 / 0.2),
+    inset 0 0 0 2px var(--gold),
+    inset 0 0 0 5px var(--frame),
+    inset 0 0 0 6px oklch(0.72 0.13 78 / 0.5),
+    0 24px 60px -20px oklch(0.2 0.08 262 / 0.55);
+  position: relative;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px oklch(0.72 0.13 78 / 0.7);
+  touch-action: none;
+  user-select: none;
+}
+
+.square {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sq-light);
+  cursor: default;
+}
+.square.sq-d {
+  background: var(--sq-dark);
+}
+.square.clickable {
+  cursor: pointer;
+}
+.square.last::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: oklch(0.8 0.14 85 / 0.42);
+}
+.square.selected::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: oklch(0.62 0.09 195 / 0.5);
+}
+.square.hint::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: oklch(0.62 0.09 195 / 0.38);
+  animation: pulse-hint 1.2s ease-in-out infinite;
+}
+@keyframes pulse-hint {
+  50% {
+    opacity: 0.35;
+  }
+}
+.square.target::before {
+  content: "";
+  position: absolute;
+  width: 28%;
+  height: 28%;
+  border-radius: 9999px;
+  background: oklch(0.3 0.09 262 / 0.35);
+  z-index: 2;
+  pointer-events: none;
+}
+.square.target.occupied::before {
+  width: 92%;
+  height: 92%;
+  background: transparent;
+  border: 4px solid oklch(0.3 0.09 262 / 0.4);
+}
+.square.check {
+  background: radial-gradient(
+    circle,
+    oklch(0.62 0.2 28) 0%,
+    oklch(0.62 0.2 28 / 0.55) 40%,
+    transparent 75%
+  ), var(--sq-light);
+}
+.square.sq-d.check {
+  background: radial-gradient(
+    circle,
+    oklch(0.62 0.2 28) 0%,
+    oklch(0.62 0.2 28 / 0.55) 40%,
+    transparent 75%
+  ), var(--sq-dark);
+}
+.square .coord {
+  position: absolute;
+  font-size: clamp(8px, 1.5vmin, 11px);
+  font-weight: 600;
+  line-height: 1;
+  z-index: 3;
+  pointer-events: none;
+  color: var(--sq-dark);
+}
+.square.sq-d .coord {
+  color: var(--sq-light);
+}
+.square .coord.file {
+  right: 4px;
+  bottom: 3px;
+}
+.square .coord.rank {
+  left: 4px;
+  top: 4px;
+}
+
+.piece {
+  position: relative;
+  z-index: 1;
+  width: 88%;
+  height: 88%;
+  filter: drop-shadow(0 2px 1.5px oklch(0 0 0 / 0.35));
+  transition: transform 120ms ease;
+}
+.square.clickable:hover .piece {
+  transform: translateY(-2px);
+}
+.piece .pc-body {
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+.piece .pc-line {
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.piece-ivory .pc-body {
+  fill: var(--ivory-fill);
+  stroke: var(--ivory-stroke);
+}
+.piece-ivory .pc-line {
+  stroke: var(--ivory-line);
+}
+.piece-ivory .pc-eye {
+  fill: var(--ivory-stroke);
+}
+.piece-ebony .pc-body {
+  fill: var(--ebony-fill);
+  stroke: var(--ebony-stroke);
+}
+.piece-ebony .pc-line {
+  stroke: var(--ebony-line);
+}
+.piece-ebony .pc-eye {
+  fill: var(--ebony-line);
+}
+
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 50;
+  transform: translate(-50%, -50%) scale(1.12);
+}
+.drag-ghost .piece {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 8px 6px oklch(0 0 0 / 0.35));
+}
+.square.drag-origin .piece {
+  opacity: 0.3;
+}
+
+.piece-anim {
+  animation: piece-drop 180ms ease-out;
+}
+@keyframes piece-drop {
+  from {
+    transform: scale(1.12);
+  }
+}
+
+/* Corner rosettes on the board frame. */
+.rosette {
+  position: absolute;
+  width: clamp(10px, 2.2vmin, 18px);
+  height: clamp(10px, 2.2vmin, 18px);
+  color: var(--gold);
+}
+
+/* ---------------------------------------------------------------- Panels */
+
+.star-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  font-family: var(--font-arabic);
+  color: var(--primary-foreground);
+}
+.star-badge svg {
+  position: absolute;
+  inset: 0;
+  fill: var(--primary);
+}
+.star-badge span {
+  position: relative;
+  font-size: 0.95rem;
+}
+
+.level-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 120ms, border-color 120ms;
+}
+.level-option:hover {
+  background: var(--accent);
+}
+.level-option:has(input:checked) {
+  border-color: var(--gold);
+  background: color-mix(in oklch, var(--gold) 14%, transparent);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+.level-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.level-option:has(input:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.seg {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: var(--radius);
+  background: var(--muted);
+}
+.seg label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: calc(var(--radius) - 4px);
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--muted-foreground);
+}
+.seg label:has(input:checked) {
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 1px 3px oklch(0 0 0 / 0.12);
+}
+.seg input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.seg label:has(input:focus-visible) {
+  outline: 2px solid var(--ring);
+}
+
+.moves-grid {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr 1fr;
+  font-variant-numeric: tabular-nums;
+}
+.moves-grid > div {
+  padding: 0.2rem 0.4rem;
+}
+.moves-grid .num {
+  color: var(--muted-foreground);
+  text-align: right;
+}
+.moves-grid .mv {
+  border-radius: 4px;
+}
+.moves-grid .mv.current {
+  background: color-mix(in oklch, var(--gold) 25%, transparent);
+  font-weight: 600;
+}
+
+.thinking-star {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: var(--gold);
+  animation: spin 2.4s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.captured .piece {
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-right: -0.45rem;
+  filter: none;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+.font-arabic {
+  font-family: var(--font-arabic);
+}
+
+.result-seal {
+  font-family: var(--font-arabic);
+  font-size: 2.6rem;
+  line-height: 1.2;
+  color: var(--gold);
+}
