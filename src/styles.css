@@ -916,3 +916,23 @@ html[lang="ja"] .font-display {
 [dir="rtl"] .level-option {
   text-align: start;
 }
+
+/* Chinese & Korean: Inter for Latin, then system CJK fonts. */
+html[lang="zh"] body {
+  font-family: "Inter", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC",
+    "Microsoft YaHei", sans-serif;
+}
+html[lang="zh"] .font-display {
+  font-family: "Marcellus", "Songti SC", "Noto Serif SC", "SimSun", serif;
+}
+html[lang="ko"] body {
+  font-family: "Inter", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic",
+    sans-serif;
+}
+html[lang="ko"] .font-display {
+  font-family: "Marcellus", "Nanum Myeongjo", "Noto Serif KR", serif;
+}
+/* Marcellus has no Cyrillic: use a serif with good Cyrillic for display. */
+html[lang="ru"] .font-display {
+  font-family: "Marcellus", "PT Serif", Georgia, "Times New Roman", serif;
+}

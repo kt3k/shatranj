@@ -1,0 +1,193 @@
+import type { Dict } from "../i18n.ts";
+
+export const tr: Dict = {
+  "meta.title": "Şatranc — Abbasi Bağdat'ının satrancı",
+  "meta.description":
+    "Abbasi sarayının ortaçağ satrancı şatrancı bilgisayara karşı oyna. Binbir Gece Masalları'ndan beş rakip: Alaaddin'den Lambanın Cini'ne.",
+  "brand.primary": "Şatranc",
+  "brand.secondary": "شطرنج",
+  "header.tagline": "Abbasi sarayının oyunu · Bağdat, 9. yüzyıl",
+  "header.rules": "Kurallar",
+  "header.theme": "Karanlık modu aç/kapat",
+  "header.language": "Dil",
+  "board.aria":
+    "Şatranc tahtası. İmleci ok tuşlarıyla hareket ettir, taşı almak ya da bırakmak için Enter'a bas.",
+  "square.piece": "{square} {side} {piece}",
+  "board.reviewing": "İnceleniyor",
+
+  "side.ivory": "Fildişi",
+  "side.ebony": "Abanoz",
+  "side.ivory.lower": "fildişi",
+  "side.ebony.lower": "abanoz",
+
+  "btn.undo": "Geri al",
+  "btn.undo.title": "Son hamleni geri al (U)",
+  "btn.hint": "İpucu",
+  "btn.hint.title": "Bir hamle öner (H)",
+  "btn.flip": "Çevir",
+  "btn.flip.title": "Tahtayı çevir (F)",
+  "btn.newGame": "Yeni oyun",
+  "btn.playAgain": "Yeniden oyna",
+  "btn.cancel": "Vazgeç",
+  "btn.begin": "Başla",
+  "btn.close": "Pencereyi kapat",
+  "btn.returnToBoard": "Tahtaya dön",
+  "btn.viewBoard": "Tahtayı gör",
+  "btn.changeOpponent": "Rakibi değiştir",
+  "btn.reviewGame": "Oyunu incele",
+
+  "status.yourMove": "Hamle sırası sende",
+  "status.check": "Şah! Şahın tehdit altında",
+  "status.check.detail":
+    "Şahını güvenli bir kareye çek, araya taş koy ya da saldıran taşı al.",
+  "status.selected": "İşaretli bir kare seç ya da başka bir taş al.",
+  "status.pickUp.ivory":
+    "Fildişi taşlarından birini al — tıkla ya da sürükle.",
+  "status.pickUp.ebony": "Abanoz taşlarından birini al — tıkla ya da sürükle.",
+  "status.thinking": "{name} düşünüyor…",
+  "status.hintThinking": "Eski risalelere danışılıyor…",
+  "status.hintThinking.detail": "Senin için iyi bir hamle aranıyor.",
+  "status.hint": "İpucu: {move}",
+  "status.hint.detail":
+    "Ok, önerilen hamleyi gösteriyor. İster onu oyna, ister kendi hamleni seç.",
+  "status.draw": "Berabere",
+  "status.victory": "Zafer!",
+  "status.defeat": "Yenilgi",
+  "status.reviewStart": "Başlangıç konumu inceleniyor",
+  "status.reviewMove": "İncelenen hamle: {move}",
+  "status.reviewHelp":
+    "Oyunda ilerlemek için ← → tuşlarını ya da hamle listesini kullan. Dönmek için End'e bas.",
+
+  "reason.checkmate": "Şah mat — şah çaresiz kaldı.",
+  "reason.stalemate":
+    "Pat — şatrancta hamlesi kalmayan şah yenilmiş sayılır.",
+  "reason.bare-king": "Çıplak şah — şah meydanda yapayalnız kaldı.",
+  "reason.draw-bare": "İki şah da yalnız kaldı. Oyun berabere.",
+  "reason.repetition": "Aynı konum üç kez tekrarlandı. Oyun berabere.",
+  "reason.move-limit":
+    "Yetmiş hamle boyunca ilerleme olmadı. Oyun berabere.",
+
+  "result.draw": "Berabere bir oyun",
+  "result.win": "Zafer senin",
+  "result.lose": "Kazanan: {name}",
+  "result.detail.one": "{text} ({n} hamle)",
+  "result.detail.other": "{text} ({n} hamle)",
+
+  "moves.title": "Hamleler",
+  "moves.count.one": "{n} hamle",
+  "moves.count.other": "{n} hamle",
+  "moves.empty": "Henüz hamle yok.",
+  "moves.aria": "Şu hamleden sonraki konumu göster: {move}",
+  "nav.first": "İlk konum (Home)",
+  "nav.prev": "Önceki hamle (←)",
+  "nav.next": "Sonraki hamle (→)",
+  "nav.last": "Son hamle (End)",
+  "nav.review": "İncele",
+  "nav.review.title": "Şimdiye kadarki oyunu analiz et",
+  "nav.live": "Oyuna dön",
+
+  "player.you": "Sen",
+  "player.level": "Seviye {n}",
+  "player.thinking": "düşünüyor",
+  "player.toMove": "{side} — hamle sırası",
+
+  "opponent.label": "Rakibin",
+  "opponent.levelOf": "Seviye {n} / {total}",
+  "level.strength": "Güç {n} / {total}",
+
+  "newGame.title": "Yeni bir oyun",
+  "newGame.desc": "Rakibini Binbir Gece Masalları'ndan seç.",
+  "newGame.opponent": "Rakip",
+  "newGame.playAs": "Taşların",
+  "newGame.random": "Rastgele",
+  "newGame.ivoryFirst": "İlk hamleyi Fildişi yapar.",
+
+  "rules.title": "Şatranc kuralları",
+  "rules.subtitle": "قواعد الشطرنج",
+  "rules.desc":
+    "Satrancın atası şatranc, aynı 8×8 tahtada daha eski ve daha yumuşak taşlarla oynanır.",
+  "rules.list":
+    `<li><strong>Şah mat</strong> <span class="font-arabic" lang="ar">(شاه مات)</span> — “şah çaresiz”: mat eden kazanır.</li>
+     <li><strong>Pat kazandırır</strong>: rakibini yasal hamlesi kalmayacak duruma düşüren oyuncu kazanır.</li>
+     <li><strong>Çıplak şah</strong>: rakibin şahı dışındaki bütün taşlarını alan kazanır — rakip bir sonraki hamlede senin şahını da çıplak bırakabiliyorsa oyun berabere biter.</li>
+     <li>Rok yoktur; beydak iki kare ilerleyemez; geçerken alma yoktur.</li>
+     <li>Son sıraya ulaşan beydak firzana dönüşür.</li>
+     <li>Üç kez konum tekrarı ya da taş alınmadan ve beydak oynanmadan her iki tarafça yapılan 70 hamle beraberliktir.</li>`,
+
+  "footer.html":
+    `Şatranc Bağdat'a İran'dan geldi ve Abbasi halifelerinin sarayında gelişti; el-Adlî, er-Râzî ve es-Sûlî gibi ustalar oyun üzerine ilk risaleleri orada yazdı. Türkçedeki “satranç” sözcüğü de buradan gelir.<br/>
+     <span class="font-arabic text-sm text-gold" lang="ar">مدينة السلام</span><span class="mx-1">·</span> Medînetü's-Selâm, Barış Şehri`,
+
+  "class.best": "En iyi hamle",
+  "class.good": "İyi",
+  "class.inaccuracy": "Kesinsizlik",
+  "class.mistake": "Hata",
+  "class.blunder": "Büyük hata",
+  "class.best.plural": "En iyi hamleler",
+  "class.inaccuracy.plural": "Kesinsizlikler",
+  "class.mistake.plural": "Hatalar",
+  "class.blunder.plural": "Büyük hatalar",
+
+  "review.title": "Oyun incelemesi",
+  "review.intro":
+    "Motor oyunu hamle hamle gözden geçirsin: büyük hatalar, kaçan zaferler ve oynayabileceğin daha iyi hamleler.",
+  "review.start": "Bu oyunu incele",
+  "review.analysing": "Analiz ediliyor… {done} / {total} konum",
+  "review.stop": "Durdur",
+  "review.remaining.one": "Kalan konumu analiz et",
+  "review.remaining.other": "Kalan {n} konumu analiz et",
+  "review.you": "Sen",
+  "review.accuracy": "İsabet",
+  "review.footnote":
+    "Motorun ne düşündüğünü görmek için grafiğe ya da bir hamleye tıkla.",
+  "review.graph":
+    "Değerlendirme grafiği. Fildişi alan, Fildişi tarafın şansını gösterir.",
+  "review.byYou": "Senin hamlen",
+  "review.byThem": "Hamle: {name}",
+  "review.eval": "Fildişi için değerlendirme {before} → {after}",
+  "review.agrees": "Motor da aynı fikirde.",
+  "review.asGood": "Motorun seçimi kadar iyi.",
+  "review.better": "Daha iyisi: {move}.",
+  "review.showBest": "Tahtada göster: {move}",
+  "review.backToPlayed": "Oynanan hamleye dön",
+
+  "level.1.name": "Alaaddin",
+  "level.1.title": "Sokak Çocuğu",
+  "level.1.desc": "Şehrin ara sokaklarından, taşların yürüyüşünü yeni öğrenmiş bir delikanlı.",
+  "level.2.name": "Mesrur",
+  "level.2.title": "Kılıçtar",
+  "level.2.desc":
+    "Halifenin sadık cellâdı. Cesur, ama tahta başında dikkatsiz.",
+  "level.3.name": "Bermekî Cafer",
+  "level.3.title": "Vezir",
+  "level.3.desc": "Bermekîlerin zeki veziri. Sağlam bir oyun oynar.",
+  "level.4.name": "Harun Reşid",
+  "level.4.title": "Halife",
+  "level.4.desc":
+    "Bizzat Emîrü'l-Mü'minîn; şatrancın tutkulu bir hamisi.",
+  "level.5.name": "Cin",
+  "level.5.title": "Lambanın Cini",
+  "level.5.desc":
+    "Dumansız ateşten bir varlık. Ona karşı beraberliği koruyabilen ölümlü azdır.",
+
+  "piece.6.name": "Şah",
+  "piece.6.meaning": "Kral",
+  "piece.6.move": "Her yöne bir kare.",
+  "piece.2.name": "Firzan",
+  "piece.2.meaning": "Vezir, danışman",
+  "piece.2.move": "Çapraz bir kare. Vezirin atası.",
+  "piece.3.name": "Fil",
+  "piece.3.meaning": "Fil",
+  "piece.3.move":
+    "Çapraz tam iki kare sıçrar; aradaki taşın üzerinden atlar.",
+  "piece.4.name": "Feres",
+  "piece.4.meaning": "At",
+  "piece.4.move": "Bugünkü at gibi hareket eder.",
+  "piece.5.name": "Ruh",
+  "piece.5.meaning": "Savaş arabası",
+  "piece.5.move": "Kale gibi, yatay ya da dikey istediği kadar gider.",
+  "piece.1.name": "Beydak",
+  "piece.1.meaning": "Piyade",
+  "piece.1.move":
+    "Bir kare ileri gider (asla iki değil), çapraz ileri bir karedeki taşı alır. Firzana terfi eder.",
+};

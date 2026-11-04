@@ -4,16 +4,42 @@
  * Intl.PluralRules. Move notation (e4, Nf3…) is never translated.
  */
 
-export type Lang = "en" | "ja" | "ar" | "fa";
+import { es } from "./locales/es.ts";
+import { de } from "./locales/de.ts";
+import { fr } from "./locales/fr.ts";
+import { ru } from "./locales/ru.ts";
+import { tr } from "./locales/tr.ts";
+import { zh } from "./locales/zh.ts";
+import { ko } from "./locales/ko.ts";
+
+export type Lang =
+  | "en"
+  | "ja"
+  | "ar"
+  | "fa"
+  | "es"
+  | "de"
+  | "fr"
+  | "ru"
+  | "tr"
+  | "zh"
+  | "ko";
 
 export const LANGS: { code: Lang; name: string; dir: "ltr" | "rtl" }[] = [
   { code: "en", name: "English", dir: "ltr" },
   { code: "ja", name: "日本語", dir: "ltr" },
   { code: "ar", name: "العربية", dir: "rtl" },
   { code: "fa", name: "فارسی", dir: "rtl" },
+  { code: "es", name: "Español", dir: "ltr" },
+  { code: "de", name: "Deutsch", dir: "ltr" },
+  { code: "fr", name: "Français", dir: "ltr" },
+  { code: "ru", name: "Русский", dir: "ltr" },
+  { code: "tr", name: "Türkçe", dir: "ltr" },
+  { code: "zh", name: "中文", dir: "ltr" },
+  { code: "ko", name: "한국어", dir: "ltr" },
 ];
 
-type Dict = Record<string, string>;
+export type Dict = Record<string, string>;
 
 const en: Dict = {
   "meta.title": "Shatranj — the chess of Abbasid Baghdad",
@@ -751,13 +777,20 @@ const fa: Dict = {
     "یک خانه به جلو (هرگز دو خانه)، و یک خانهٔ مورب به جلو می‌زند. به فرزین ارتقا می‌یابد.",
 };
 
-const DICTS: Record<Lang, Dict> = { en, ja, ar, fa };
+const DICTS: Record<Lang, Dict> = { en, ja, ar, fa, es, de, fr, ru, tr, zh, ko };
 
 const LOCALES: Record<Lang, string> = {
   en: "en",
   ja: "ja",
   ar: "ar-u-nu-arab",
   fa: "fa-u-nu-arabext",
+  es: "es",
+  de: "de",
+  fr: "fr",
+  ru: "ru",
+  tr: "tr",
+  zh: "zh-Hans",
+  ko: "ko",
 };
 
 let lang: Lang = "en";
