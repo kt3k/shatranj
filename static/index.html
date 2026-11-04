@@ -92,11 +92,11 @@
     </header>
 
     <main
-      class="play-layout mx-auto max-w-6xl px-4 py-6 lg:py-10 grid gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      class="play-layout mx-auto max-w-6xl px-4 py-6 lg:py-10 grid gap-6 lg:gap-8 md:grid-cols-[minmax(0,1fr)_17rem] lg:grid-cols-[minmax(0,1fr)_22rem]">
       <!-- Board column -->
       <section class="min-w-0">
         <div
-          class="board-col mx-auto w-full flex flex-col gap-3 max-w-[min(100%,max(20rem,calc(100dvh-14rem)))] lg:max-w-[min(100%,max(24rem,calc(100dvh-12rem)))]">
+          class="board-col mx-auto w-full flex flex-col gap-3 max-w-[min(100%,max(20rem,calc(100dvh-14rem)))] md:max-w-[min(100%,max(20rem,calc(100dvh-12rem)))] lg:max-w-[min(100%,max(24rem,calc(100dvh-12rem)))]">
           <div class="player-bar" id="top-player"></div>
 
           <div class="board-frame w-full">
@@ -127,7 +127,7 @@
 
       <!-- Side panel -->
       <aside
-        class="side-panel flex flex-col gap-4 min-w-0 lg:sticky lg:top-24 lg:self-start">
+        class="side-panel flex flex-col gap-4 min-w-0 md:sticky md:top-24 md:self-start">
         <div class="card gap-4 py-5">
           <header class="px-5">
             <h2 class="flex items-center gap-2.5 text-base" aria-live="polite">
@@ -177,6 +177,50 @@
               class="moves-list moves-grid text-sm overflow-y-auto scrollbar"
               id="moves"></div>
           </section>
+          <footer class="px-5 flex items-center gap-1">
+            <button type="button" class="btn" data-variant="ghost"
+              data-size="icon-sm" id="nav-first"
+              aria-label="First position (Home)" title="First position (Home)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m11 17-5-5 5-5" />
+                <path d="m18 17-5-5 5-5" />
+              </svg>
+            </button>
+            <button type="button" class="btn" data-variant="ghost"
+              data-size="icon-sm" id="nav-prev" aria-label="Previous move (←)"
+              title="Previous move (←)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </button>
+            <button type="button" class="btn" data-variant="ghost"
+              data-size="icon-sm" id="nav-next" aria-label="Next move (→)"
+              title="Next move (→)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </button>
+            <button type="button" class="btn" data-variant="ghost"
+              data-size="icon-sm" id="nav-last" aria-label="Latest move (End)"
+              title="Latest move (End)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m6 17 5-5-5-5" />
+                <path d="m13 17 5-5-5-5" />
+              </svg>
+            </button>
+            <button type="button" class="btn ml-auto" data-variant="outline"
+              data-size="sm" id="nav-live" hidden>
+              Back to game
+            </button>
+          </footer>
         </div>
       </aside>
     </main>

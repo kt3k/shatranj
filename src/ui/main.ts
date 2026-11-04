@@ -47,6 +47,8 @@ const state = {
   hintSan: "",
   colorChoice: "white" as "white" | "black" | "random",
   cursor: sq(4, 1),
+  /** Ply being reviewed from the move list, or null when showing the live game. */
+  viewPly: null as number | null,
   result: { over: false } as GameResult,
   requestId: 0,
   animateTo: -1,
@@ -192,6 +194,7 @@ function requestHint() {
 // ---------------------------------------------------------------------------
 
 function applyMove(m: Move) {
+  state.viewPly = null;
   replay([...state.moves, m]);
   state.selected = -1;
   state.targets = [];
@@ -262,6 +265,7 @@ function newGame() {
   state.selected = -1;
   state.targets = [];
   clearHint();
+  state.viewPly = null;
   replay([]);
   save();
   render();
@@ -281,6 +285,7 @@ function undo() {
   state.selected = -1;
   state.targets = [];
   clearHint();
+  state.viewPly = null;
   replay(moves);
   save();
   render();
@@ -294,9 +299,39 @@ const sideAfter = (plies: number): Color => (plies % 2 === 0 ? WHITE : BLACK);
 // ---------------------------------------------------------------------------
 
 function canInteract() {
-  return !state.result.over && !state.thinking &&
+  return state.viewPly === null && !state.result.over && !state.thinking &&
     state.pos.side === state.player;
 }
+
+// ---------------------------------------------------------------------------
+// Reviewing past positions
+// ---------------------------------------------------------------------------
+
+let viewCache: { ply: number; key: string; pos: Position } | null = null;
+
+/** The position shown on the board: the live one, or a past one under review. */
+function shownPosition(): Position {
+  if (state.viewPly === null) return state.pos;
+  const key = state.moves.slice(0, state.viewPly).join(",");
+  if (viewCache?.key !== key) {
+    const pos = Position.initial();
+    for (const m of state.moves.slice(0, state.viewPly)) pos.makeMove(m);
+    viewCache = { ply: state.viewPly, key, pos };
+  }
+  return viewCache.pos;
+}
+
+/** Shows the position after `ply` half-moves (clamped); the last ply means live. */
+function viewAt(ply: number) {
+  const total = state.moves.length;
+  const p = Math.max(0, Math.min(total, ply));
+  state.viewPly = p === total ? null : p;
+  state.selected = -1;
+  state.targets = [];
+  render();
+}
+
+const currentPly = () => state.viewPly ?? state.moves.length;
 
 function isOwnPiece(s: number) {
   const pc = state.pos.board[s];
@@ -471,10 +506,13 @@ function render() {
 }
 
 function renderBoard() {
-  const pos = state.pos;
-  const last = state.moves.length > 0
-    ? state.moves[state.moves.length - 1]
-    : -1;
+  const pos = shownPosition();
+  const ply = currentPly();
+  const last = ply > 0 ? state.moves[ply - 1] : -1;
+  boardEl.closest(".board-frame")?.classList.toggle(
+    "reviewing",
+    state.viewPly !== null,
+  );
   const lastSquares = last === -1 ? [] : [moveFrom(last), moveTo(last)];
   const checkSq = pos.inCheck() ? pos.kingSq[pos.side === WHITE ? 0 : 1] : -1;
   const targetSquares = new Set(state.targets.map(moveTo));
@@ -544,7 +582,7 @@ function squareCentre(s: number): [number, number] {
 
 function renderOverlay() {
   const overlay = $("board-overlay");
-  if (state.hint.length !== 2) {
+  if (state.hint.length !== 2 || state.viewPly !== null) {
     overlay.innerHTML = "";
     return;
   }
@@ -621,6 +659,17 @@ function renderStatus() {
       `<svg class="thinking-star" viewBox="0 0 100 100"><use href="#star8"/></svg>`;
     title.textContent = `${level.name} is thinking…`;
     detail.textContent = level.description;
+  } else if (state.viewPly !== null) {
+    const ply = state.viewPly;
+    icon.innerHTML =
+      `<svg class="size-5 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>`;
+    title.textContent = ply === 0
+      ? "Reviewing the starting position"
+      : `Reviewing move ${Math.ceil(ply / 2)}${ply % 2 ? "." : "…"} ${
+        state.sans[ply - 1]
+      }`;
+    detail.textContent =
+      "Use ← → or the move list to step through the game. Press End to return.";
   } else if (state.hintSan) {
     icon.innerHTML = turnIcon(state.player);
     title.textContent = `Hint: ${state.hintSan}`;
@@ -655,16 +704,42 @@ function renderMoves() {
     return;
   }
   const html: string[] = [];
+  const shown = currentPly() - 1;
   for (let i = 0; i < state.sans.length; i += 2) {
     const n = i / 2 + 1;
     html.push(`<div class="num">${n}.</div>`);
     for (const j of [i, i + 1]) {
-      const cur = j === state.sans.length - 1 ? " current" : "";
-      html.push(`<div class="mv${cur}">${state.sans[j] ?? ""}</div>`);
+      if (j >= state.sans.length) {
+        html.push(`<div></div>`);
+        continue;
+      }
+      const cur = j === shown ? " current" : "";
+      html.push(
+        `<button type="button" class="mv${cur}" data-ply="${
+          j + 1
+        }" aria-label="Show position after ${n}${j % 2 ? "…" : "."} ${
+          state.sans[j]
+        }"${j === shown ? ' aria-current="step"' : ""}>${
+          state.sans[j]
+        }</button>`,
+      );
     }
   }
   el.innerHTML = html.join("");
-  el.scrollTop = el.scrollHeight;
+  const cur = el.querySelector<HTMLElement>(".mv.current");
+  if (state.viewPly === null) el.scrollTop = el.scrollHeight;
+  else cur?.scrollIntoView({ block: "nearest" });
+  renderMoveNav();
+}
+
+function renderMoveNav() {
+  const ply = currentPly();
+  const total = state.moves.length;
+  $<HTMLButtonElement>("nav-first").disabled = ply === 0;
+  $<HTMLButtonElement>("nav-prev").disabled = ply === 0;
+  $<HTMLButtonElement>("nav-next").disabled = ply >= total;
+  $<HTMLButtonElement>("nav-last").disabled = ply >= total;
+  $("nav-live").hidden = state.viewPly === null;
 }
 
 function materialOf(pieces: number[]) {
@@ -855,6 +930,15 @@ function init() {
     $<HTMLDialogElement>("result-dialog").close();
     openNewGameDialog();
   });
+  $("moves").addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>("[data-ply]");
+    if (b) viewAt(Number(b.dataset.ply));
+  });
+  $("nav-first").addEventListener("click", () => viewAt(0));
+  $("nav-prev").addEventListener("click", () => viewAt(currentPly() - 1));
+  $("nav-next").addEventListener("click", () => viewAt(currentPly() + 1));
+  $("nav-last").addEventListener("click", () => viewAt(state.moves.length));
+  $("nav-live").addEventListener("click", () => viewAt(state.moves.length));
   boardEl.addEventListener("keydown", onBoardKey);
   boardEl.addEventListener("focus", () => boardEl.classList.add("kbd-nav"));
   boardEl.addEventListener("blur", () => boardEl.classList.remove("kbd-nav"));
@@ -893,6 +977,13 @@ function init() {
     if (document.querySelector("dialog[open]")) return;
     const t = e.target as HTMLElement;
     if (t.closest("input, textarea, select")) return;
+    // Step through the game (the board itself uses arrows for its cursor).
+    if (t !== boardEl) {
+      if (e.key === "ArrowLeft") return viewAt(currentPly() - 1);
+      if (e.key === "ArrowRight") return viewAt(currentPly() + 1);
+    }
+    if (e.key === "Home") return viewAt(0);
+    if (e.key === "End") return viewAt(state.moves.length);
     const key = e.key.toLowerCase();
     if (key === "u") undo();
     else if (key === "h") requestHint();

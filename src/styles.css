@@ -594,7 +594,7 @@
 @media (min-width: 1024px) {
   /* Fill what is left of the viewport beside the board. */
   .moves-list {
-    max-height: max(6rem, calc(100dvh - 37rem));
+    max-height: max(6rem, calc(100dvh - 40rem));
   }
 }
 
@@ -613,5 +613,63 @@
   }
   .play-layout .board-col .board-frame {
     padding: 8px;
+  }
+}
+
+/* ------------------------------------------------------ Game review */
+
+.moves-grid button.mv {
+  text-align: left;
+  cursor: pointer;
+  transition: background 100ms;
+}
+.moves-grid button.mv:hover {
+  background: var(--accent);
+}
+.moves-grid button.mv:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+.moves-grid button.mv.current:hover {
+  background: color-mix(in oklch, var(--gold) 32%, transparent);
+}
+
+/* While reviewing a past position the board is read-only and marked. */
+.board-frame.reviewing::after {
+  content: "Reviewing";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0.15rem 0.7rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary-foreground);
+  background: var(--primary);
+  box-shadow: 0 0 0 2px var(--gold);
+  z-index: 5;
+}
+.board-frame.reviewing .board {
+  filter: saturate(0.75);
+}
+
+/* Tablet (two columns from md): tighter panel. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .side-panel .card > header,
+  .side-panel .card > section,
+  .side-panel .card > footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .side-panel #status-detail {
+    font-size: 0.8rem;
+  }
+}
+@media (min-width: 768px) {
+  .moves-list {
+    max-height: max(6rem, calc(100dvh - 40rem));
   }
 }

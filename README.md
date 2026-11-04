@@ -6,7 +6,8 @@ the computer, right in your browser.
 - Five opponents, from _Aladdin_ to _Hārūn al-Rashīd_ and the _Jinn_
 - Authentic rules: firzān, fīl (alfil), bare king, stalemate wins
 - Engine runs in a Web Worker (alpha-beta, transposition table, quiescence)
-- Drag-and-drop or click-to-move, take back, hints, dark mode
+- Drag-and-drop, click or keyboard play; take back, hints, dark mode
+- Click any move in the list (or use ← →) to review earlier positions
 - Your game is saved in the browser
 
 ## Development
