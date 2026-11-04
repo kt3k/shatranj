@@ -3,7 +3,7 @@
 Play **shatranj** — the medieval chess of the Abbasid court of Baghdad — against
 the computer, right in your browser.
 
-- Five opponents, from _Mubtadiʾ_ (the novice) to _Ṣūlī_ (the legend)
+- Five opponents, from _Aladdin_ to _Hārūn al-Rashīd_ and the _Jinn_
 - Authentic rules: firzān, fīl (alfil), bare king, stalemate wins
 - Engine runs in a Web Worker (alpha-beta, transposition table, quiescence)
 - Drag-and-drop or click-to-move, take back, hints, dark mode
