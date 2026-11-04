@@ -14,6 +14,9 @@ export const ko: Dict = {
     "샤트란지 판. 화살표 키로 커서를 움직이고 Enter로 기물을 들거나 놓으세요.",
   "square.piece": "{square} {side} {piece}",
   "board.reviewing": "복기 중",
+  "sr.played": "{name}의 수: {move}",
+  "sr.selected": "선택됨",
+  "sr.target": "이동 가능",
 
   "side.ivory": "상아",
   "side.ebony": "흑단",

@@ -13,6 +13,9 @@ export const zh: Dict = {
   "board.aria": "沙特兰兹棋盘。用方向键移动光标，按 Enter 拿起或放下棋子。",
   "square.piece": "{square} {side}{piece}",
   "board.reviewing": "复盘中",
+  "sr.played": "{name}走了 {move}",
+  "sr.selected": "已选中",
+  "sr.target": "可走",
 
   "side.ivory": "象牙",
   "side.ebony": "乌木",

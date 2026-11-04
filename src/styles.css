@@ -656,8 +656,8 @@
   filter: saturate(0.75);
 }
 
-/* Tablet (two columns from md): tighter panel. */
-@media (min-width: 768px) and (max-width: 1023px) {
+/* Tablet (two columns in landscape): tighter panel. */
+@media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
   .side-panel .card > header,
   .side-panel .card > section,
   .side-panel .card > footer {
@@ -981,4 +981,180 @@ html[lang="ru"] .font-display {
 }
 .dark .newcomer-link {
   color: var(--gold);
+}
+
+/* ------------------------------------------------------ Review round 4 */
+
+/* Two columns: desktop, and tablets in landscape. Portrait tablets stack,
+   so the board can use the full width. */
+@media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape)
+  and (min-height: 521px) {
+  .play-layout {
+    grid-template-columns: minmax(0, 1fr) 17rem;
+  }
+}
+@media (min-width: 1024px), (min-width: 768px) and (orientation: landscape) and
+  (min-height: 521px) {
+  /* The side panel scrolls on its own so the board always stays in view. */
+  .side-panel {
+    position: sticky;
+    top: 6rem;
+    align-self: start;
+    max-height: calc(100dvh - 7rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding: 2px; /* room for focus rings */
+    margin: -2px;
+  }
+  .moves-list {
+    max-height: 20rem;
+  }
+  .review-strip {
+    display: none !important;
+  }
+}
+
+/* Review strip under the board (single-column layouts). */
+.review-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.review-strip[hidden] {
+  display: none;
+}
+
+/* Result dialog: keep actions in a wrapping row on every screen size
+   (Basecoat stacks dialog footers in a column on phones). */
+.dialog .result-actions {
+  flex-direction: row !important;
+}
+.dialog .result-actions > .btn {
+  flex-shrink: 0;
+  min-height: 2.25rem;
+}
+/* A light scrim so the final position stays visible behind the result. */
+#result-dialog::backdrop {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: oklch(0.15 0.03 265 / 0.35);
+}
+
+/* Move-list footer wraps when "Back to game" is long. */
+#moves-nav {
+  flex-wrap: wrap;
+  row-gap: 0.35rem;
+}
+
+/* Captured pieces: one icon per type plus a count. */
+.cap-group {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-end: 0.15rem;
+}
+.captured .cap-group .piece {
+  margin-inline-end: 0;
+}
+.cap-n {
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Gold text with enough contrast on parchment (icons keep the bright gold). */
+:root {
+  --gold-text: oklch(0.5 0.1 72);
+}
+.dark {
+  --gold-text: var(--gold);
+}
+.font-arabic.text-gold,
+.text-gold[lang],
+#brand-secondary,
+.result-seal {
+  color: var(--gold-text);
+}
+
+/* Suggestions (hint, better move) are turquoise; gold stays "last move". */
+.hint-arrow {
+  stroke: var(--turquoise);
+}
+.hint-arrow-head {
+  fill: var(--turquoise);
+}
+.hint-ring {
+  stroke: var(--turquoise);
+}
+.square.hint::after {
+  background: oklch(0.62 0.09 195 / 0.25);
+}
+
+/* Board coordinates: stronger contrast on both square colours. */
+.square .coord {
+  color: oklch(0.42 0.07 55);
+  font-weight: 700;
+}
+.square.sq-d .coord {
+  color: oklch(0.97 0.02 85);
+}
+
+/* Stronger, solid focus rings (≥3:1). */
+:root {
+  --focus: oklch(0.4 0.13 262);
+}
+.dark {
+  --focus: var(--gold);
+}
+.btn:focus-visible,
+.newcomer-link:focus-visible,
+.seg label:has(input:focus-visible),
+.level-option:has(input:focus-visible),
+.lang-picker:focus-within,
+.moves-grid button.mv:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+.board.kbd-nav:focus-visible {
+  outline-color: var(--focus);
+}
+
+/* Newcomer link: plain text link. */
+.newcomer-link {
+  display: inline;
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+/* New-game dialog: a clear selected state, and compact cards on phones. */
+.level-option:has(input:checked)::after {
+  content: "";
+  flex-shrink: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 9999px;
+  background: var(--gold)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E")
+    center / 70% no-repeat;
+}
+@media (max-width: 420px) {
+  .level-option:not(:has(input:checked)) .level-desc {
+    display: none;
+  }
+}
+
+/* Scrolling the board into view leaves room for the sticky header. */
+.board-col {
+  scroll-margin-top: 4.75rem;
 }

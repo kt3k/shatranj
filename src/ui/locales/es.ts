@@ -14,6 +14,9 @@ export const es: Dict = {
     "Tablero de shatranj. Usa las flechas para mover el cursor y Enter para tomar o colocar una pieza.",
   "square.piece": "{square}: {piece} de {side}",
   "board.reviewing": "Revisando",
+  "sr.played": "{name} jugó {move}",
+  "sr.selected": "seleccionado",
+  "sr.target": "jugada legal",
 
   "side.ivory": "Marfil",
   "side.ebony": "Ébano",

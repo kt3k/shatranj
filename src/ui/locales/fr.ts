@@ -14,6 +14,9 @@ export const fr: Dict = {
     "Échiquier de shatranj. Utilisez les flèches pour déplacer le curseur et Entrée pour prendre ou poser une pièce.",
   "square.piece": "{square} : {piece} {side}",
   "board.reviewing": "Analyse en cours",
+  "sr.played": "{name} a joué {move}",
+  "sr.selected": "sélectionné",
+  "sr.target": "coup légal",
 
   "side.ivory": "Ivoire",
   "side.ebony": "Ébène",

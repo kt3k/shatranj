@@ -38,9 +38,9 @@ export function winChance(score: number): number {
   return 1 / (1 + Math.exp(-0.0035 * toCentipawns(score)));
 }
 
-/** Classifies a move by the drop in the mover's win chance (in percent). */
+/** Classifies a move by its effective loss (see `effectiveDrop`). */
 export function classify(drop: number, isBest: boolean): Classification {
-  if (isBest || drop < 2) return "best";
+  if (isBest || drop < 1) return "best";
   if (drop < 6) return "good";
   if (drop < 12) return "inaccuracy";
   if (drop < 22) return "mistake";
@@ -51,6 +51,17 @@ export function classify(drop: number, isBest: boolean): Classification {
 export function moveAccuracy(drop: number): number {
   const a = 103.1668 * Math.exp(-0.04354 * drop) - 3.1669;
   return Math.max(0, Math.min(100, a));
+}
+
+/**
+ * How much a move gave away, on a 0–100 scale. Mostly the drop in winning
+ * chances, but in already-decided positions that curve is flat, so material
+ * thrown away still counts: 25 centipawns ≈ 1 point (a rukh ≈ 21).
+ */
+export function effectiveDrop(before: number, after: number): number {
+  const wc = (winChance(before) - winChance(after)) * 100;
+  const cp = Math.min(toCentipawns(before) - toCentipawns(after), 2500) / 25;
+  return Math.max(0, wc, cp);
 }
 
 export interface MoveReview {
@@ -79,7 +90,7 @@ export function reviewMoves(
     if (sb == null || sa == null) break;
     const before = sb;
     const after = -sa;
-    const drop = Math.max(0, (winChance(before) - winChance(after)) * 100);
+    const drop = effectiveDrop(before, after);
     const isBest = best[i] === moves[i];
     out.push({
       ply: i,

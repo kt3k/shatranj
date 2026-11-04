@@ -14,6 +14,9 @@ export const ru: Dict = {
     "Доска шатранджа. Перемещайте курсор стрелками; Enter — взять или поставить фигуру.",
   "square.piece": "{square}: {piece} {side}",
   "board.reviewing": "Разбор",
+  "sr.played": "{name}: ход {move}",
+  "sr.selected": "выбрано",
+  "sr.target": "возможный ход",
 
   "side.ivory": "Слоновая кость",
   "side.ebony": "Эбен",

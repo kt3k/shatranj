@@ -3,6 +3,7 @@ import { encodeMove, parseSquare, Position } from "./position.ts";
 import {
   analysePosition,
   classify,
+  effectiveDrop,
   formatScore,
   gameAccuracy,
   moveAccuracy,
@@ -23,7 +24,8 @@ Deno.test("win chance is symmetric and monotonic", () => {
 
 Deno.test("classification thresholds", () => {
   assertEquals(classify(30, true), "best");
-  assertEquals(classify(1, false), "best");
+  assertEquals(classify(0.5, false), "best");
+  assertEquals(classify(1.5, false), "good");
   assertEquals(classify(4, false), "good");
   assertEquals(classify(8, false), "inaccuracy");
   assertEquals(classify(15, false), "mistake");
@@ -82,4 +84,12 @@ Deno.test("one blunder pulls game accuracy down noticeably", () => {
   assert(clean > 97);
   assert(oneBlunder < clean - 8, `${oneBlunder}`);
   assertEquals(gameAccuracy([]), 0);
+});
+
+Deno.test("material thrown away counts even in a decided position", () => {
+  // Already lost by 15 pawns; giving up another rukh barely moves the
+  // win-chance curve but is still a blunder.
+  assert(effectiveDrop(-1500, -2020) > 20);
+  // A quiet equal move is not penalised.
+  assert(effectiveDrop(20, 10) < 1);
 });

@@ -234,8 +234,15 @@ function requestHint() {
 // ---------------------------------------------------------------------------
 
 function applyMove(m: Move) {
+  const byAI = state.pos.side !== state.player;
   state.viewPly = null;
   replay([...state.moves, m]);
+  if (byAI) {
+    announce(t("sr.played", {
+      name: lname(state.level),
+      move: state.sans[state.sans.length - 1],
+    }));
+  }
   state.selected = -1;
   state.targets = [];
   clearHint();
@@ -247,6 +254,14 @@ function applyMove(m: Move) {
   } else {
     requestAIMove();
   }
+}
+
+/** Polite screen-reader announcement. */
+function announce(text: string) {
+  const el = $("sr-live");
+  el.textContent = "";
+  // A fresh text node after a tick makes repeated messages announce too.
+  setTimeout(() => (el.textContent = text), 50);
 }
 
 function clearHint() {
@@ -385,10 +400,25 @@ function viewAt(ply: number) {
   // After the game, stay in review mode on the final move so its review shows.
   const keep = p === total && state.result.over && !!Review.reviewOf(p - 1);
   state.viewPly = p === total && !keep ? null : p;
-  review.showBest = false;
+  clearHint();
+  // For real errors, go straight to the better move.
+  const r = state.viewPly !== null ? Review.reviewOf(state.viewPly - 1) : null;
+  review.showBest = !!r &&
+    (r.classification === "mistake" || r.classification === "blunder");
   state.selected = -1;
   state.targets = [];
   render();
+}
+
+const narrow = () => matchMedia("(max-width: 767px)").matches;
+/** On phones the move list sits below the board: bring the board back. */
+function revealBoard() {
+  if (!narrow()) return;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  boardEl.closest(".board-col")?.scrollIntoView({
+    block: "start",
+    behavior: reduce ? "auto" : "smooth",
+  });
 }
 
 function goLive() {
@@ -564,6 +594,7 @@ const STAR_SVG = `<svg viewBox="0 0 100 100"><use href="#star8"/></svg>`;
 
 function render() {
   renderBoard();
+  renderReviewStrip();
   renderStatus();
   renderMoves();
   renderPlayers();
@@ -582,6 +613,7 @@ function renderBoard() {
   const interact = canInteract();
   const html: string[] = [];
   for (let row = 0; row < 8; row++) {
+    html.push(`<div role="row" class="contents">`);
     for (let col = 0; col < 8; col++) {
       const file = state.flipped ? 7 - col : col;
       const rank = state.flipped ? row : 7 - row;
@@ -591,7 +623,7 @@ function renderBoard() {
       if ((file + rank) % 2 === 0) cls.push("sq-d");
       if (lastSquares.includes(s)) cls.push("last");
       if (s === state.selected) cls.push("selected");
-      if (state.hint.includes(s)) cls.push("hint");
+      if (state.viewPly === null && state.hint.includes(s)) cls.push("hint");
       if (targetSquares.has(s)) {
         cls.push("target");
         if (pc !== EMPTY) cls.push("occupied");
@@ -616,19 +648,25 @@ function renderBoard() {
         inner += svg;
       }
       const squareName = `${"abcdefgh"[file]}${rank + 1}`;
-      const label = pc === EMPTY ? squareName : t("square.piece", {
+      let label = pc === EMPTY ? squareName : t("square.piece", {
         square: squareName,
         side: t(pc > 0 ? "side.ivory.lower" : "side.ebony.lower"),
         piece: t(`piece.${Math.abs(pc)}.name`),
       });
+      if (s === state.selected) label += `, ${t("sr.selected")}`;
+      else if (targetSquares.has(s)) label += `, ${t("sr.target")}`;
       html.push(
         `<div class="${
           cls.join(" ")
-        }" data-sq="${s}" role="gridcell" aria-label="${label}">${inner}</div>`,
+        }" data-sq="${s}" id="sq-${s}" role="gridcell" aria-label="${label}"${
+          s === state.selected ? ' aria-selected="true"' : ""
+        }>${inner}</div>`,
       );
     }
+    html.push(`</div>`);
   }
   boardEl.innerHTML = html.join("");
+  boardEl.setAttribute("aria-activedescendant", `sq-${state.cursor}`);
   state.animateTo = -1;
   renderOverlay();
 }
@@ -781,7 +819,9 @@ function renderStatus() {
     title.textContent = ply === 0
       ? t("status.reviewStart")
       : t("status.reviewMove", { move: ltr(moveLabel(ply - 1)) });
-    detail.textContent = t("status.reviewHelp");
+    detail.textContent = matchMedia("(pointer: coarse)").matches
+      ? ""
+      : t("status.reviewHelp");
   } else if (state.hintSan) {
     icon.innerHTML = turnIcon(state.player);
     title.textContent = t("status.hint", { move: ltr(state.hintSan) });
@@ -798,10 +838,9 @@ function renderStatus() {
         state.player === WHITE ? "status.pickUp.ivory" : "status.pickUp.ebony",
       );
     if (state.moves.length < 2 && !inCheck) {
-      extra =
-        `<button type="button" class="btn newcomer-link" data-variant="link" data-size="sm" id="newcomer-btn">${
-          t("status.newcomer")
-        }</button>`;
+      extra = `<button type="button" class="newcomer-link" id="newcomer-btn">${
+        t("status.newcomer")
+      }</button>`;
     }
   }
   $("status-extra").innerHTML = extra;
@@ -863,6 +902,37 @@ function renderMoves() {
   if (state.viewPly === null) el.scrollTop = el.scrollHeight;
   else cur?.scrollIntoView({ block: "nearest" });
   renderMoveNav();
+}
+
+/** Compact move navigation under the board (phones). */
+function renderReviewStrip() {
+  const el = $("review-strip");
+  if (state.viewPly === null || state.moves.length === 0) {
+    el.hidden = true;
+    return;
+  }
+  el.hidden = false;
+  const ply = state.viewPly;
+  const r = ply > 0 ? Review.reviewOf(ply - 1) : undefined;
+  const label = ply === 0 ? t("status.reviewStart") : ltr(
+    moveLabel(ply - 1) +
+      (r ? CLASS_INFO[r.classification].symbol.replace("★", "") : ""),
+  );
+  el.innerHTML = `
+    <button type="button" class="btn" data-variant="outline" data-size="icon" data-step="-1" aria-label="${
+    t("nav.prev")
+  }" ${
+    ply === 0 ? "disabled" : ""
+  }><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+    <span class="flex-1 min-w-0 truncate text-center text-sm font-medium">${label}</span>
+    <button type="button" class="btn" data-variant="outline" data-size="icon" data-step="1" aria-label="${
+    t("nav.next")
+  }" ${
+    ply >= state.moves.length ? "disabled" : ""
+  }><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+    <button type="button" class="btn" data-size="sm" data-live>${
+    t("nav.live")
+  }</button>`;
 }
 
 function renderMoveNav() {
@@ -1049,8 +1119,8 @@ function renderPlayers() {
     const toMove = !state.result.over && state.pos.side === color;
     const name = isAI
       ? `<span class="font-medium">${lname(level.id)}</span>
-         ${arabicAside(level.arabic)}
-         <span class="badge" data-variant="outline">${
+         ${arabicAside(level.arabic, "max-sm:hidden")}
+         <span class="badge shrink-0" data-variant="outline">${
         t("player.level", { n: level.id })
       }</span>
          ${
@@ -1062,14 +1132,14 @@ function renderPlayers() {
       }`
       : `<span class="font-medium">${t("player.you")}</span>`;
     return `
-      <div class="flex items-center gap-2 min-w-0">
+      <div class="flex items-center gap-2 min-w-0 flex-1">
         <span class="turn-icon${toMove ? " to-move" : ""}" title="${
       toMove ? t("player.toMove", { side: sideName(color) }) : sideName(color)
     }">${pieceSVG(color * SHAH)}</span>
         ${name}
       </div>
-      <div class="captured flex items-center min-w-0 overflow-hidden">
-        ${taken.map((p) => pieceSVG(p)).join("")}
+      <div class="captured flex items-center shrink-0">
+        ${groupCaptured(taken)}
         ${
       adv > 0
         ? `<span class="ms-3 text-xs text-muted-foreground" dir="ltr">+${
@@ -1083,6 +1153,17 @@ function renderPlayers() {
   $("bottom-player").innerHTML = row(bottomColor);
   renderOpponent();
   renderReview();
+}
+
+/** Captured pieces as one icon per type with a count ("♟×3"). */
+function groupCaptured(pieces: number[]): string {
+  const counts = new Map<number, number>();
+  for (const p of pieces) counts.set(p, (counts.get(p) ?? 0) + 1);
+  return [...counts].map(([p, n]) =>
+    `<span class="cap-group">${pieceSVG(p)}${
+      n > 1 ? `<span class="cap-n" dir="ltr">×${num(n)}</span>` : ""
+    }</span>`
+  ).join("");
 }
 
 function renderOpponent() {
@@ -1107,7 +1188,12 @@ function renderOpponent() {
   }</div>
         <p class="text-sm mt-1.5 text-pretty">${ldesc(l.id)}</p>
       </div>
-    </section>`;
+    </section>
+    <footer class="px-5">
+      <button type="button" class="btn w-full" data-variant="outline" data-size="sm" id="change-opponent-btn">${
+    t("btn.changeOpponent")
+  }</button>
+    </footer>`;
 }
 
 function showResult() {
@@ -1144,7 +1230,7 @@ function renderLevels() {
           ${lname(l.id)}
           ${arabicAside(l.arabic, "text-sm")}
         </span>
-        <span class="text-xs text-muted-foreground"><span class="text-foreground/80">${
+        <span class="level-desc text-xs text-muted-foreground"><span class="text-foreground/80">${
       ltitle(l.id)
     }</span> · ${ldesc(l.id)}</span>
       </span>
@@ -1263,7 +1349,7 @@ function init() {
   });
 
   $("new-game-btn").addEventListener("click", () => {
-    if (state.result.over || state.moves.length === 0) newGame();
+    if (state.result.over) newGame();
     else openNewGameDialog();
   });
   $("start-game-btn").addEventListener("click", startFromDialog);
@@ -1277,7 +1363,21 @@ function init() {
   });
   $("moves").addEventListener("click", (e) => {
     const b = (e.target as HTMLElement).closest<HTMLElement>("[data-ply]");
-    if (b) viewAt(Number(b.dataset.ply));
+    if (b) {
+      viewAt(Number(b.dataset.ply));
+      revealBoard();
+    }
+  });
+  $("review-strip").addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>("button");
+    if (!b) return;
+    if (b.dataset.live !== undefined) goLive();
+    else viewAt(currentPly() + Number(b.dataset.step));
+  });
+  $("opponent-card").addEventListener("click", (e) => {
+    if ((e.target as Element).closest("#change-opponent-btn")) {
+      openNewGameDialog();
+    }
   });
   $("nav-first").addEventListener("click", () => viewAt(0));
   $("nav-prev").addEventListener("click", () => viewAt(currentPly() - 1));
@@ -1299,6 +1399,7 @@ function init() {
       const svg = t.closest("#eval-graph")!.getBoundingClientRect();
       const x = ((e as MouseEvent).clientX - svg.left) / svg.width;
       viewAt(Math.round(x * state.moves.length));
+      revealBoard();
     }
   });
   $("status-extra").addEventListener("click", (e) => {
@@ -1313,6 +1414,13 @@ function init() {
   });
   boardEl.addEventListener("keydown", onBoardKey);
   boardEl.addEventListener("blur", () => boardEl.classList.remove("kbd-nav"));
+  // Show the cursor as soon as the board is reached with Tab.
+  boardEl.addEventListener("focus", () => {
+    if (boardEl.matches(":focus-visible")) {
+      boardEl.classList.add("kbd-nav");
+      renderBoard();
+    }
+  });
   boardEl.addEventListener(
     "pointerdown",
     () => boardEl.classList.remove("kbd-nav"),

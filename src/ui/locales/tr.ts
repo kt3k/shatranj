@@ -14,6 +14,9 @@ export const tr: Dict = {
     "Şatranc tahtası. İmleci ok tuşlarıyla hareket ettir, taşı almak ya da bırakmak için Enter'a bas.",
   "square.piece": "{square} {side} {piece}",
   "board.reviewing": "İnceleniyor",
+  "sr.played": "Hamle ({name}): {move}",
+  "sr.selected": "seçili",
+  "sr.target": "geçerli hamle",
 
   "side.ivory": "Fildişi",
   "side.ebony": "Abanoz",

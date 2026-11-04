@@ -55,6 +55,9 @@ const en: Dict = {
     "Shatranj board. Use arrow keys to move the cursor and Enter to pick up or place a piece.",
   "square.piece": "{square} {side} {piece}",
   "board.reviewing": "Reviewing",
+  "sr.played": "{name} played {move}",
+  "sr.selected": "selected",
+  "sr.target": "legal move",
 
   "side.ivory": "Ivory",
   "side.ebony": "Ebony",
@@ -247,6 +250,9 @@ const ja: Dict = {
     "シャトランジの盤。矢印キーでカーソルを動かし、Enter で駒を持ち上げる・置く。",
   "square.piece": "{square} {side}の{piece}",
   "board.reviewing": "振り返り中",
+  "sr.played": "{name}の手: {move}",
+  "sr.selected": "選択中",
+  "sr.target": "移動可能",
 
   "side.ivory": "象牙",
   "side.ebony": "黒檀",
@@ -431,6 +437,9 @@ const ar: Dict = {
     "رقعة الشطرنج. استخدم مفاتيح الأسهم لتحريك المؤشر، و Enter لرفع القطعة أو وضعها.",
   "square.piece": "{square} {piece} {side}",
   "board.reviewing": "مراجعة",
+  "sr.played": "لعب {name}: {move}",
+  "sr.selected": "محدد",
+  "sr.target": "نقلة مشروعة",
 
   "side.ivory": "العاج",
   "side.ebony": "الأبنوس",
@@ -611,6 +620,9 @@ const fa: Dict = {
     "صفحهٔ شطرنج. با کلیدهای جهت‌نما مکان‌نما را جابه‌جا کنید و با Enter مهره را بردارید یا بگذارید.",
   "square.piece": "{square} {piece} {side}",
   "board.reviewing": "بازبینی",
+  "sr.played": "{name} بازی کرد: {move}",
+  "sr.selected": "انتخاب‌شده",
+  "sr.target": "حرکت مجاز",
 
   "side.ivory": "عاج",
   "side.ebony": "آبنوس",

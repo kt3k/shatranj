@@ -15,13 +15,16 @@ export const de: Dict = {
     "Schatrandsch-Brett. Bewege den Cursor mit den Pfeiltasten; mit Enter nimmst du eine Figur auf oder setzt sie ab.",
   "square.piece": "{square}: {piece} ({side})",
   "board.reviewing": "Analyse",
+  "sr.played": "{name} zieht {move}",
+  "sr.selected": "ausgewählt",
+  "sr.target": "möglicher Zug",
 
   "side.ivory": "Elfenbein",
   "side.ebony": "Ebenholz",
   "side.ivory.lower": "Elfenbein",
   "side.ebony.lower": "Ebenholz",
 
-  "btn.undo": "Zurück",
+  "btn.undo": "Zurücknehmen",
   "btn.undo.title": "Deinen letzten Zug zurücknehmen (U)",
   "btn.hint": "Tipp",
   "btn.hint.title": "Einen Zug vorschlagen (H)",
