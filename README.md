@@ -10,9 +10,11 @@ the computer, right in your browser.
 - Click any move in the list (or use ← →) to review earlier positions
 - Game review: the engine classifies every move (best … blunder), shows the
   better move on the board, an evaluation graph and accuracy for both sides
-- Interface in 11 languages — English, 日本語, العربية, فارسی, Español, Deutsch,
-  Français, Русский, Türkçe, 中文, 한국어 (right-to-left layout for Arabic and
-  Persian); picks your browser language, switch any time
+- Interface in 13 languages — English, 日本語, العربية, فارسی, Español, Deutsch,
+  Français, Русский, Türkçe, 中文, 한국어, Coptic (ⲧⲙⲛ̄ⲧⲣⲙ̄ⲛ̄ⲕⲏⲙⲉ, the language of
+  9th-century Egypt) and, as a playful extra, Middle Egyptian in hieroglyphs
+  (𓂋𓈖𓆎𓅓𓏏𓊖); right-to-left layout for Arabic and Persian; picks your browser
+  language, switch any time
 - Your game is saved in the browser
 
 ## Development
