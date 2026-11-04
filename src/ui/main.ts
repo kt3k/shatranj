@@ -585,7 +585,9 @@ function showResult() {
   else if (res.winner === state.player) title = "You are victorious";
   else title = `${LEVELS.find((l) => l.id === state.level)!.name} prevails`;
   $("result-title").textContent = title;
-  $("result-detail").textContent = `${r.text} (${state.sans.length} plies)`;
+  $("result-detail").textContent = `${r.text} (${
+    Math.ceil(state.sans.length / 2)
+  } moves)`;
   $<HTMLDialogElement>("result-dialog").showModal();
 }
 
