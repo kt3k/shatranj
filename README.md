@@ -10,6 +10,8 @@ the computer, right in your browser.
 - Click any move in the list (or use ← →) to review earlier positions
 - Game review: the engine classifies every move (best … blunder), shows the
   better move on the board, an evaluation graph and accuracy for both sides
+- Interface in English, 日本語, العربية and فارسی (right-to-left layout for
+  Arabic and Persian); picks your browser language, switch any time
 - Your game is saved in the browser
 
 ## Development

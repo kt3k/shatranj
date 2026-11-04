@@ -22,6 +22,21 @@ import {
   winChance,
 } from "../engine/analysis.ts";
 import * as Review from "./review.ts";
+import {
+  applyStatic,
+  currentLang,
+  detectLang,
+  isArabicScript,
+  isRTL,
+  type Lang,
+  LANGS,
+  ltr,
+  num,
+  percent,
+  saveLang,
+  setLang,
+  t,
+} from "./i18n.ts";
 import { review } from "./review.ts";
 import type { WorkerRequest, WorkerResponse } from "./worker.ts";
 
@@ -39,8 +54,22 @@ interface Saved {
 
 const STORAGE_KEY = "shatranj:game";
 const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+const PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
 const toArabicDigits = (n: number) =>
-  String(n).replace(/\d/g, (d) => ARABIC_DIGITS[Number(d)]);
+  String(n).replace(
+    /\d/g,
+    (d) => (currentLang() === "fa" ? PERSIAN_DIGITS : ARABIC_DIGITS)[Number(d)],
+  );
+
+/** Localised opponent name / title / description. */
+const lname = (id: number) => t(`level.${id}.name`);
+const ltitle = (id: number) => t(`level.${id}.title`);
+const ldesc = (id: number) => t(`level.${id}.desc`);
+/** Original Arabic name shown beside a translated one (not in ar/fa). */
+const arabicAside = (arabic: string, extra = "") =>
+  isArabicScript()
+    ? ""
+    : `<span class="font-arabic text-gold ${extra}" lang="ar">${arabic}</span>`;
 
 const state = {
   moves: [] as Move[],
@@ -544,10 +573,9 @@ function renderBoard() {
   const pos = shownPosition();
   const ply = boardPly();
   const last = ply > 0 ? state.moves[ply - 1] : -1;
-  boardEl.closest(".board-frame")?.classList.toggle(
-    "reviewing",
-    state.viewPly !== null,
-  );
+  const frame = boardEl.closest<HTMLElement>(".board-frame");
+  frame?.classList.toggle("reviewing", state.viewPly !== null);
+  if (frame) frame.dataset.label = t("board.reviewing");
   const lastSquares = last === -1 ? [] : [moveFrom(last), moveTo(last)];
   const checkSq = pos.inCheck() ? pos.kingSq[pos.side === WHITE ? 0 : 1] : -1;
   const targetSquares = new Set(state.targets.map(moveTo));
@@ -587,13 +615,12 @@ function renderBoard() {
         }
         inner += svg;
       }
-      const label = `${"abcdefgh"[file]}${rank + 1}${
-        pc !== EMPTY
-          ? ` ${pc > 0 ? "ivory" : "ebony"} ${
-            PIECE_INFO[Math.abs(pc)].english.toLowerCase()
-          }`
-          : ""
-      }`;
+      const squareName = `${"abcdefgh"[file]}${rank + 1}`;
+      const label = pc === EMPTY ? squareName : t("square.piece", {
+        square: squareName,
+        side: t(pc > 0 ? "side.ivory.lower" : "side.ebony.lower"),
+        piece: t(`piece.${Math.abs(pc)}.name`),
+      });
       html.push(
         `<div class="${
           cls.join(" ")
@@ -674,32 +701,19 @@ function turnIcon(c: Color) {
 }
 
 function sideName(c: Color) {
-  return c === WHITE ? "Ivory" : "Ebony";
+  return t(c === WHITE ? "side.ivory" : "side.ebony");
 }
 
-const REASONS: Record<string, { seal: string; text: string }> = {
-  checkmate: { seal: "شاه مات", text: "Shāh māt — the king is helpless." },
-  stalemate: {
-    seal: "شاه مات",
-    text: "Stalemate — in shatranj, a king with no move is defeated.",
-  },
-  "bare-king": {
-    seal: "الملك وحيد",
-    text: "Bare king — the shāh stands alone on the field.",
-  },
-  "draw-bare": {
-    seal: "تعادل",
-    text: "Both kings were stripped bare. The game is drawn.",
-  },
-  repetition: {
-    seal: "تعادل",
-    text: "The same position arose three times. The game is drawn.",
-  },
-  "move-limit": {
-    seal: "تعادل",
-    text: "Seventy moves passed without progress. The game is drawn.",
-  },
+/** Arabic seals shown in the result dialog (decorative, not translated). */
+const SEALS: Record<string, string> = {
+  checkmate: "شاه مات",
+  stalemate: "شاه مات",
+  "bare-king": "الملك وحيد",
+  "draw-bare": "تعادل",
+  repetition: "تعادل",
+  "move-limit": "تعادل",
 };
+const reasonText = (reason: string) => t(`reason.${reason}`);
 
 function renderStatus() {
   const level = LEVELS.find((l) => l.id === state.level)!;
@@ -710,49 +724,52 @@ function renderStatus() {
   let extra = "";
   if (res.over && state.viewPly === null) {
     icon.innerHTML = "";
-    if (res.winner === 0) title.textContent = "Drawn game";
-    else if (res.winner === state.player) title.textContent = "Victory!";
-    else title.textContent = "Defeat";
-    detail.textContent = REASONS[res.reason].text;
+    if (res.winner === 0) title.textContent = t("status.draw");
+    else if (res.winner === state.player) {
+      title.textContent = t("status.victory");
+    } else title.textContent = t("status.defeat");
+    detail.textContent = reasonText(res.reason);
   } else if (state.thinking && pendingHint) {
     icon.innerHTML =
       `<svg class="thinking-star" viewBox="0 0 100 100"><use href="#star8"/></svg>`;
-    title.textContent = "Consulting the treatises…";
-    detail.textContent = "Searching for a good move for you.";
+    title.textContent = t("status.hintThinking");
+    detail.textContent = t("status.hintThinking.detail");
   } else if (state.thinking) {
     icon.innerHTML =
       `<svg class="thinking-star" viewBox="0 0 100 100"><use href="#star8"/></svg>`;
-    title.textContent = `${level.name} is thinking…`;
-    detail.textContent = level.description;
+    title.textContent = t("status.thinking", { name: lname(level.id) });
+    detail.textContent = ldesc(level.id);
   } else if (state.viewPly !== null && Review.reviewOf(state.viewPly - 1)) {
     const ply = state.viewPly;
     const r = Review.reviewOf(ply - 1)!;
     const info = CLASS_INFO[r.classification];
     icon.innerHTML = classBadge(r.classification);
     const who = r.color === state.player
-      ? "Your move"
-      : `${LEVELS.find((l) => l.id === state.level)!.name}'s move`;
-    title.textContent = `${moveLabel(ply - 1)}${
-      info.symbol.replace("★", "")
-    } · ${info.label}`;
+      ? t("review.byYou")
+      : t("review.byThem", { name: lname(state.level) });
+    title.textContent = `${
+      ltr(moveLabel(ply - 1) + info.symbol.replace("★", ""))
+    } · ${t(`class.${r.classification}`)}`;
     const sign = r.color === WHITE ? 1 : -1;
-    const evalText = `Evaluation for Ivory ${formatScore(sign * r.before)} → ${
-      formatScore(sign * r.after)
-    }`;
+    const evalText = t("review.eval", {
+      before: ltr(formatScore(sign * r.before)),
+      after: ltr(formatScore(sign * r.after)),
+    });
+    const sep = currentLang() === "ja" ? "。" : ". ";
     if (r.classification === "best" || r.best === r.played) {
-      detail.textContent = `${who}. ${evalText}. ${
-        r.best === r.played
-          ? "The engine agrees."
-          : "As good as the engine's choice."
+      detail.textContent = `${who}${sep}${evalText}${sep}${
+        r.best === r.played ? t("review.agrees") : t("review.asGood")
       }`;
     } else {
-      const bestSan = positionAt(ply - 1).toSAN(r.best);
-      detail.textContent = `${who}. Better was ${bestSan}. ${evalText}.`;
+      const bestSan = ltr(positionAt(ply - 1).toSAN(r.best));
+      detail.textContent = `${who}${sep}${
+        t("review.better", { move: bestSan })
+      } ${evalText}`;
       extra =
         `<button type="button" class="btn" data-variant="outline" data-size="sm" id="show-best-btn" aria-pressed="${review.showBest}">${
           review.showBest
-            ? "Back to the move played"
-            : `Show ${bestSan} on the board`
+            ? t("review.backToPlayed")
+            : t("review.showBest", { move: bestSan })
         }</button>`;
     }
   } else if (state.viewPly !== null) {
@@ -760,35 +777,33 @@ function renderStatus() {
     icon.innerHTML =
       `<svg class="size-5 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>`;
     title.textContent = ply === 0
-      ? "Reviewing the starting position"
-      : `Reviewing move ${Math.ceil(ply / 2)}${ply % 2 ? "." : "…"} ${
-        state.sans[ply - 1]
-      }`;
-    detail.textContent =
-      "Use ← → or the move list to step through the game. Press End to return.";
+      ? t("status.reviewStart")
+      : t("status.reviewMove", { move: ltr(moveLabel(ply - 1)) });
+    detail.textContent = t("status.reviewHelp");
   } else if (state.hintSan) {
     icon.innerHTML = turnIcon(state.player);
-    title.textContent = `Hint: ${state.hintSan}`;
-    detail.textContent =
-      "The arrow shows the suggested move. Play it, or choose your own.";
+    title.textContent = t("status.hint", { move: ltr(state.hintSan) });
+    detail.textContent = t("status.hint.detail");
   } else {
     icon.innerHTML = turnIcon(state.player);
     const inCheck = state.pos.inCheck();
-    title.textContent = inCheck ? "Shāh! Your king is in check" : "Your move";
+    title.textContent = inCheck ? t("status.check") : t("status.yourMove");
     detail.textContent = inCheck
-      ? "Move your king to safety, block, or capture the attacker."
+      ? t("status.check.detail")
       : state.selected !== -1
-      ? "Choose a highlighted square, or pick another piece."
-      : `Pick up one of your ${
-        sideName(state.player).toLowerCase()
-      } pieces — click or drag.`;
+      ? t("status.selected")
+      : t(
+        state.player === WHITE ? "status.pickUp.ivory" : "status.pickUp.ebony",
+      );
   }
   $("status-extra").innerHTML = extra;
   $("status-extra").hidden = extra === "";
   $<HTMLButtonElement>("undo-btn").disabled = state.moves.length === 0;
   $<HTMLButtonElement>("hint-btn").disabled = !canInteract();
   const newBtn = $("new-game-btn");
-  newBtn.lastChild!.textContent = res.over ? " Play again" : " New game";
+  $("new-game-label").textContent = res.over
+    ? t("btn.playAgain")
+    : t("btn.newGame");
   if (res.over) delete newBtn.dataset.variant;
   else newBtn.dataset.variant = "secondary";
 }
@@ -796,10 +811,12 @@ function renderStatus() {
 function renderMoves() {
   const el = $("moves");
   const n = Math.ceil(state.sans.length / 2);
-  $("move-count").textContent = n === 0 ? "" : `${n} move${n === 1 ? "" : "s"}`;
+  $("move-count").textContent = n === 0 ? "" : t("moves.count", { n });
   if (state.sans.length === 0) {
     el.innerHTML =
-      `<div class="col-span-3 text-muted-foreground py-2 text-center">No moves yet.</div>`;
+      `<div class="col-span-3 text-muted-foreground py-2 text-center">${
+        t("moves.empty")
+      }</div>`;
     return;
   }
   const html: string[] = [];
@@ -824,11 +841,11 @@ function renderMoves() {
       html.push(
         `<button type="button" class="mv${cur}${cls}" data-ply="${
           j + 1
-        }" aria-label="Show position after ${n}${j % 2 ? "…" : "."} ${
+        }" aria-label="${t("moves.aria", { move: moveLabel(j) })}${
+          r ? ` (${t(`class.${r.classification}`)})` : ""
+        }"${j === shown ? ' aria-current="step"' : ""}>${
           state.sans[j]
-        }${r ? ` (${CLASS_INFO[r.classification].label})` : ""}"${
-          j === shown ? ' aria-current="step"' : ""
-        }>${state.sans[j]}${mark}</button>`,
+        }${mark}</button>`,
       );
     }
   }
@@ -887,68 +904,65 @@ function renderReview() {
   let body = "";
   if (!Review.hasReview() && !review.running) {
     body = `
-      <p class="text-sm text-muted-foreground text-pretty">
-        Let the engine go over the game move by move: blunders, missed wins
-        and the better moves you could have played.
-      </p>
+      <p class="text-sm text-muted-foreground text-pretty">${
+      t("review.intro")
+    }</p>
       <button type="button" class="btn w-full" id="review-start-btn" ${
       total < 2 ? "disabled" : ""
-    }>${STAR_ICON} Review this game</button>`;
+    }>${STAR_ICON} ${t("review.start")}</button>`;
   } else {
     const me = summarize(reviews, state.player);
     const them = summarize(reviews, -state.player as Color);
     const row = (c: Classification) =>
       `<div class="review-row cls-${c}"><span class="class-badge cls-${c}">${
         CLASS_INFO[c].symbol
-      }</span><span>${PLURAL[c]}</span><span class="tabular-nums">${
-        me.counts[c]
-      }</span><span class="tabular-nums">${them.counts[c]}</span></div>`;
+      }</span><span>${
+        t(`class.${c}.plural`)
+      }</span><span class="tabular-nums">${
+        num(me.counts[c])
+      }</span><span class="tabular-nums">${num(them.counts[c])}</span></div>`;
     const progress = review.running
       ? `<div class="flex items-center gap-2 text-xs text-muted-foreground">
           <svg class="thinking-star" viewBox="0 0 100 100"><use href="#star8"/></svg>
-          <span class="flex-1">Analysing… ${
-        Math.min(done, needed)
-      } / ${needed} positions</span>
-          <button type="button" class="btn" data-variant="ghost" data-size="xs" id="review-cancel-btn">Stop</button>
+          <span class="flex-1">${
+        t("review.analysing", { done: Math.min(done, needed), total: needed })
+      }</span>
+          <button type="button" class="btn" data-variant="ghost" data-size="xs" id="review-cancel-btn">${
+        t("review.stop")
+      }</button>
         </div>
         <div class="review-progress"><span style="width:${
         (100 * done / needed).toFixed(1)
       }%"></span></div>`
       : !Review.isComplete()
       ? `<button type="button" class="btn w-full" data-variant="outline" data-size="sm" id="review-start-btn">
-          Analyse the remaining ${needed - done} positions</button>`
+          ${t("review.remaining", { n: needed - done })}</button>`
       : "";
     body = `
       ${evalGraph()}
       ${progress}
       <div class="review-table text-sm">
         <div class="review-row review-head"><span></span><span></span>
-          <span>You</span><span class="truncate">${level.name}</span></div>
-        <div class="review-row review-acc"><span></span><span>Accuracy</span>
-          <span>${
-      reviewsFor(state.player) ? me.accuracy.toFixed(0) + "%" : "–"
+          <span>${t("review.you")}</span><span class="truncate">${
+      lname(level.id)
+    }</span></div>
+        <div class="review-row review-acc"><span></span><span>${
+      t("review.accuracy")
     }</span>
+          <span>${reviewsFor(state.player) ? percent(me.accuracy) : "–"}</span>
           <span>${
-      reviewsFor(-state.player as Color) ? them.accuracy.toFixed(0) + "%" : "–"
+      reviewsFor(-state.player as Color) ? percent(them.accuracy) : "–"
     }</span></div>
         ${row("blunder")}${row("mistake")}${row("inaccuracy")}${row("best")}
       </div>
-      <p class="text-xs text-muted-foreground">Click the graph or a move to see what the engine thought.</p>`;
+      <p class="text-xs text-muted-foreground">${t("review.footnote")}</p>`;
   }
   card.innerHTML = `
     <header class="px-5">
-      <h2 class="font-display text-lg">Game review</h2>
+      <h2 class="font-display text-lg">${t("review.title")}</h2>
     </header>
     <section class="px-5 flex flex-col gap-3">${body}</section>`;
 }
-
-const PLURAL: Record<Classification, string> = {
-  best: "Best moves",
-  good: "Good",
-  inaccuracy: "Inaccuracies",
-  mistake: "Mistakes",
-  blunder: "Blunders",
-};
 
 const reviewsFor = (c: Color) => Review.reviews().some((r) => r.color === c);
 
@@ -985,7 +999,7 @@ function evalGraph(): string {
   const cx = (currentPly() / total) * W;
   return `
     <svg class="eval-graph" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"
-      role="img" aria-label="Evaluation graph. Ivory area shows ivory's chances." id="eval-graph">
+      role="img" aria-label="${t("review.graph")}" id="eval-graph" dir="ltr">
       <rect width="${W}" height="${H}" class="graph-bg"/>
       <path d="${area}" class="graph-area"/>
       <line x1="0" y1="${H / 2}" x2="${W}" y2="${H / 2}" class="graph-mid"/>
@@ -1018,27 +1032,33 @@ function renderPlayers() {
     const adv = color === WHITE ? diff : -diff;
     const toMove = !state.result.over && state.pos.side === color;
     const name = isAI
-      ? `<span class="font-medium">${level.name}</span>
-         <span class="font-arabic text-gold" lang="ar">${level.arabic}</span>
-         <span class="badge" data-variant="outline">Level ${level.id}</span>
+      ? `<span class="font-medium">${lname(level.id)}</span>
+         ${arabicAside(level.arabic)}
+         <span class="badge" data-variant="outline">${
+        t("player.level", { n: level.id })
+      }</span>
          ${
         state.thinking && !pendingHint
-          ? `<span class="flex items-center gap-1 text-xs text-muted-foreground"><svg class="thinking-star" viewBox="0 0 100 100"><use href="#star8"/></svg>thinking</span>`
+          ? `<span class="flex items-center gap-1 text-xs text-muted-foreground"><svg class="thinking-star" viewBox="0 0 100 100"><use href="#star8"/></svg>${
+            t("player.thinking")
+          }</span>`
           : ""
       }`
-      : `<span class="font-medium">You</span>`;
+      : `<span class="font-medium">${t("player.you")}</span>`;
     return `
       <div class="flex items-center gap-2 min-w-0">
         <span class="turn-icon${toMove ? " to-move" : ""}" title="${
-      sideName(color)
-    }${toMove ? " — to move" : ""}">${pieceSVG(color * SHAH)}</span>
+      toMove ? t("player.toMove", { side: sideName(color) }) : sideName(color)
+    }">${pieceSVG(color * SHAH)}</span>
         ${name}
       </div>
       <div class="captured flex items-center min-w-0 overflow-hidden">
         ${taken.map((p) => pieceSVG(p)).join("")}
         ${
       adv > 0
-        ? `<span class="ml-3 text-xs text-muted-foreground">+${adv}</span>`
+        ? `<span class="ms-3 text-xs text-muted-foreground" dir="ltr">+${
+          num(adv)
+        }</span>`
         : ""
     }
       </div>`;
@@ -1053,7 +1073,9 @@ function renderOpponent() {
   const l = LEVELS.find((l) => l.id === state.level)!;
   $("opponent-card").innerHTML = `
     <header class="px-5">
-      <span class="text-xs uppercase tracking-wider text-muted-foreground">Your opponent</span>
+      <span class="text-xs uppercase tracking-wider text-muted-foreground">${
+    t("opponent.label")
+  }</span>
     </header>
     <section class="px-5 flex items-start gap-3">
       <span class="star-badge size-11">${STAR_SVG}<span>${
@@ -1061,11 +1083,13 @@ function renderOpponent() {
   }</span></span>
       <div class="min-w-0">
         <div class="flex items-baseline gap-2 flex-wrap">
-          <span class="font-display text-lg leading-tight">${l.name}</span>
-          <span class="font-arabic text-gold" lang="ar">${l.arabic}</span>
+          <span class="font-display text-lg leading-tight">${lname(l.id)}</span>
+          ${arabicAside(l.arabic)}
         </div>
-        <div class="text-xs text-muted-foreground">${l.title} · Level ${l.id} of 5</div>
-        <p class="text-sm mt-1.5 text-pretty">${l.description}</p>
+        <div class="text-xs text-muted-foreground">${ltitle(l.id)} · ${
+    t("opponent.levelOf", { n: l.id, total: LEVELS.length })
+  }</div>
+        <p class="text-sm mt-1.5 text-pretty">${ldesc(l.id)}</p>
       </div>
     </section>`;
 }
@@ -1073,21 +1097,22 @@ function renderOpponent() {
 function showResult() {
   const res = state.result;
   if (!res.over) return;
-  const r = REASONS[res.reason];
-  $("result-seal").textContent = r.seal;
+  $("result-seal").textContent = SEALS[res.reason];
   let title: string;
-  if (res.winner === 0) title = "A drawn game";
-  else if (res.winner === state.player) title = "You are victorious";
-  else title = `${LEVELS.find((l) => l.id === state.level)!.name} prevails`;
+  if (res.winner === 0) title = t("result.draw");
+  else if (res.winner === state.player) title = t("result.win");
+  else title = t("result.lose", { name: lname(state.level) });
   $("result-title").textContent = title;
-  $("result-detail").textContent = `${r.text} (${
-    Math.ceil(state.sans.length / 2)
-  } moves)`;
+  $("result-detail").textContent = t("result.detail", {
+    text: reasonText(res.reason),
+    n: Math.ceil(state.sans.length / 2),
+  });
   $<HTMLDialogElement>("result-dialog").showModal();
 }
 
 function renderLevels() {
   const el = $("level-list");
+  el.querySelectorAll(".level-option").forEach((n) => n.remove());
   el.insertAdjacentHTML(
     "beforeend",
     LEVELS.map((l) => `
@@ -1100,12 +1125,16 @@ function renderLevels() {
     }</span></span>
       <span class="flex flex-col min-w-0 flex-1">
         <span class="text-sm font-medium flex items-baseline gap-2 flex-wrap">
-          ${l.name}
-          <span class="font-arabic text-gold text-sm" lang="ar">${l.arabic}</span>
+          ${lname(l.id)}
+          ${arabicAside(l.arabic, "text-sm")}
         </span>
-        <span class="text-xs text-muted-foreground"><span class="text-foreground/80">${l.title}</span> · ${l.description}</span>
+        <span class="text-xs text-muted-foreground"><span class="text-foreground/80">${
+      ltitle(l.id)
+    }</span> · ${ldesc(l.id)}</span>
       </span>
-      <span class="ml-auto flex gap-0.5 shrink-0" aria-label="Strength ${l.id} of 5">${
+      <span class="ms-auto flex gap-0.5 shrink-0" aria-label="${
+      t("level.strength", { n: l.id, total: LEVELS.length })
+    }">${
       Array.from(
         { length: 5 },
         (_, i) =>
@@ -1120,22 +1149,23 @@ function renderLevels() {
 
 function renderRules() {
   const order = [SHAH, 2, 3, 4, 5, 1];
-  $("rules-pieces").innerHTML = order.map((t) => {
-    const info = PIECE_INFO[t];
+  $("rules-pieces").innerHTML = order.map((pt) => {
+    const info = PIECE_INFO[pt];
+    const meaning = t(`piece.${pt}.meaning`);
     return `
       <div class="flex items-center gap-3 rounded-lg border p-2">
         <div class="flex shrink-0 size-12 items-center justify-center rounded-md bg-[var(--sq-light)]">
-          ${pieceSVG(t)}
+          ${pieceSVG(pt)}
         </div>
         <div class="min-w-0">
-          <div class="font-medium flex items-baseline gap-2">
-            ${info.name}
-            <span class="font-arabic text-gold" lang="ar">${info.arabic}</span>
-            <span class="text-xs text-muted-foreground">${info.english}${
-      info.letter ? ` · ${info.letter}` : ""
+          <div class="font-medium flex items-baseline gap-2 flex-wrap">
+            ${t(`piece.${pt}.name`)}
+            ${arabicAside(info.arabic)}
+            <span class="text-xs text-muted-foreground">${
+      [meaning, info.letter].filter(Boolean).join(" · ")
     }</span>
           </div>
-          <div class="text-muted-foreground">${info.move}</div>
+          <div class="text-muted-foreground">${t(`piece.${pt}.move`)}</div>
         </div>
       </div>`;
   }).join("");
@@ -1145,9 +1175,50 @@ function renderRules() {
 // Boot
 // ---------------------------------------------------------------------------
 
+/** Applies the UI language: direction, static text and dynamic parts. */
+function applyLanguage(l: Lang) {
+  setLang(l);
+  const root = document.documentElement;
+  root.lang = l;
+  root.dir = isRTL() ? "rtl" : "ltr";
+  document.title = t("meta.title");
+  document
+    .querySelector('meta[name="description"]')
+    ?.setAttribute("content", t("meta.description"));
+  applyStatic();
+  // The secondary brand line is Arabic script unless the UI already is.
+  const sec = $("brand-secondary");
+  sec.lang = isArabicScript() ? "en" : "ar";
+  sec.className = isArabicScript()
+    ? "font-display text-base text-gold"
+    : "font-arabic text-xl text-gold";
+  $("brand-primary").classList.toggle("font-arabic", isArabicScript());
+  $("brand-primary").classList.toggle("font-display", !isArabicScript());
+  const sub = document.querySelector<HTMLElement>(
+    '[data-i18n="rules.subtitle"]',
+  );
+  if (sub) sub.hidden = t("rules.subtitle") === "";
+  $<HTMLSelectElement>("lang-select").value = l;
+  renderLevels();
+  syncSetupInputs();
+  renderRules();
+}
+
 function init() {
   boardEl = $("board");
   createWorker();
+
+  const select = $<HTMLSelectElement>("lang-select");
+  select.innerHTML = LANGS.map((l) =>
+    `<option value="${l.code}" lang="${l.code}">${l.name}</option>`
+  ).join("");
+  select.addEventListener("change", () => {
+    const l = select.value as Lang;
+    saveLang(l);
+    applyLanguage(l);
+    render();
+  });
+  applyLanguage(detectLang());
 
   const saved = load();
   if (saved) {
@@ -1159,9 +1230,7 @@ function init() {
     if (!replay(saved.moves)) replay([]);
   }
   Review.restore(state.moves);
-  renderLevels();
   syncSetupInputs();
-  renderRules();
 
   boardEl.addEventListener("pointerdown", onPointerDown);
   globalThis.addEventListener("pointermove", onPointerMove);

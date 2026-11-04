@@ -434,7 +434,7 @@
 .captured .piece {
   width: 1.6rem;
   height: 1.6rem;
-  margin-right: -0.45rem;
+  margin-inline-end: -0.45rem;
   filter: none;
 }
 
@@ -636,7 +636,7 @@
 
 /* While reviewing a past position the board is read-only and marked. */
 .board-frame.reviewing::after {
-  content: "Reviewing";
+  content: attr(data-label);
   position: absolute;
   top: 0;
   left: 50%;
@@ -832,4 +832,87 @@
 }
 .played-arrow-head {
   fill: oklch(0.45 0.02 262 / 0.75);
+}
+
+/* ------------------------------------------------------ Languages */
+
+/* Arabic & Persian: Vazirmatn for running text, Reem Kufi for display. */
+html:is([lang="ar"], [lang="fa"]) body {
+  font-family: "Vazirmatn", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+html:is([lang="ar"], [lang="fa"]) .font-display {
+  font-family: var(--font-arabic);
+  letter-spacing: 0;
+}
+html:is([lang="ar"], [lang="fa"]) .tracking-wide,
+html:is([lang="ar"], [lang="fa"]) .tracking-wider {
+  letter-spacing: 0;
+}
+html:is([lang="ar"], [lang="fa"]) .uppercase {
+  text-transform: none;
+}
+/* Move notation and Latin brand line stay in the Latin font. */
+html:is([lang="ar"], [lang="fa"]) :is(.moves-grid, [lang="en"]) {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+html:is([lang="ar"], [lang="fa"]) #brand-secondary {
+  font-family: var(--font-display);
+}
+
+/* Japanese: system Japanese fonts after Inter (Latin) for crisp kana. */
+html[lang="ja"] body {
+  font-family: "Inter", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+    "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+}
+html[lang="ja"] .font-display {
+  font-family: "Marcellus", "Hiragino Mincho ProN", "Yu Mincho",
+    "Noto Serif JP", serif;
+}
+
+/* Language picker: a compact native select with a globe icon. */
+.lang-picker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 2rem;
+  padding-inline: 0.5rem 0.25rem;
+  border-radius: calc(var(--radius) - 2px);
+  color: var(--foreground);
+  cursor: pointer;
+}
+.lang-picker:hover {
+  background: var(--accent);
+}
+.lang-picker:focus-within {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+.lang-picker select {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  outline: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding-inline-end: 0.85rem;
+  cursor: pointer;
+  color: inherit;
+  background-image: var(--chevron-down-icon);
+  background-repeat: no-repeat;
+  background-size: 0.8rem;
+  background-position: right center;
+}
+[dir="rtl"] .lang-picker select {
+  background-position: left center;
+}
+.lang-picker select option {
+  color: var(--popover-foreground);
+  background: var(--popover);
+}
+
+/* RTL: the board, notation and graph stay left-to-right. */
+[dir="rtl"] .seg label,
+[dir="rtl"] .level-option {
+  text-align: start;
 }
