@@ -24,6 +24,7 @@ interface Saved {
   player: Color;
   level: number;
   flipped: boolean;
+  colorChoice?: "white" | "black" | "random";
 }
 
 const STORAGE_KEY = "shatranj:game";
@@ -43,6 +44,9 @@ const state = {
   targets: [] as Move[],
   thinking: false,
   hint: [] as number[],
+  hintSan: "",
+  colorChoice: "white" as "white" | "black" | "random",
+  cursor: sq(4, 1),
   result: { over: false } as GameResult,
   requestId: 0,
   animateTo: -1,
@@ -67,6 +71,7 @@ function save() {
       player: state.player,
       level: state.level,
       flipped: state.flipped,
+      colorChoice: state.colorChoice,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
   } catch {
@@ -129,6 +134,7 @@ function onWorkerMessage(e: MessageEvent<WorkerResponse>) {
     pendingHint = false;
     state.thinking = false;
     state.hint = [moveFrom(move), moveTo(move)];
+    state.hintSan = state.pos.toSAN(move);
     render();
     return;
   }
@@ -189,7 +195,7 @@ function applyMove(m: Move) {
   replay([...state.moves, m]);
   state.selected = -1;
   state.targets = [];
-  state.hint = [];
+  clearHint();
   state.animateTo = moveTo(m);
   save();
   render();
@@ -200,8 +206,32 @@ function applyMove(m: Move) {
   }
 }
 
-function newGame() {
-  cancelThinking();
+function clearHint() {
+  state.hint = [];
+  state.hintSan = "";
+}
+
+/** Reflects the current settings into the new-game dialog's inputs. */
+function syncSetupInputs() {
+  for (
+    const input of document.querySelectorAll<HTMLInputElement>(
+      'input[name="level"]',
+    )
+  ) input.checked = Number(input.value) === state.level;
+  for (
+    const input of document.querySelectorAll<HTMLInputElement>(
+      'input[name="color"]',
+    )
+  ) input.checked = input.value === state.colorChoice;
+}
+
+function openNewGameDialog() {
+  syncSetupInputs();
+  $<HTMLDialogElement>("new-game-dialog").showModal();
+}
+
+/** Starts a new game with the settings chosen in the new-game dialog. */
+function startFromDialog() {
   const levelInput = document.querySelector<HTMLInputElement>(
     'input[name="level"]:checked',
   );
@@ -209,16 +239,26 @@ function newGame() {
   const colorInput = document.querySelector<HTMLInputElement>(
     'input[name="color"]:checked',
   );
-  const choice = colorInput?.value ?? "white";
+  const v = colorInput?.value;
+  state.colorChoice = v === "black" || v === "random" ? v : "white";
+  $<HTMLDialogElement>("new-game-dialog").close();
+  newGame();
+}
+
+/** Starts a new game with the current settings. */
+function newGame() {
+  cancelThinking();
+  const choice = state.colorChoice;
   state.player = choice === "black"
     ? BLACK
     : choice === "random"
     ? (Math.random() < 0.5 ? WHITE : BLACK)
     : WHITE;
   state.flipped = state.player === BLACK;
+  state.cursor = state.player === WHITE ? sq(4, 1) : sq(4, 6);
   state.selected = -1;
   state.targets = [];
-  state.hint = [];
+  clearHint();
   replay([]);
   save();
   render();
@@ -237,7 +277,7 @@ function undo() {
   );
   state.selected = -1;
   state.targets = [];
-  state.hint = [];
+  clearHint();
   replay(moves);
   save();
   render();
@@ -380,6 +420,35 @@ function onPointerUp(e: PointerEvent) {
   }
 }
 
+// Keyboard play: arrows move a cursor, Enter/Space picks up or places.
+function onBoardKey(e: KeyboardEvent) {
+  const dirs: Record<string, [number, number]> = {
+    ArrowUp: [0, 1],
+    ArrowDown: [0, -1],
+    ArrowLeft: [-1, 0],
+    ArrowRight: [1, 0],
+  };
+  if (e.key in dirs) {
+    e.preventDefault();
+    let [df, dr] = dirs[e.key];
+    if (state.flipped) [df, dr] = [-df, -dr];
+    const file = Math.min(7, Math.max(0, (state.cursor % 10) - 1 + df));
+    const rank = Math.min(
+      7,
+      Math.max(0, Math.floor(state.cursor / 10) - 2 + dr),
+    );
+    state.cursor = sq(file, rank);
+    boardEl.classList.add("kbd-nav");
+    renderBoard();
+    return;
+  }
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    boardEl.classList.add("kbd-nav");
+    onSquareClick(state.cursor);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Rendering
 // ---------------------------------------------------------------------------
@@ -424,6 +493,7 @@ function renderBoard() {
         if (pc !== EMPTY) cls.push("occupied");
       }
       if (s === checkSq) cls.push("check");
+      if (s === state.cursor) cls.push("cursor");
       if (interact && (isOwnPiece(s) || targetSquares.has(s))) {
         cls.push("clickable");
       }
@@ -457,6 +527,41 @@ function renderBoard() {
   }
   boardEl.innerHTML = html.join("");
   state.animateTo = -1;
+  renderOverlay();
+}
+
+/** Centre of a square in the 800×800 overlay coordinate system. */
+function squareCentre(s: number): [number, number] {
+  const file = (s % 10) - 1;
+  const rank = Math.floor(s / 10) - 2;
+  const col = state.flipped ? 7 - file : file;
+  const row = state.flipped ? rank : 7 - rank;
+  return [col * 100 + 50, row * 100 + 50];
+}
+
+function renderOverlay() {
+  const overlay = $("board-overlay");
+  if (state.hint.length !== 2) {
+    overlay.innerHTML = "";
+    return;
+  }
+  const [x1, y1] = squareCentre(state.hint[0]);
+  const [x2, y2] = squareCentre(state.hint[1]);
+  const len = Math.hypot(x2 - x1, y2 - y1);
+  const ux = (x2 - x1) / len, uy = (y2 - y1) / len;
+  // Start a little off the origin centre, stop before the arrow head.
+  const sx = x1 + ux * 22, sy = y1 + uy * 22;
+  const ex = x2 - ux * 30, ey = y2 - uy * 30;
+  overlay.innerHTML = `
+    <defs>
+      <marker id="hint-head" viewBox="0 0 10 10" refX="3" refY="5"
+        markerWidth="3.2" markerHeight="3.2" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" class="hint-arrow-head"/>
+      </marker>
+    </defs>
+    <circle cx="${x1}" cy="${y1}" r="44" class="hint-ring"/>
+    <line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" class="hint-arrow"
+      marker-end="url(#hint-head)"/>`;
 }
 
 function sideName(c: Color) {
@@ -509,20 +614,38 @@ function renderStatus() {
       `<svg class="thinking-star" viewBox="0 0 100 100"><use href="#star8"/></svg>`;
     title.textContent = `${level.name} is thinking…`;
     detail.textContent = level.description;
+  } else if (state.hintSan) {
+    icon.innerHTML = `<span class="turn-chip turn-${
+      state.player === WHITE ? "ivory" : "ebony"
+    }"></span>`;
+    title.textContent = `Hint: ${state.hintSan}`;
+    detail.textContent =
+      "The arrow shows the suggested move. Play it, or choose your own.";
   } else {
-    icon.innerHTML = "";
+    icon.innerHTML = `<span class="turn-chip turn-${
+      state.player === WHITE ? "ivory" : "ebony"
+    }"></span>`;
     const inCheck = state.pos.inCheck();
     title.textContent = inCheck ? "Shāh! Your king is in check" : "Your move";
-    detail.textContent = `You play the ${
-      sideName(state.player).toLowerCase()
-    } pieces against ${level.name}, ${level.title.toLowerCase()}.`;
+    detail.textContent = inCheck
+      ? "Move your king to safety, block, or capture the attacker."
+      : state.selected !== -1
+      ? "Choose a highlighted square, or pick another piece."
+      : `Pick up one of your ${
+        sideName(state.player).toLowerCase()
+      } pieces — click or drag.`;
   }
   $<HTMLButtonElement>("undo-btn").disabled = state.moves.length === 0;
   $<HTMLButtonElement>("hint-btn").disabled = !canInteract();
+  const newBtn = $("new-game-btn");
+  newBtn.lastChild!.textContent = res.over ? " Play again" : " New game";
+  newBtn.dataset.variant = res.over ? "default" : "secondary";
 }
 
 function renderMoves() {
   const el = $("moves");
+  const n = Math.ceil(state.sans.length / 2);
+  $("move-count").textContent = n === 0 ? "" : `${n} move${n === 1 ? "" : "s"}`;
   if (state.sans.length === 0) {
     el.innerHTML =
       `<div class="col-span-3 text-muted-foreground py-2 text-center">No moves yet.</div>`;
@@ -564,7 +687,12 @@ function renderPlayers() {
     const name = isAI
       ? `<span class="font-medium">${level.name}</span>
          <span class="font-arabic text-gold" lang="ar">${level.arabic}</span>
-         <span class="badge" data-variant="outline">Level ${level.id}</span>`
+         <span class="badge" data-variant="outline">Level ${level.id}</span>
+         ${
+        state.thinking && !pendingHint
+          ? `<span class="flex items-center gap-1 text-xs text-muted-foreground"><svg class="thinking-star" viewBox="0 0 100 100"><use href="#star8"/></svg>thinking</span>`
+          : ""
+      }`
       : `<span class="font-medium">You</span>`;
     return `
       <div class="flex items-center gap-2 min-w-0">
@@ -586,6 +714,28 @@ function renderPlayers() {
   };
   $("top-player").innerHTML = row(topColor);
   $("bottom-player").innerHTML = row(bottomColor);
+  renderOpponent();
+}
+
+function renderOpponent() {
+  const l = LEVELS.find((l) => l.id === state.level)!;
+  $("opponent-card").innerHTML = `
+    <header class="px-5">
+      <span class="text-xs uppercase tracking-wider text-muted-foreground">Your opponent</span>
+    </header>
+    <section class="px-5 flex items-start gap-3">
+      <span class="star-badge size-11">${STAR_SVG}<span>${
+    toArabicDigits(l.id)
+  }</span></span>
+      <div class="min-w-0">
+        <div class="flex items-baseline gap-2 flex-wrap">
+          <span class="font-display text-lg leading-tight">${l.name}</span>
+          <span class="font-arabic text-gold" lang="ar">${l.arabic}</span>
+        </div>
+        <div class="text-xs text-muted-foreground">${l.title} · Level ${l.id} of 5</div>
+        <p class="text-sm mt-1.5 text-pretty">${l.description}</p>
+      </div>
+    </section>`;
 }
 
 function showResult() {
@@ -616,24 +766,24 @@ function renderLevels() {
       <span class="star-badge">${STAR_SVG}<span>${
       toArabicDigits(l.id)
     }</span></span>
-      <span class="flex flex-col min-w-0">
-        <span class="text-sm font-medium flex items-baseline gap-2">
+      <span class="flex flex-col min-w-0 flex-1">
+        <span class="text-sm font-medium flex items-baseline gap-2 flex-wrap">
           ${l.name}
           <span class="font-arabic text-gold text-sm" lang="ar">${l.arabic}</span>
         </span>
-        <span class="text-xs text-muted-foreground truncate">${l.title}</span>
+        <span class="text-xs text-muted-foreground"><span class="text-foreground/80">${l.title}</span> · ${l.description}</span>
       </span>
+      <span class="ml-auto flex gap-0.5 shrink-0" aria-label="Strength ${l.id} of 5">${
+      Array.from(
+        { length: 5 },
+        (_, i) =>
+          `<span class="size-1.5 rounded-full ${
+            i < l.id ? "bg-gold" : "bg-border"
+          }"></span>`,
+      ).join("")
+    }</span>
     </label>`).join(""),
   );
-  // Changing the level mid-game applies to the opponent's next move.
-  el.addEventListener("change", (e) => {
-    const t = e.target as HTMLInputElement;
-    if (t.name === "level") {
-      state.level = Number(t.value);
-      save();
-      render();
-    }
-  });
 }
 
 function renderRules() {
@@ -672,16 +822,12 @@ function init() {
     state.player = saved.player === BLACK ? BLACK : WHITE;
     state.level = LEVELS.some((l) => l.id === saved.level) ? saved.level : 3;
     state.flipped = !!saved.flipped;
+    state.colorChoice = saved.colorChoice ??
+      (state.player === WHITE ? "white" : "black");
     if (!replay(saved.moves)) replay([]);
   }
-  const colorInput = document.querySelector<HTMLInputElement>(
-    `input[name="color"][value="${
-      state.player === WHITE ? "white" : "black"
-    }"]`,
-  );
-  if (colorInput) colorInput.checked = true;
-
   renderLevels();
+  syncSetupInputs();
   renderRules();
 
   boardEl.addEventListener("pointerdown", onPointerDown);
@@ -695,11 +841,26 @@ function init() {
     }
   });
 
-  $("new-game-btn").addEventListener("click", newGame);
+  $("new-game-btn").addEventListener("click", () => {
+    if (state.result.over || state.moves.length === 0) newGame();
+    else openNewGameDialog();
+  });
+  $("start-game-btn").addEventListener("click", startFromDialog);
   $("result-new-btn").addEventListener("click", () => {
     $<HTMLDialogElement>("result-dialog").close();
     newGame();
   });
+  $("result-change-btn").addEventListener("click", () => {
+    $<HTMLDialogElement>("result-dialog").close();
+    openNewGameDialog();
+  });
+  boardEl.addEventListener("keydown", onBoardKey);
+  boardEl.addEventListener("focus", () => boardEl.classList.add("kbd-nav"));
+  boardEl.addEventListener("blur", () => boardEl.classList.remove("kbd-nav"));
+  boardEl.addEventListener(
+    "pointerdown",
+    () => boardEl.classList.remove("kbd-nav"),
+  );
   $("undo-btn").addEventListener("click", undo);
   $("hint-btn").addEventListener("click", requestHint);
   $("flip-btn").addEventListener("click", () => {
@@ -724,7 +885,18 @@ function init() {
       state.selected = -1;
       state.targets = [];
       render();
+      return;
     }
+    // Single-key shortcuts, unless typing or a dialog is open.
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (document.querySelector("dialog[open]")) return;
+    const t = e.target as HTMLElement;
+    if (t.closest("input, textarea, select")) return;
+    const key = e.key.toLowerCase();
+    if (key === "u") undo();
+    else if (key === "h") requestHint();
+    else if (key === "f") $("flip-btn").click();
+    else if (key === "n") $("new-game-btn").click();
   });
 
   render();

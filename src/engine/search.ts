@@ -1,7 +1,6 @@
 import {
   ALFIL,
   BAIDAQ,
-  type Color,
   EMPTY,
   FARAS,
   FERZ,

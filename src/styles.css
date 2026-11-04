@@ -338,6 +338,7 @@
 }
 
 .level-option {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -449,4 +450,98 @@
   font-size: 2.6rem;
   line-height: 1.2;
   color: var(--gold);
+}
+
+/* ------------------------------------------------------ Review refinements */
+
+/* Hint: a gilded arrow drawn over the board, distinct from selection. */
+.board-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+}
+.hint-arrow {
+  stroke: var(--gold);
+  stroke-width: 15;
+  stroke-linecap: round;
+  opacity: 0.9;
+  filter: drop-shadow(0 2px 3px oklch(0 0 0 / 0.35));
+}
+.hint-arrow-head {
+  fill: var(--gold);
+}
+.hint-ring {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 6;
+  stroke-dasharray: 10 8;
+  opacity: 0.9;
+}
+.square.hint::after {
+  background: oklch(0.8 0.14 85 / 0.22);
+  animation: none;
+}
+
+/* Keyboard cursor (only shown while navigating with the keyboard). */
+.board:focus {
+  outline: none;
+}
+.board.kbd-nav:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.board.kbd-nav .square.cursor {
+  box-shadow: inset 0 0 0 4px var(--gold);
+  z-index: 3;
+}
+
+/* Turn chip shown in the status card. */
+.turn-chip {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--gold);
+}
+.turn-chip.turn-ivory {
+  background: var(--ivory-fill);
+}
+.turn-chip.turn-ebony {
+  background: var(--ebony-fill);
+}
+
+/* Larger coordinates on small boards. */
+.square .coord {
+  font-size: clamp(9px, 1.5vmin, 11px);
+}
+
+/* Ebony pieces get a brass outline in dark mode for contrast. */
+.dark .piece-ebony .pc-body {
+  stroke: oklch(0.62 0.09 78);
+}
+
+.star-badge.size-11 {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+.star-badge.size-11 span {
+  font-size: 1.1rem;
+}
+
+.level-option {
+  min-width: 0;
+  position: relative;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .piece-anim,
+  .thinking-star {
+    animation: none;
+  }
+  .piece {
+    transition: none;
+  }
 }

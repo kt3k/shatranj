@@ -112,8 +112,12 @@
           <svg class="rosette right-1 bottom-1" fill="currentColor">
             <use href="#star8" />
           </svg>
-          <div class="board" id="board" role="grid"
-            aria-label="Shatranj board"></div>
+          <div class="relative">
+            <div class="board" id="board" role="grid" tabindex="0"
+              aria-label="Shatranj board. Use arrow keys to move the cursor and Enter to pick up or place a piece."></div>
+            <svg class="board-overlay" id="board-overlay" viewBox="0 0 800 800"
+              aria-hidden="true"></svg>
+          </div>
         </div>
 
         <div class="flex items-center justify-between gap-2 text-sm"
@@ -121,67 +125,52 @@
       </section>
 
       <!-- Side panel -->
-      <aside class="flex flex-col gap-4 min-w-0">
-        <div class="card">
-          <header>
-            <h2 class="flex items-center gap-2">
-              <span id="status-icon"></span>
+      <aside
+        class="flex flex-col gap-4 min-w-0 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100dvh-7rem)]">
+        <div class="card gap-4 py-5">
+          <header class="px-5">
+            <h2 class="flex items-center gap-2.5 text-base" aria-live="polite">
+              <span id="status-icon" class="flex"></span>
               <span id="status-title">Your move</span>
             </h2>
-            <p id="status-detail">You play the ivory pieces.</p>
+            <p id="status-detail"
+              aria-live="polite">You play the ivory pieces.</p>
           </header>
-          <section class="flex flex-wrap gap-2">
+          <section class="px-5 grid grid-cols-3 gap-2">
             <button type="button" class="btn" data-variant="outline"
-              data-size="sm" id="undo-btn">
+              data-size="sm" id="undo-btn" title="Take back your last move (U)">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" /></svg>
-              Take back
+              Undo
             </button>
             <button type="button" class="btn" data-variant="outline"
-              data-size="sm" id="hint-btn">
+              data-size="sm" id="hint-btn" title="Suggest a move (H)">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" /><path d="M9 18h6" /><path d="M10 22h4" /></svg>
               Hint
             </button>
             <button type="button" class="btn" data-variant="outline"
-              data-size="sm" id="flip-btn">
+              data-size="sm" id="flip-btn" title="Flip the board (F)">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4" /><path d="M17 20V4" /><path d="m3 8 4-4 4 4" /><path d="M7 4v16" /></svg>
               Flip
             </button>
           </section>
-        </div>
-
-        <div class="card">
-          <header>
-            <h2 class="font-display text-lg">New game</h2>
-            <p>Choose your opponent from the Arabian Nights.</p>
-          </header>
-          <section class="flex flex-col gap-4">
-            <fieldset class="flex flex-col gap-2" id="level-list">
-              <legend class="sr-only">Opponent strength</legend>
-            </fieldset>
-            <div class="flex flex-col gap-2">
-              <span class="text-sm font-medium">Play as</span>
-              <div class="seg" role="radiogroup" aria-label="Play as">
-                <label><input type="radio" name="color" value="white" checked />Ivory</label>
-                <label><input type="radio" name="color" value="random" />Random</label>
-                <label><input type="radio" name="color" value="black" />Ebony</label>
-              </div>
-              <p class="text-xs text-muted-foreground">Ivory moves first.</p>
-            </div>
-          </section>
-          <footer>
+          <footer class="px-5">
             <button type="button" class="btn w-full" id="new-game-btn">
-              <svg width="16" height="16" fill="currentColor"><use href="#star8" /></svg>
-              Begin a new game
+              <svg width="16" height="16" viewBox="0 0 100 100" fill="currentColor"><use href="#star8" /></svg>
+              New game
             </button>
           </footer>
         </div>
 
-        <div class="card">
-          <header>
+        <div class="card gap-3 py-5" id="opponent-card"></div>
+
+        <div class="card gap-3 py-5 min-h-0 lg:flex-1">
+          <header class="px-5 flex-row items-center justify-between">
             <h2 class="font-display text-lg">Moves</h2>
+            <span class="text-xs text-muted-foreground" id="move-count"></span>
           </header>
-          <section>
-            <div class="moves-grid text-sm max-h-64 overflow-y-auto scrollbar"
+          <section class="px-5 min-h-0 flex flex-col">
+            <div
+              class="moves-grid text-sm max-h-56 lg:max-h-none lg:min-h-24 overflow-y-auto scrollbar"
               id="moves"></div>
           </section>
         </div>
@@ -190,7 +179,8 @@
 
     <footer class="mx-auto max-w-6xl px-4 pb-10">
       <div class="ornament mb-4"></div>
-      <p class="text-xs text-muted-foreground text-center leading-relaxed">
+      <p
+        class="text-xs text-muted-foreground text-center leading-relaxed text-balance">
         Shatranj reached Baghdad from Persia and flourished at the court of the Abbasid caliphs,
         where masters such as al-ʿAdlī, ar-Rāzī and aṣ-Ṣūlī wrote the first treatises on the game.
         <br />
@@ -198,6 +188,50 @@
         <span class="mx-1">·</span> Madīnat as-Salām, the City of Peace
       </p>
     </footer>
+
+    <!-- New game dialog -->
+    <dialog id="new-game-dialog" class="dialog w-full sm:max-w-lg max-h-[92dvh]"
+      aria-labelledby="new-game-title"
+      onclick="if (event.target === this) this.close()">
+      <div>
+        <header>
+          <h2 id="new-game-title" class="font-display text-xl">A new game</h2>
+          <p>Choose your opponent from the Arabian Nights.</p>
+        </header>
+        <section class="overflow-y-auto scrollbar flex flex-col gap-5">
+          <fieldset class="flex flex-col gap-2" id="level-list">
+            <legend class="text-sm font-medium mb-2">Opponent</legend>
+          </fieldset>
+          <div class="flex flex-col gap-2">
+            <span class="text-sm font-medium" id="play-as-label">Play as</span>
+            <div class="seg" role="radiogroup" aria-labelledby="play-as-label">
+              <label><input type="radio" name="color" value="white" checked /><span class="size-3 rounded-full ring-1 ring-border bg-[var(--ivory-fill)]"></span>Ivory</label>
+              <label><input type="radio" name="color" value="random" />Random</label>
+              <label><input type="radio" name="color" value="black" /><span class="size-3 rounded-full ring-1 ring-border bg-[var(--ebony-fill)]"></span>Ebony</label>
+            </div>
+            <p class="text-xs text-muted-foreground">Ivory moves first.</p>
+          </div>
+        </section>
+        <footer>
+          <button type="button" class="btn" data-variant="outline"
+            onclick="this.closest('dialog').close()">Cancel</button>
+          <button type="button" class="btn" id="start-game-btn">
+            <svg width="16" height="16" viewBox="0 0 100 100" fill="currentColor"><use href="#star8" /></svg>
+            Begin
+          </button>
+        </footer>
+        <button type="button" class="btn" data-variant="ghost"
+          data-size="icon-sm" aria-label="Close dialog"
+          onclick="this.closest('dialog').close()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      </div>
+    </dialog>
 
     <!-- Rules dialog -->
     <dialog
@@ -256,8 +290,10 @@
           <p id="result-detail"></p>
         </header>
         <footer class="sm:justify-center">
-          <button type="button" class="btn" data-variant="outline"
+          <button type="button" class="btn" data-variant="ghost"
             onclick="this.closest('dialog').close()">View the board</button>
+          <button type="button" class="btn" data-variant="outline"
+            id="result-change-btn">Change opponent</button>
           <button type="button" class="btn"
             id="result-new-btn">Play again</button>
         </footer>
