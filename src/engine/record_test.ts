@@ -2,6 +2,7 @@ import { assert, assertEquals, assertThrows } from "@std/assert";
 import { Position } from "./position.ts";
 import { chooseMove } from "./search.ts";
 import {
+  canonicalMoves,
   decodeShare,
   encodeShare,
   parsePGN,
@@ -69,20 +70,34 @@ Deno.test("PGN escapes quotes in tags", () => {
   assertEquals(parsePGN(pgn).games[0].tags.White, 'The "Vizier"');
 });
 
-Deno.test("share code round trip and size", () => {
+Deno.test("share code round trip, size and canonical order", () => {
   const moves = sampleGame();
   const code = encodeShare(moves);
+  assert(code.startsWith("2"));
   assertEquals(decodeShare(code), moves);
-  // One byte per ply in base64: about 4/3 characters per ply.
-  assert(
-    code.length <= Math.ceil((moves.length * 4) / 3) + 2,
-    `${code.length}`,
-  );
+  // Close to the information content: sum of log2(legal moves) per ply.
+  const pos = Position.initial();
+  let bits = 0;
+  for (const m of moves) {
+    bits += Math.log2(canonicalMoves(pos).length);
+    pos.makeMove(m);
+  }
+  const ideal = Math.ceil((bits + 16) / 6) + 1; // + ply count, version char
+  assert(code.length <= ideal + 2, `${code.length} > ${ideal}`);
+  // Clearly shorter than one byte per ply.
+  assert(code.length < (moves.length * 4) / 3 * 0.8, `${code.length}`);
   assertEquals(decodeShare(encodeShare([])), []);
+  // Canonical order is sorted by origin then destination square.
+  const keys = canonicalMoves(Position.initial()).map((m) =>
+    Position.initial().toSAN(m)
+  );
+  assertEquals(keys.slice(0, 4), ["Na3", "Nc3", "Ea3", "Ee3"]);
 });
 
-Deno.test("share code rejects garbage", () => {
-  assertThrows(() => decodeShare("2abc"), PgnError);
-  assertThrows(() => decodeShare("1!!"), PgnError);
-  assertThrows(() => decodeShare("1____"), PgnError); // indices out of range
+Deno.test("share code rejects garbage and other versions", () => {
+  assertThrows(() => decodeShare("1CAkL"), PgnError); // v1 is not supported
+  assertThrows(() => decodeShare("2!!"), PgnError);
+  assertThrows(() => decodeShare("2"), PgnError); // no ply count
+  // A valid ply count but a number too large for the game.
+  assertThrows(() => decodeShare("2A_____________"), PgnError);
 });

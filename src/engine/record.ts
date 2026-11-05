@@ -6,10 +6,17 @@
  * promotion "=F"). On import the common alternatives used elsewhere for
  * shatranj (Q or M for the firzān, B or A for the fīl) are accepted too.
  *
- * Share code: each move is stored as its index in the position's list of
- * legal moves (always < 256 in shatranj), one byte per ply, base64url.
+ * Share code (version 2): see `encodeShare`.
  */
-import { type GameResult, type Move, Position } from "./position.ts";
+import {
+  fileOf,
+  type GameResult,
+  type Move,
+  moveFrom,
+  moveTo,
+  Position,
+  rankOf,
+} from "./position.ts";
 
 // ---------------------------------------------------------------------------
 // PGN
@@ -181,13 +188,11 @@ const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 function toBase64url(bytes: number[]): string {
   let s = "";
   for (let i = 0; i < bytes.length; i += 3) {
+    const rem = Math.min(3, bytes.length - i);
     const n = (bytes[i] << 16) | ((bytes[i + 1] ?? 0) << 8) |
       (bytes[i + 2] ?? 0);
-    const chars = [n >> 18, (n >> 12) & 63, (n >> 6) & 63, n & 63].map((k) =>
-      B64[k]
-    );
-    s += chars.slice(0, Math.min(4, Math.ceil(((bytes.length - i) * 8) / 6)))
-      .join("");
+    const chars = [n >> 18, (n >> 12) & 63, (n >> 6) & 63, n & 63];
+    s += chars.slice(0, rem + 1).map((k) => B64[k]).join("");
   }
   return s;
 }
@@ -198,7 +203,7 @@ function fromBase64url(s: string): number[] {
   for (const ch of s) {
     const v = B64.indexOf(ch);
     if (v < 0) throw new PgnError("Bad share code");
-    buf = (buf << 6) | v;
+    buf = ((buf << 6) | v) & 0xffffff;
     bits += 6;
     if (bits >= 8) {
       bits -= 8;
@@ -208,31 +213,84 @@ function fromBase64url(s: string): number[] {
   return out;
 }
 
-/** Version 1 code: "1" + base64url(move indices). */
+/** Board square as 0..63 (a1 = 0, h1 = 7, a2 = 8 … h8 = 63). */
+const sq64 = (s: number) => fileOf(s) + rankOf(s) * 8;
+
+/**
+ * Legal moves in canonical order: by origin square, then destination
+ * square (a1 = 0 … h8 = 63). This is part of the share-code format and is
+ * independent of how the engine happens to generate moves.
+ */
+export function canonicalMoves(pos: Position): Move[] {
+  const key = (m: Move) => sq64(moveFrom(m)) * 64 + sq64(moveTo(m));
+  return pos.legalMoves().sort((a, b) => key(a) - key(b));
+}
+
+/**
+ * Version-2 share code: "2" + base64url(varint(plies) ‖ N), where N packs
+ * the whole game as a mixed-radix number. With n_i legal moves at ply i and
+ * k_i the index of the move played (canonical order),
+ *
+ *   N = k_0 + n_0·(k_1 + n_1·(k_2 + …))
+ *
+ * stored little-endian in the fewest bytes. Each ply therefore costs
+ * log2(n_i) bits, and forced moves (n_i = 1) cost nothing.
+ */
 export function encodeShare(moves: Move[]): string {
   const pos = Position.initial();
-  const bytes: number[] = [];
+  const digits: [bigint, bigint][] = [];
   for (const m of moves) {
-    const idx = pos.legalMoves().indexOf(m);
-    if (idx < 0 || idx > 255) throw new PgnError("Move not legal");
-    bytes.push(idx);
+    const legal = canonicalMoves(pos);
+    const k = legal.indexOf(m);
+    if (k < 0) throw new PgnError("Move not legal");
+    digits.push([BigInt(k), BigInt(legal.length)]);
     pos.makeMove(m);
   }
-  return "1" + toBase64url(bytes);
+  let n = 0n;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    n = n * digits[i][1] + digits[i][0];
+  }
+  const bytes: number[] = [];
+  // varint ply count
+  let plies = moves.length;
+  do {
+    bytes.push((plies & 0x7f) | (plies > 0x7f ? 0x80 : 0));
+    plies >>= 7;
+  } while (plies > 0);
+  while (n > 0n) {
+    bytes.push(Number(n & 0xffn));
+    n >>= 8n;
+  }
+  return "2" + toBase64url(bytes);
 }
 
 export function decodeShare(code: string): Move[] {
-  if (!code.startsWith("1")) throw new PgnError("Unknown share code version");
+  if (!code.startsWith("2")) throw new PgnError("Unknown share code version");
   const bytes = fromBase64url(code.slice(1));
+  let i = 0, plies = 0, shift = 0;
+  for (;;) {
+    if (i >= bytes.length || shift > 21) throw new PgnError("Bad share code");
+    const b = bytes[i++];
+    plies |= (b & 0x7f) << shift;
+    shift += 7;
+    if (!(b & 0x80)) break;
+  }
+  let n = 0n;
+  for (let j = bytes.length - 1; j >= i; j--) n = (n << 8n) | BigInt(bytes[j]);
   const pos = Position.initial();
   const moves: Move[] = [];
-  for (const idx of bytes) {
-    const legal = pos.legalMoves();
-    if (idx >= legal.length) {
+  for (let p = 0; p < plies; p++) {
+    const legal = canonicalMoves(pos);
+    if (legal.length === 0) {
       throw new PgnError("Share code does not match a legal game");
     }
-    moves.push(legal[idx]);
-    pos.makeMove(legal[idx]);
+    const base = BigInt(legal.length);
+    const m = legal[Number(n % base)];
+    n /= base;
+    moves.push(m);
+    pos.makeMove(m);
   }
+  // Anything left over means the code was not produced by encodeShare.
+  if (n !== 0n) throw new PgnError("Share code does not match a legal game");
   return moves;
 }
