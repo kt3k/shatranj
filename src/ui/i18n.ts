@@ -63,6 +63,10 @@ const en: Dict = {
   "square.piece": "{square} {side} {piece}",
   "board.reviewing": "Reviewing",
   "sr.played": "{name} played {move}",
+  "sr.youPlayed": "You played {move}",
+  "punct.sep": ". ",
+  "review.footnote.touch":
+    "Tap the graph or a move to see what the engine thought.",
   "sr.selected": "selected",
   "sr.target": "legal move",
 
@@ -258,6 +262,10 @@ const ja: Dict = {
   "square.piece": "{square} {side}の{piece}",
   "board.reviewing": "振り返り中",
   "sr.played": "{name}の手: {move}",
+  "sr.youPlayed": "あなたの手: {move}",
+  "punct.sep": "。",
+  "review.footnote.touch":
+    "グラフや棋譜の手をタップすると、エンジンの評価が見られます。",
   "sr.selected": "選択中",
   "sr.target": "移動可能",
 
@@ -445,6 +453,9 @@ const ar: Dict = {
   "square.piece": "{square} {piece} {side}",
   "board.reviewing": "مراجعة",
   "sr.played": "لعب {name}: {move}",
+  "sr.youPlayed": "لعبتَ {move}",
+  "punct.sep": ". ",
+  "review.footnote.touch": "اضغط على المنحنى أو على نقلة لترى رأي المحرّك.",
   "sr.selected": "محدد",
   "sr.target": "نقلة مشروعة",
 
@@ -628,6 +639,10 @@ const fa: Dict = {
   "square.piece": "{square} {piece} {side}",
   "board.reviewing": "بازبینی",
   "sr.played": "{name} بازی کرد: {move}",
+  "sr.youPlayed": "شما بازی کردید: {move}",
+  "punct.sep": ". ",
+  "review.footnote.touch":
+    "روی نمودار یا یک حرکت بزنید تا نظر موتور را ببینید.",
   "sr.selected": "انتخاب‌شده",
   "sr.target": "حرکت مجاز",
 

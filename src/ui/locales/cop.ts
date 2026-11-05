@@ -15,6 +15,10 @@ export const cop: Dict = {
   "square.piece": "{square}: {piece} ⲛ̄{side}",
   "board.reviewing": "ⲉⲕⲉⲝⲉⲧⲁⲍⲉ",
   "sr.played": "ⲁ{name} ⲉⲓⲣⲉ ⲙ̄ⲡⲕⲓⲙ {move}",
+  "sr.youPlayed": "ⲁⲕⲕⲓⲙ: {move}",
+  "punct.sep": ". ",
+  "review.footnote.touch":
+    "ϫⲱϩ ⲉⲧϩⲓⲕⲱⲛ ⲏ ⲉⲩⲕⲓⲙ ⲉⲛⲁⲩ ⲉⲡⲉⲛⲧⲁ ⲧⲙⲏⲭⲁⲛⲏ ⲙⲉⲉⲩⲉ ⲉⲣⲟϥ.",
   "sr.selected": "ⲥⲟⲧⲡ̄",
   "sr.target": "ⲟⲩⲕⲓⲙ ⲕⲁⲧⲁ ⲡⲛⲟⲙⲟⲥ",
 

@@ -14,6 +14,9 @@ export const zh: Dict = {
   "square.piece": "{square} {side}{piece}",
   "board.reviewing": "复盘中",
   "sr.played": "{name}走了 {move}",
+  "sr.youPlayed": "你走了 {move}",
+  "punct.sep": "。",
+  "review.footnote.touch": "点按图表或某一步，查看引擎的评估。",
   "sr.selected": "已选中",
   "sr.target": "可走",
 

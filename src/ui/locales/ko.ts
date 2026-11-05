@@ -15,6 +15,9 @@ export const ko: Dict = {
   "square.piece": "{square} {side} {piece}",
   "board.reviewing": "복기 중",
   "sr.played": "{name}의 수: {move}",
+  "sr.youPlayed": "내 수: {move}",
+  "punct.sep": ". ",
+  "review.footnote.touch": "그래프나 수를 탭하면 엔진의 평가를 볼 수 있어요.",
   "sr.selected": "선택됨",
   "sr.target": "이동 가능",
 

@@ -15,6 +15,10 @@ export const fr: Dict = {
   "square.piece": "{square} : {piece} {side}",
   "board.reviewing": "Analyse en cours",
   "sr.played": "{name} a joué {move}",
+  "sr.youPlayed": "Vous avez joué {move}",
+  "punct.sep": ". ",
+  "review.footnote.touch":
+    "Touchez le graphique ou un coup pour voir l’avis du moteur.",
   "sr.selected": "sélectionné",
   "sr.target": "coup légal",
 

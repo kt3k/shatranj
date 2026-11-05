@@ -15,6 +15,10 @@ export const ru: Dict = {
   "square.piece": "{square}: {piece} {side}",
   "board.reviewing": "Разбор",
   "sr.played": "{name}: ход {move}",
+  "sr.youPlayed": "Ваш ход: {move}",
+  "punct.sep": ". ",
+  "review.footnote.touch":
+    "Нажмите на график или ход, чтобы увидеть оценку движка.",
   "sr.selected": "выбрано",
   "sr.target": "возможный ход",
 

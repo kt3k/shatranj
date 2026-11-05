@@ -15,6 +15,10 @@ export const tr: Dict = {
   "square.piece": "{square} {side} {piece}",
   "board.reviewing": "İnceleniyor",
   "sr.played": "Hamle ({name}): {move}",
+  "sr.youPlayed": "Hamlen: {move}",
+  "punct.sep": ". ",
+  "review.footnote.touch":
+    "Motorun ne düşündüğünü görmek için grafiğe ya da bir hamleye dokun.",
   "sr.selected": "seçili",
   "sr.target": "geçerli hamle",
 

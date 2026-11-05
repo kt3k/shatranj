@@ -237,12 +237,12 @@ function applyMove(m: Move) {
   const byAI = state.pos.side !== state.player;
   state.viewPly = null;
   replay([...state.moves, m]);
-  if (byAI) {
-    announce(t("sr.played", {
-      name: lname(state.level),
-      move: state.sans[state.sans.length - 1],
-    }));
-  }
+  const san = state.sans[state.sans.length - 1];
+  announce(
+    byAI
+      ? t("sr.played", { name: lname(state.level), move: san })
+      : t("sr.youPlayed", { move: san }),
+  );
   state.selected = -1;
   state.targets = [];
   clearHint();
@@ -410,10 +410,19 @@ function viewAt(ply: number) {
   render();
 }
 
-const narrow = () => matchMedia("(max-width: 767px)").matches;
 /** On phones the move list sits below the board: bring the board back. */
+const coarse = () => matchMedia("(pointer: coarse)").matches;
+
 function revealBoard() {
-  if (!narrow()) return;
+  const header = document.querySelector("body > header")
+    ?.getBoundingClientRect();
+  const top =
+    header && getComputedStyle(document.querySelector("body > header")!)
+          .position === "sticky"
+      ? header.bottom
+      : 0;
+  const r = boardEl.getBoundingClientRect();
+  if (r.top >= top && r.bottom <= innerHeight) return;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   boardEl.closest(".board-col")?.scrollIntoView({
     block: "start",
@@ -795,7 +804,7 @@ function renderStatus() {
       before: ltr(formatScore(sign * r.before)),
       after: ltr(formatScore(sign * r.after)),
     });
-    const sep = currentLang() === "ja" ? "。" : ". ";
+    const sep = t("punct.sep");
     if (r.classification === "best" || r.best === r.played) {
       detail.textContent = `${who}${sep}${evalText}${sep}${
         r.best === r.played ? t("review.agrees") : t("review.asGood")
@@ -845,7 +854,8 @@ function renderStatus() {
   }
   $("status-extra").innerHTML = extra;
   $("status-extra").hidden = extra === "";
-  $<HTMLButtonElement>("undo-btn").disabled = state.moves.length === 0;
+  $<HTMLButtonElement>("undo-btn").disabled = state.moves.length === 0 ||
+    state.viewPly !== null;
   $<HTMLButtonElement>("hint-btn").disabled = !canInteract();
   const newBtn = $("new-game-btn");
   $("new-game-label").textContent = res.over
@@ -891,14 +901,17 @@ function renderMoves() {
           j + 1
         }" aria-label="${t("moves.aria", { move: moveLabel(j) })}${
           r ? ` (${t(`class.${r.classification}`)})` : ""
-        }"${j === shown ? ' aria-current="step"' : ""}>${
-          state.sans[j]
-        }${mark}</button>`,
+        }"${j === shown ? ' aria-current="step"' : ""} tabindex="${
+          j === shown ? 0 : -1
+        }">${state.sans[j]}${mark}</button>`,
       );
     }
   }
+  const hadFocus = el.contains(document.activeElement);
   el.innerHTML = html.join("");
   const cur = el.querySelector<HTMLElement>(".mv.current");
+  // Keep keyboard focus on the current move as the list re-renders.
+  if (hadFocus) cur?.focus({ preventScroll: true });
   if (state.viewPly === null) el.scrollTop = el.scrollHeight;
   else cur?.scrollIntoView({ block: "nearest" });
   renderMoveNav();
@@ -1021,7 +1034,9 @@ function renderReview() {
     body = `
       ${evalGraph()}
       ${progress}
-      <div class="review-table text-sm">
+      <div class="review-table text-sm${
+      Review.isComplete() ? "" : " opacity-60"
+    }">
         <div class="review-row review-head"><span></span><span></span>
           <span>${t("review.you")}</span><span class="truncate">${
       lname(level.id)
@@ -1041,7 +1056,9 @@ function renderReview() {
     }</span></div>
         ${row("blunder")}${row("mistake")}${row("inaccuracy")}${row("best")}
       </div>
-      <p class="text-xs text-muted-foreground">${t("review.footnote")}</p>`;
+      <p class="text-xs text-muted-foreground">${
+      t(coarse() ? "review.footnote.touch" : "review.footnote")
+    }</p>`;
   }
   card.innerHTML = `
     <header class="px-5">
@@ -1230,9 +1247,9 @@ function renderLevels() {
           ${lname(l.id)}
           ${arabicAside(l.arabic, "text-sm")}
         </span>
-        <span class="level-desc text-xs text-muted-foreground"><span class="text-foreground/80">${
+        <span class="text-xs text-muted-foreground"><span class="text-foreground/80">${
       ltitle(l.id)
-    }</span> · ${ldesc(l.id)}</span>
+    }</span><span class="level-desc"> · ${ldesc(l.id)}</span></span>
       </span>
       <span class="ms-auto flex gap-0.5 shrink-0" aria-label="${
       t("level.strength", { n: l.id, total: LEVELS.length })

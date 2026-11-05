@@ -166,9 +166,11 @@ export function analysePosition(
   if (res.over) {
     return { score: res.winner === 0 ? 0 : -MATE, best: null };
   }
+  // A fixed depth keeps reviews repeatable; the time cap only guards
+  // against unusually complex positions.
   const r = new Searcher(pos.clone()).search({
-    maxDepth: 12,
-    timeMs,
+    maxDepth: 7,
+    timeMs: timeMs * 5,
     alwaysSearch: true,
   });
   return { score: r.score, best: r.move };

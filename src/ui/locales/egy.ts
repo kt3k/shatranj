@@ -17,6 +17,9 @@ export const egy: Dict = {
   "square.piece": "{square} {piece} 𓈖 {side}",
   "board.reviewing": "𓌳𓄿𓁹",
   "sr.played": "𓁹𓈖 {name} {move}",
+  "sr.youPlayed": "𓁹𓈖𓎡 {move}",
+  "punct.sep": " ",
+  "review.footnote.touch": "𓌳𓄿𓁹 𓄣𓏤 𓈖 𓎛𓂓𓄿",
   "sr.selected": "𓇋𓎁",
   "sr.target": "𓈖𓅓𓏏𓂻 𓌳𓂝𓏏𓆄",
 
