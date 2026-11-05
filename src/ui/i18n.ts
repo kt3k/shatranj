@@ -245,6 +245,43 @@ const en: Dict = {
   "piece.1.meaning": "Foot soldier",
   "piece.1.move":
     "One square forward (never two), captures one square diagonally forward. Promotes to a firzān.",
+  "header.library": "Records",
+  "library.title": "Game records",
+  "library.desc":
+    "Your games are saved in this browser automatically. Download them as PGN to keep a backup or move them to another device.",
+  "library.filter": "Show",
+  "library.filter.all": "All",
+  "library.filter.win": "Wins",
+  "library.filter.loss": "Losses",
+  "library.filter.draw": "Draws",
+  "library.noStorage":
+    "This browser is not keeping data (private mode?), so records will be lost when you close the page. Download them as PGN.",
+  "library.empty": "No games yet. Games you play are saved here automatically.",
+  "library.vs": "vs {name}",
+  "library.result.win": "Won",
+  "library.result.loss": "Lost",
+  "library.result.draw": "Draw",
+  "library.result.unfinished": "In progress",
+  "library.open": "Open",
+  "library.share": "Copy link",
+  "library.download": "Download PGN",
+  "library.delete": "Delete",
+  "library.deleteConfirm": "Delete this game record? This cannot be undone.",
+  "library.copied": "Link copied",
+  "library.import": "Import PGN",
+  "library.paste": "Paste PGN",
+  "library.paste.submit": "Import",
+  "library.exportAll": "Download all",
+  "library.imported.one": "Imported {n} game.",
+  "library.imported.other": "Imported {n} games.",
+  "library.importFailed.one": "{n} game could not be read.",
+  "library.importFailed.other": "{n} games could not be read.",
+  "viewer.title": "Saved game",
+  "viewer.shared": "Shared game",
+  "viewer.close": "Back to my game",
+  "viewer.save": "Save to my records",
+  "viewer.saved": "Saved to your records",
+  "share.invalid": "This game link could not be read.",
 };
 
 const ja: Dict = {
@@ -436,6 +473,43 @@ const ja: Dict = {
   "piece.1.meaning": "歩兵",
   "piece.1.move":
     "前に1マス進み（2マス進むことはできません）、斜め前の駒を取ります。最奥の段でフィルザーンに成ります。",
+
+  "header.library": "棋譜帳",
+  "library.title": "棋譜帳",
+  "library.desc":
+    "対局はこのブラウザに自動で保存されます。バックアップや別の端末への移行には、PGNでダウンロードしてください。",
+  "library.filter": "表示",
+  "library.filter.all": "すべて",
+  "library.filter.win": "勝ち",
+  "library.filter.loss": "負け",
+  "library.filter.draw": "引き分け",
+  "library.noStorage":
+    "このブラウザはデータを保存していません（プライベートモード？）。ページを閉じると棋譜は失われます。PGNでダウンロードしてください。",
+  "library.empty":
+    "まだ対局がありません。指した対局はここに自動で保存されます。",
+  "library.vs": "対 {name}",
+  "library.result.win": "勝ち",
+  "library.result.loss": "負け",
+  "library.result.draw": "引き分け",
+  "library.result.unfinished": "対局中",
+  "library.open": "開く",
+  "library.share": "リンクをコピー",
+  "library.download": "PGNを保存",
+  "library.delete": "削除",
+  "library.deleteConfirm": "この棋譜を削除しますか？元に戻せません。",
+  "library.copied": "リンクをコピーしました",
+  "library.import": "PGNを読み込む",
+  "library.paste": "PGNを貼り付け",
+  "library.paste.submit": "読み込む",
+  "library.exportAll": "すべて保存",
+  "library.imported.other": "{n}局を読み込みました。",
+  "library.importFailed.other": "{n}局を読み込めませんでした。",
+  "viewer.title": "保存した対局",
+  "viewer.shared": "共有された対局",
+  "viewer.close": "自分の対局に戻る",
+  "viewer.save": "棋譜帳に保存",
+  "viewer.saved": "棋譜帳に保存しました",
+  "share.invalid": "この対局のリンクを読み込めませんでした。",
 };
 
 const ar: Dict = {
@@ -622,6 +696,50 @@ const ar: Dict = {
   "piece.1.meaning": "الجندي",
   "piece.1.move":
     "خانة واحدة إلى الأمام (لا خانتين أبدًا)، ويأسر خانة قُطرية إلى الأمام. يُرقّى إلى فرزان.",
+
+  "header.library": "سجلّ الأدوار",
+  "library.title": "سجلّ الأدوار",
+  "library.desc":
+    "تُحفظ أدوارك في هذا المتصفح تلقائيًا. نزّلها بصيغة PGN لتحتفظ بنسخة احتياطية أو لتنقلها إلى جهاز آخر.",
+  "library.filter": "اعرض",
+  "library.filter.all": "الكل",
+  "library.filter.win": "الانتصارات",
+  "library.filter.loss": "الهزائم",
+  "library.filter.draw": "التعادلات",
+  "library.noStorage":
+    "هذا المتصفح لا يحتفظ بالبيانات (وضع التصفح الخاص؟)، فستضيع السجلات عند إغلاق الصفحة. نزّلها بصيغة PGN.",
+  "library.empty": "لا أدوار بعد. تُحفظ الأدوار التي تلعبها هنا تلقائيًا.",
+  "library.vs": "ضد {name}",
+  "library.result.win": "فوز",
+  "library.result.loss": "خسارة",
+  "library.result.draw": "تعادل",
+  "library.result.unfinished": "جارٍ",
+  "library.open": "فتح",
+  "library.share": "نسخ الرابط",
+  "library.download": "تنزيل PGN",
+  "library.delete": "حذف",
+  "library.deleteConfirm": "أتحذف سجلّ هذا الدور؟ لا يمكن التراجع عن ذلك.",
+  "library.copied": "نُسخ الرابط",
+  "library.import": "استيراد PGN",
+  "library.paste": "لصق PGN",
+  "library.paste.submit": "استيراد",
+  "library.exportAll": "تنزيل الكل",
+  "library.imported.one": "استُورد دور واحد.",
+  "library.imported.two": "استُورد دوران.",
+  "library.imported.few": "استُوردت {n} أدوار.",
+  "library.imported.many": "استُورد {n} دورًا.",
+  "library.imported.other": "استُورد {n} دور.",
+  "library.importFailed.one": "تعذّرت قراءة دور واحد.",
+  "library.importFailed.two": "تعذّرت قراءة دورين.",
+  "library.importFailed.few": "تعذّرت قراءة {n} أدوار.",
+  "library.importFailed.many": "تعذّرت قراءة {n} دورًا.",
+  "library.importFailed.other": "تعذّرت قراءة {n} دور.",
+  "viewer.title": "دور محفوظ",
+  "viewer.shared": "دور مُشارَك",
+  "viewer.close": "العودة إلى دوري",
+  "viewer.save": "احفظه في سجلّي",
+  "viewer.saved": "حُفظ في سجلّك",
+  "share.invalid": "تعذّرت قراءة رابط هذا الدور.",
 };
 
 const fa: Dict = {
@@ -813,6 +931,46 @@ const fa: Dict = {
   "piece.1.meaning": "سرباز",
   "piece.1.move":
     "یک خانه به جلو (هرگز دو خانه)، و یک خانهٔ مورب به جلو می‌زند. به فرزین ارتقا می‌یابد.",
+
+  "header.library": "بایگانی",
+  "library.title": "بایگانی بازی‌ها",
+  "library.desc":
+    "بازی‌های شما به‌طور خودکار در همین مرورگر ذخیره می‌شوند. برای پشتیبان‌گیری یا انتقال به دستگاهی دیگر، آن‌ها را به‌صورت PGN بارگیری کنید.",
+  "library.filter": "نمایش",
+  "library.filter.all": "همه",
+  "library.filter.win": "بردها",
+  "library.filter.loss": "باخت‌ها",
+  "library.filter.draw": "مساوی‌ها",
+  "library.noStorage":
+    "این مرورگر داده‌ها را نگه نمی‌دارد (حالت خصوصی؟)، پس با بستن صفحه بایگانی از دست می‌رود. بازی‌ها را به‌صورت PGN بارگیری کنید.",
+  "library.empty":
+    "هنوز بازی‌ای نیست. بازی‌هایتان به‌طور خودکار اینجا ذخیره می‌شوند.",
+  "library.vs": "در برابر {name}",
+  "library.result.win": "برد",
+  "library.result.loss": "باخت",
+  "library.result.draw": "مساوی",
+  "library.result.unfinished": "در جریان",
+  "library.open": "باز کردن",
+  "library.share": "کپی پیوند",
+  "library.download": "بارگیری PGN",
+  "library.delete": "حذف",
+  "library.deleteConfirm":
+    "این بازی از بایگانی حذف شود؟ این کار برگشت‌پذیر نیست.",
+  "library.copied": "پیوند کپی شد",
+  "library.import": "وارد کردن PGN",
+  "library.paste": "چسباندن PGN",
+  "library.paste.submit": "وارد کردن",
+  "library.exportAll": "بارگیری همه",
+  "library.imported.one": "{n} بازی وارد شد.",
+  "library.imported.other": "{n} بازی وارد شد.",
+  "library.importFailed.one": "{n} بازی خوانده نشد.",
+  "library.importFailed.other": "{n} بازی خوانده نشد.",
+  "viewer.title": "بازی ذخیره‌شده",
+  "viewer.shared": "بازی هم‌رسانی‌شده",
+  "viewer.close": "بازگشت به بازی خودم",
+  "viewer.save": "ذخیره در بایگانی من",
+  "viewer.saved": "در بایگانی شما ذخیره شد",
+  "share.invalid": "این پیوند بازی خوانده نشد.",
 };
 
 const DICTS: Record<Lang, Dict> = {
@@ -853,6 +1011,8 @@ let plural = new Intl.PluralRules("en");
 let numFmt = new Intl.NumberFormat("en");
 
 export const currentLang = () => lang;
+/** BCP 47 locale for Intl formatting (dates etc.). */
+export const intlLocale = () => LOCALES[lang];
 export const isRTL = () => LANGS.find((l) => l.code === lang)!.dir === "rtl";
 /** Whether the UI language is written in Arabic script. */
 export const isArabicScript = () => lang === "ar" || lang === "fa";

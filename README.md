@@ -15,7 +15,10 @@ the computer, right in your browser.
   9th-century Egypt) and, as a playful extra, Middle Egyptian in hieroglyphs
   (𓂋𓈖𓆎𓅓𓏏𓊖); right-to-left layout for Arabic and Persian; picks your browser
   language, switch any time
-- Your game is saved in the browser
+- Game records: every game is saved in the browser (IndexedDB) and listed in a
+  library — open any game to replay or review it, download one or all as PGN,
+  import PGN files, or copy a share link that encodes the whole game in the URL
+  (no server involved)
 
 ## Development
 

@@ -22,10 +22,22 @@ import {
   winChance,
 } from "../engine/analysis.ts";
 import * as Review from "./review.ts";
+import * as Library from "./library.ts";
+import type { GameRecord } from "./library.ts";
+import {
+  decodeShare,
+  encodeShare,
+  parsePGN,
+  pgnResult,
+  toPGN,
+} from "../engine/record.ts";
+import { reviewMoves } from "../engine/analysis.ts";
 import {
   applyStatic,
   currentLang,
   detectLang,
+  dictFor,
+  intlLocale,
   isArabicScript,
   isRTL,
   type Lang,
@@ -50,6 +62,8 @@ interface Saved {
   level: number;
   flipped: boolean;
   colorChoice?: "white" | "black" | "random";
+  gameId?: string;
+  createdAt?: number;
 }
 
 const STORAGE_KEY = "shatranj:game";
@@ -91,6 +105,21 @@ const state = {
   result: { over: false } as GameResult,
   requestId: 0,
   animateTo: -1,
+  /** Identity of the live game in the library. */
+  gameId: Library.newId(),
+  createdAt: Date.now(),
+  /** Set while a saved/shared game is open; the live game is stashed. */
+  viewer: null as null | {
+    record: GameRecord;
+    saved: boolean;
+    live: {
+      moves: Move[];
+      player: Color;
+      level: number;
+      flipped: boolean;
+      review: Review.ReviewSnapshot;
+    };
+  },
 };
 
 function load(): Saved | null {
@@ -106,6 +135,7 @@ function load(): Saved | null {
 }
 
 function save() {
+  if (state.viewer) return; // the live game is stashed, nothing changed
   try {
     const s: Saved = {
       moves: state.moves,
@@ -113,6 +143,8 @@ function save() {
       level: state.level,
       flipped: state.flipped,
       colorChoice: state.colorChoice,
+      gameId: state.gameId,
+      createdAt: state.createdAt,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
   } catch {
@@ -201,7 +233,9 @@ function cancelThinking() {
 }
 
 function requestAIMove() {
-  if (state.result.over || state.pos.side === state.player) return;
+  if (state.viewer || state.result.over || state.pos.side === state.player) {
+    return;
+  }
   state.thinking = true;
   thinkStart = performance.now();
   const req: WorkerRequest = {
@@ -214,7 +248,10 @@ function requestAIMove() {
 }
 
 function requestHint() {
-  if (state.result.over || state.thinking || state.pos.side !== state.player) {
+  if (
+    state.viewer || state.result.over || state.thinking ||
+    state.pos.side !== state.player
+  ) {
     return;
   }
   pendingHint = true;
@@ -248,6 +285,7 @@ function applyMove(m: Move) {
   clearHint();
   state.animateTo = moveTo(m);
   save();
+  persistLive();
   render();
   if (state.result.over) {
     setTimeout(showResult, 350);
@@ -322,6 +360,8 @@ function newGame() {
   clearHint();
   state.viewPly = null;
   Review.clear();
+  state.gameId = Library.newId();
+  state.createdAt = Date.now();
   replay([]);
   save();
   render();
@@ -344,6 +384,7 @@ function undo() {
   state.viewPly = null;
   replay(moves);
   save();
+  persistLive();
   render();
   requestAIMove();
 }
@@ -355,8 +396,8 @@ const sideAfter = (plies: number): Color => (plies % 2 === 0 ? WHITE : BLACK);
 // ---------------------------------------------------------------------------
 
 function canInteract() {
-  return state.viewPly === null && !state.result.over && !state.thinking &&
-    state.pos.side === state.player;
+  return !state.viewer && state.viewPly === null && !state.result.over &&
+    !state.thinking && state.pos.side === state.player;
 }
 
 // ---------------------------------------------------------------------------
@@ -398,7 +439,8 @@ function viewAt(ply: number) {
   const total = state.moves.length;
   const p = Math.max(0, Math.min(total, ply));
   // After the game, stay in review mode on the final move so its review shows.
-  const keep = p === total && state.result.over && !!Review.reviewOf(p - 1);
+  const keep = p === total &&
+    (!!state.viewer || (state.result.over && !!Review.reviewOf(p - 1)));
   state.viewPly = p === total && !keep ? null : p;
   clearHint();
   // For real errors, go straight to the better move.
@@ -431,6 +473,10 @@ function revealBoard() {
 }
 
 function goLive() {
+  if (state.viewer) {
+    closeViewer();
+    return;
+  }
   state.viewPly = null;
   review.showBest = false;
   render();
@@ -602,6 +648,7 @@ let boardEl: HTMLElement;
 const STAR_SVG = `<svg viewBox="0 0 100 100"><use href="#star8"/></svg>`;
 
 function render() {
+  renderViewer();
   renderBoard();
   renderReviewStrip();
   renderStatus();
@@ -858,10 +905,10 @@ function renderStatus() {
     state.viewPly !== null;
   $<HTMLButtonElement>("hint-btn").disabled = !canInteract();
   const newBtn = $("new-game-btn");
-  $("new-game-label").textContent = res.over
+  $("new-game-label").textContent = res.over && !state.viewer
     ? t("btn.playAgain")
     : t("btn.newGame");
-  if (res.over) delete newBtn.dataset.variant;
+  if (res.over && !state.viewer) delete newBtn.dataset.variant;
   else newBtn.dataset.variant = "secondary";
 }
 
@@ -913,7 +960,16 @@ function renderMoves() {
   // Keep keyboard focus on the current move as the list re-renders.
   if (hadFocus) cur?.focus({ preventScroll: true });
   if (state.viewPly === null) el.scrollTop = el.scrollHeight;
-  else cur?.scrollIntoView({ block: "nearest" });
+  else if (cur) {
+    // Scroll only the list (scrollIntoView would also scroll the page).
+    const top = cur.offsetTop - el.offsetTop;
+    if (
+      top < el.scrollTop ||
+      top + cur.offsetHeight > el.scrollTop + el.clientHeight
+    ) {
+      el.scrollTop = top - el.clientHeight / 2 + cur.offsetHeight / 2;
+    }
+  }
   renderMoveNav();
 }
 
@@ -976,16 +1032,30 @@ function classBadge(c: Classification) {
 // ---------------------------------------------------------------------------
 
 function startReview() {
-  Review.start(state.moves, () => render());
+  Review.start(state.moves, () => {
+    if (Review.isComplete()) saveReviewToRecord();
+    render();
+  });
   render();
+}
+
+function saveReviewToRecord() {
+  const snap = Review.snapshot();
+  const data = { scores: snap.scores, best: snap.best };
+  if (state.viewer) {
+    state.viewer.record.review = data;
+    if (state.viewer.saved) Library.putRecord(state.viewer.record);
+  } else persistLive();
 }
 
 function renderReview() {
   const card = $("review-card");
-  const show = state.result.over || review.running || Review.hasReview();
+  const show = state.result.over || review.running || Review.hasReview() ||
+    !!state.viewer;
   card.hidden = !show;
   // The opponent card gives way to the review once there is one.
-  $("opponent-card").hidden = show && (review.running || Review.hasReview());
+  $("opponent-card").hidden = !!state.viewer ||
+    (show && (review.running || Review.hasReview()));
   if (!show) return;
 
   const total = state.moves.length;
@@ -1134,7 +1204,10 @@ function renderPlayers() {
       .sort((a, b) => VALUE[Math.abs(b)] - VALUE[Math.abs(a)]);
     const adv = color === WHITE ? diff : -diff;
     const toMove = !state.result.over && state.pos.side === color;
-    const name = isAI
+    const custom = recordName(color);
+    const name = custom !== null
+      ? `<span class="font-medium truncate">${esc(custom)}</span>`
+      : isAI
       ? `<span class="font-medium">${lname(level.id)}</span>
          ${arabicAside(level.arabic, "max-sm:hidden")}
          <span class="badge shrink-0" data-variant="outline">${
@@ -1291,6 +1364,502 @@ function renderRules() {
 }
 
 // ---------------------------------------------------------------------------
+// Game library: auto-save, viewer, PGN and share links
+// ---------------------------------------------------------------------------
+
+/** Escapes text from outside (PGN tags, links) for use in HTML. */
+const esc = (s: string) =>
+  s.replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ]!,
+  );
+
+/** Player-bar name from an imported/shared record, or null for the usual. */
+function recordName(color: Color): string | null {
+  const rec = state.viewer?.record;
+  if (!rec) return null;
+  if (rec.player !== undefined) {
+    // In someone else's shared game, "You" would be wrong: show the colour.
+    return rec.source === "shared" && !state.viewer!.saved &&
+        color === rec.player
+      ? sideName(color)
+      : null;
+  }
+  const n = color === WHITE ? rec.white : rec.black;
+  return n || sideName(color);
+}
+
+function liveRecord(): GameRecord {
+  const res = state.result;
+  const complete = Review.isComplete() && Review.hasReview();
+  const snap = Review.snapshot();
+  return {
+    id: state.gameId,
+    createdAt: state.createdAt,
+    updatedAt: Date.now(),
+    moves: state.moves.slice(),
+    source: "played",
+    player: state.player,
+    level: state.level,
+    winner: res.over ? res.winner : null,
+    reason: res.over ? res.reason : undefined,
+    review: complete ? { scores: snap.scores, best: snap.best } : undefined,
+  };
+}
+
+/** Upserts the live game into the library (from the second ply on). */
+function persistLive() {
+  if (state.viewer) return;
+  if (state.moves.length < 2) {
+    Library.deleteRecord(state.gameId);
+    return;
+  }
+  Library.putRecord(liveRecord());
+}
+
+/** Opens a record in the viewer, stashing the live game. */
+function openRecord(rec: GameRecord, saved: boolean) {
+  cancelThinking();
+  if (!state.viewer) {
+    state.viewer = {
+      record: rec,
+      saved,
+      live: {
+        moves: state.moves.slice(),
+        player: state.player,
+        level: state.level,
+        flipped: state.flipped,
+        review: Review.stash(),
+      },
+    };
+  } else {
+    state.viewer.record = rec;
+    state.viewer.saved = saved;
+  }
+  state.player = rec.player ?? WHITE;
+  state.level = rec.level ?? state.viewer.live.level;
+  state.flipped = state.player === BLACK;
+  Review.load(rec.review, rec.moves);
+  clearHint();
+  state.selected = -1;
+  state.targets = [];
+  replay(rec.moves);
+  state.viewPly = rec.moves.length;
+  render();
+  revealBoard();
+}
+
+function closeViewer() {
+  const v = state.viewer;
+  if (!v) return;
+  state.viewer = null;
+  state.player = v.live.player;
+  state.level = v.live.level;
+  state.flipped = v.live.flipped;
+  Review.unstash(v.live.review);
+  state.viewPly = null;
+  replay(v.live.moves);
+  render();
+  requestAIMove();
+}
+
+function renderViewer() {
+  const card = $("viewer-card");
+  const v = state.viewer;
+  card.hidden = !v;
+  if (!v) return;
+  const rec = v.record;
+  const foreign = rec.source === "shared" && !v.saved;
+  // In someone else's shared game the human side is shown by colour.
+  const human = (c: Color) => foreign ? sideName(c) : t("player.you");
+  const white = rec.player !== undefined
+    ? (rec.player === WHITE ? human(WHITE) : lname(rec.level ?? 3))
+    : rec.white || sideName(WHITE);
+  const black = rec.player !== undefined
+    ? (rec.player === BLACK ? human(BLACK) : lname(rec.level ?? 3))
+    : rec.black || sideName(BLACK);
+  const meta = [
+    formatDate(rec.createdAt),
+    resultLabel(rec),
+    t("moves.count", { n: Math.ceil(rec.moves.length / 2) }),
+  ].join(" · ");
+  card.innerHTML = `
+    <div class="viewer-info">
+      <span class="viewer-kind">${
+    t(foreign ? "viewer.shared" : "viewer.title")
+  }</span>
+      <span class="viewer-names">${esc(white)} – ${esc(black)}</span>
+      <span class="viewer-meta">${meta}</span>
+    </div>
+    <div class="viewer-actions">
+      <button type="button" class="btn" data-size="sm" data-act="close">${
+    t("viewer.close")
+  }</button>
+      ${
+    v.saved
+      ? ""
+      : `<button type="button" class="btn" data-variant="outline" data-size="sm" data-act="save">${
+        t("viewer.save")
+      }</button>`
+  }
+      <button type="button" class="btn" data-variant="outline" data-size="sm" data-act="share">${
+    t("library.share")
+  }</button>
+      <button type="button" class="btn" data-variant="outline" data-size="sm" data-act="pgn">PGN</button>
+    </div>`;
+}
+
+function formatDate(ms: number) {
+  try {
+    return new Intl.DateTimeFormat(intlLocale(), {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(ms);
+  } catch {
+    return new Date(ms).toISOString().slice(0, 16).replace("T", " ");
+  }
+}
+
+/** Outcome of a record, from the human's side when known. */
+function outcome(rec: GameRecord): "win" | "loss" | "draw" | "unfinished" {
+  const pos = Position.initial();
+  for (const m of rec.moves) pos.makeMove(m);
+  const res = pos.result();
+  if (!res.over) return "unfinished";
+  if (res.winner === 0) return "draw";
+  const me = rec.player ?? WHITE;
+  return res.winner === me ? "win" : "loss";
+}
+
+function resultLabel(rec: GameRecord) {
+  if (rec.player === undefined) {
+    const pos = Position.initial();
+    for (const m of rec.moves) pos.makeMove(m);
+    return pgnResult(pos.result());
+  }
+  return t(`library.result.${outcome(rec)}`);
+}
+
+function englishName(rec: GameRecord, color: Color) {
+  const en = dictFor("en");
+  if (rec.player === undefined) {
+    return (color === WHITE ? rec.white : rec.black) ||
+      (color === WHITE ? "Ivory" : "Ebony");
+  }
+  return rec.player === color
+    ? "Player"
+    : `${en[`level.${rec.level ?? 3}.name`]} (level ${rec.level ?? 3})`;
+}
+
+function recordPGN(rec: GameRecord) {
+  const d = new Date(rec.createdAt);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const tags: Record<string, string> = {
+    Date: `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`,
+    White: englishName(rec, WHITE),
+    Black: englishName(rec, BLACK),
+  };
+  if (rec.player !== undefined) {
+    tags.ShatranjPlayer = rec.player === WHITE ? "white" : "black";
+    tags.ShatranjLevel = String(rec.level ?? 3);
+  }
+  return toPGN(rec.moves, tags);
+}
+
+function download(name: string, text: string) {
+  const blob = new Blob([text], { type: "application/x-chess-pgn" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+const fileStamp = (ms: number) =>
+  new Date(ms).toISOString().slice(0, 16).replace(/[-:]/g, "").replace(
+    "T",
+    "-",
+  );
+
+function shareURL(rec: GameRecord) {
+  const params = new URLSearchParams({ g: encodeShare(rec.moves) });
+  if (rec.player !== undefined) {
+    params.set("p", rec.player === WHITE ? "w" : "b");
+    params.set("l", String(rec.level ?? 3));
+  } else {
+    if (rec.white) params.set("w", rec.white.slice(0, 60));
+    if (rec.black) params.set("b", rec.black.slice(0, 60));
+  }
+  return `${location.origin}${location.pathname}#${params}`;
+}
+
+async function copyLink(rec: GameRecord) {
+  const url = shareURL(rec);
+  try {
+    await navigator.clipboard.writeText(url);
+    toast(t("library.copied"));
+  } catch {
+    // Clipboard blocked: show the link so it can be copied by hand.
+    prompt(t("library.share"), url);
+  }
+}
+
+let toastTimer: ReturnType<typeof setTimeout> | undefined;
+function toast(text: string) {
+  const el = $("toast");
+  el.textContent = text;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (el.hidden = true), 2600);
+}
+
+/** Opens a game from a share link in the URL hash, if any. */
+function openFromHash() {
+  const h = new URLSearchParams(location.hash.slice(1));
+  const code = h.get("g");
+  if (!code) return;
+  history.replaceState(null, "", location.pathname + location.search);
+  try {
+    const moves = decodeShare(code);
+    const p = h.get("p");
+    const lv = Number(h.get("l"));
+    const rec: GameRecord = {
+      id: Library.newId(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      moves,
+      source: "shared",
+      ...(p === "w" || p === "b"
+        ? {
+          player: p === "w" ? WHITE : BLACK,
+          level: LEVELS.some((l) => l.id === lv) ? lv : 3,
+        }
+        : { white: h.get("w") ?? undefined, black: h.get("b") ?? undefined }),
+    };
+    openRecord(rec, false);
+  } catch {
+    toast(t("share.invalid"));
+  }
+}
+
+// --- Library dialog -------------------------------------------------------
+
+async function openLibrary() {
+  $<HTMLDialogElement>("library-dialog").showModal();
+  $("library-warning").hidden = await Library.isPersistent();
+  await renderLibrary();
+}
+
+let libraryCache: GameRecord[] = [];
+
+async function renderLibrary() {
+  libraryCache = await Library.listRecords();
+  const filter = document.querySelector<HTMLInputElement>(
+    'input[name="lib-filter"]:checked',
+  )?.value ?? "all";
+  const items = libraryCache.filter((r) =>
+    filter === "all" || outcome(r) === filter
+  );
+  const list = $("library-list");
+  if (items.length === 0) {
+    list.innerHTML = `<li class="library-empty">${t("library.empty")}</li>`;
+    return;
+  }
+  list.innerHTML = items.map((rec) => {
+    const o = outcome(rec);
+    let opponent: string;
+    let accuracy = "";
+    if (rec.player !== undefined) {
+      opponent = t("library.vs", { name: lname(rec.level ?? 3) });
+      if (rec.review) {
+        const rs = reviewMoves(rec.moves, rec.review.scores, rec.review.best);
+        if (rs.length === rec.moves.length && rs.length > 0) {
+          accuracy = `${t("review.accuracy")} ${
+            percent(summarize(rs, rec.player).accuracy)
+          }`;
+        }
+      }
+    } else {
+      opponent = `${esc(rec.white || sideName(WHITE))} – ${
+        esc(rec.black || sideName(BLACK))
+      }`;
+    }
+    const side = rec.player ?? WHITE;
+    return `
+      <li class="library-item" data-id="${esc(rec.id)}">
+        <span class="lib-result lib-${o}">${
+      rec.player === undefined ? resultLabel(rec) : t(`library.result.${o}`)
+    }</span>
+        <span class="lib-main">
+          <span class="lib-title"><span class="turn-icon">${
+      pieceSVG(side * SHAH)
+    }</span>${opponent}</span>
+          <span class="lib-meta">${
+      [
+        formatDate(rec.updatedAt),
+        t("moves.count", { n: Math.ceil(rec.moves.length / 2) }),
+        accuracy,
+      ].filter(Boolean).join(" · ")
+    }</span>
+        </span>
+        <span class="lib-actions">
+          <button type="button" class="btn" data-size="sm" data-act="open">${
+      t("library.open")
+    }</button>
+          <button type="button" class="btn" data-variant="ghost" data-size="icon-sm" data-act="share" aria-label="${
+      t("library.share")
+    }" title="${
+      t("library.share")
+    }"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+          <button type="button" class="btn" data-variant="ghost" data-size="icon-sm" data-act="pgn" aria-label="${
+      t("library.download")
+    }" title="${
+      t("library.download")
+    }"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg></button>
+          <button type="button" class="btn" data-variant="ghost" data-size="icon-sm" data-act="delete" aria-label="${
+      t("library.delete")
+    }" title="${
+      t("library.delete")
+    }"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+        </span>
+      </li>`;
+  }).join("");
+}
+
+async function onLibraryClick(e: Event) {
+  const btn = (e.target as Element).closest<HTMLElement>("[data-act]");
+  const item = btn?.closest<HTMLElement>(".library-item");
+  if (!btn || !item) return;
+  const rec = libraryCache.find((r) => r.id === item.dataset.id);
+  if (!rec) return;
+  switch (btn.dataset.act) {
+    case "open":
+      $<HTMLDialogElement>("library-dialog").close();
+      if (rec.id === state.gameId && !state.viewer) {
+        // The live game itself: just review it in place.
+        viewAt(state.moves.length);
+      } else openRecord(rec, true);
+      break;
+    case "share":
+      await copyLink(rec);
+      break;
+    case "pgn":
+      download(`shatranj-${fileStamp(rec.createdAt)}.pgn`, recordPGN(rec));
+      break;
+    case "delete":
+      if (!confirm(t("library.deleteConfirm"))) return;
+      await Library.deleteRecord(rec.id);
+      if (state.viewer?.record.id === rec.id) state.viewer.saved = false;
+      if (rec.id === state.gameId) state.gameId = Library.newId();
+      await renderLibrary();
+      render();
+      break;
+  }
+}
+
+async function importPGN(text: string) {
+  const { games, errors } = parsePGN(text);
+  const now = Date.now();
+  let i = 0;
+  for (const g of games) {
+    const tags = g.tags;
+    const side = tags.ShatranjPlayer;
+    const lv = Number(tags.ShatranjLevel);
+    const date = (tags.Date ?? "").match(/^(\d{4})\.(\d{2})\.(\d{2})$/);
+    const when = date
+      ? new Date(+date[1], +date[2] - 1, +date[3]).getTime()
+      : now;
+    await Library.putRecord({
+      id: Library.newId(),
+      createdAt: when,
+      updatedAt: now + i++, // keep file order at the top of the list
+      moves: g.moves,
+      source: "imported",
+      ...(side === "white" || side === "black"
+        ? {
+          player: side === "white" ? WHITE : BLACK,
+          level: LEVELS.some((l) => l.id === lv) ? lv : 3,
+        }
+        : { white: tags.White, black: tags.Black }),
+    });
+  }
+  if (errors.length) console.warn("PGN import errors:", errors);
+  toast(
+    [
+      games.length ? t("library.imported", { n: games.length }) : "",
+      errors.length ? t("library.importFailed", { n: errors.length }) : "",
+    ].filter(Boolean).join(" "),
+  );
+  await renderLibrary();
+}
+
+async function exportAll() {
+  const all = await Library.listRecords();
+  if (all.length === 0) return;
+  download(
+    `shatranj-records-${fileStamp(Date.now())}.pgn`,
+    all.map(recordPGN).join("\n"),
+  );
+}
+
+function wireLibrary() {
+  $("library-btn").addEventListener("click", openLibrary);
+  $("library-list").addEventListener("click", onLibraryClick);
+  document.querySelector(".library-filter")!.addEventListener(
+    "change",
+    () => renderLibrary(),
+  );
+  const file = $<HTMLInputElement>("library-file");
+  $("library-import-btn").addEventListener("click", () => file.click());
+  file.addEventListener("change", async () => {
+    for (const f of file.files ?? []) await importPGN(await f.text());
+    file.value = "";
+  });
+  $("library-paste-btn").addEventListener("click", () => {
+    $("library-paste").hidden = false;
+    $<HTMLTextAreaElement>("library-paste-text").focus();
+  });
+  $("library-paste-cancel").addEventListener("click", () => {
+    $("library-paste").hidden = true;
+  });
+  $("library-paste-submit").addEventListener("click", async () => {
+    const ta = $<HTMLTextAreaElement>("library-paste-text");
+    if (!ta.value.trim()) return;
+    await importPGN(ta.value);
+    ta.value = "";
+    $("library-paste").hidden = true;
+  });
+  $("library-export-btn").addEventListener("click", exportAll);
+  $("viewer-card").addEventListener("click", async (e) => {
+    const act = (e.target as Element).closest<HTMLElement>("[data-act]")
+      ?.dataset.act;
+    const v = state.viewer;
+    if (!act || !v) return;
+    if (act === "close") closeViewer();
+    else if (act === "save") {
+      v.record.source = v.record.source === "shared" ? "shared" : "imported";
+      v.record.updatedAt = Date.now();
+      await Library.putRecord(v.record);
+      v.saved = true;
+      toast(t("viewer.saved"));
+      render();
+    } else if (act === "share") await copyLink(v.record);
+    else if (act === "pgn") {
+      download(
+        `shatranj-${fileStamp(v.record.createdAt)}.pgn`,
+        recordPGN(v.record),
+      );
+    }
+  });
+  globalThis.addEventListener("hashchange", openFromHash);
+}
+
+// ---------------------------------------------------------------------------
 // Boot
 // ---------------------------------------------------------------------------
 
@@ -1339,6 +1908,7 @@ function init() {
     saveLang(l);
     applyLanguage(l);
     render();
+    if ($<HTMLDialogElement>("library-dialog").open) renderLibrary();
   });
   applyLanguage(detectLang());
 
@@ -1349,6 +1919,8 @@ function init() {
     state.flipped = !!saved.flipped;
     state.colorChoice = saved.colorChoice ??
       (state.player === WHITE ? "white" : "black");
+    if (saved.gameId) state.gameId = saved.gameId;
+    if (saved.createdAt) state.createdAt = saved.createdAt;
     if (!replay(saved.moves)) replay([]);
   }
   Review.restore(state.moves);
@@ -1366,9 +1938,13 @@ function init() {
   });
 
   $("new-game-btn").addEventListener("click", () => {
-    if (state.result.over) newGame();
+    if (state.viewer) {
+      closeViewer();
+      openNewGameDialog();
+    } else if (state.result.over) newGame();
     else openNewGameDialog();
   });
+  wireLibrary();
   $("start-game-btn").addEventListener("click", startFromDialog);
   $("result-new-btn").addEventListener("click", () => {
     $<HTMLDialogElement>("result-dialog").close();
@@ -1489,6 +2065,7 @@ function init() {
 
   render();
   requestAIMove();
+  openFromHash();
 }
 
 init();

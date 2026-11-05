@@ -1273,3 +1273,167 @@ html[lang="egy"] :is(.side-panel, dialog, header, .player-bar, .review-strip) {
 .review-strip {
   scroll-margin-top: 4.75rem;
 }
+
+/* ------------------------------------------------------ Game library */
+
+.library-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.library-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+}
+.library-item:hover {
+  background: color-mix(in oklch, var(--accent) 60%, transparent);
+}
+.library-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+.lib-result {
+  flex-shrink: 0;
+  min-width: 4.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+.lib-win {
+  background: color-mix(in oklch, var(--cls-best) 22%, transparent);
+  color: color-mix(in oklch, var(--cls-best) 70%, var(--foreground));
+}
+.lib-loss {
+  background: color-mix(in oklch, var(--cls-blunder) 18%, transparent);
+  color: color-mix(in oklch, var(--cls-blunder) 75%, var(--foreground));
+}
+.lib-draw {
+  background: color-mix(in oklch, var(--gold) 22%, transparent);
+  color: var(--foreground);
+}
+.lib-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.lib-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  min-width: 0;
+}
+.lib-title .turn-icon {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+.lib-meta {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.lib-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+@media (max-width: 520px) {
+  .library-item {
+    flex-wrap: wrap;
+  }
+  .lib-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+.library-filter {
+  grid-template-columns: repeat(4, auto);
+}
+.dialog .library-actions {
+  display: flex;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+
+/* Viewer card: marks that a saved game, not the live one, is shown. */
+.viewer-card {
+  box-shadow: inset 0 0 0 1.5px var(--gold);
+}
+
+/* Small notification at the bottom of the screen. */
+.toast-msg {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: calc(100vw - 2rem);
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius);
+  background: var(--foreground);
+  color: var(--background);
+  font-size: 0.875rem;
+  box-shadow: 0 8px 24px oklch(0 0 0 / 0.25);
+}
+.toast-msg[hidden] {
+  display: none;
+}
+
+/* Viewer bar above the board: shows that a saved game is open. */
+.viewer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius);
+  background: color-mix(in oklch, var(--gold) 12%, var(--card));
+  box-shadow: inset 0 0 0 1.5px var(--gold);
+}
+.viewer-bar[hidden] {
+  display: none;
+}
+.viewer-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.viewer-kind {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-text);
+}
+html:is([lang="ar"], [lang="fa"]) .viewer-kind {
+  text-transform: none;
+  letter-spacing: 0;
+}
+.viewer-names {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.viewer-meta {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.viewer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}

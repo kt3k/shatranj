@@ -142,7 +142,7 @@ export function clear() {
 }
 
 function persist() {
-  if (!restored) return;
+  if (!restored || !persistEnabled) return;
   try {
     localStorage.setItem(
       STORAGE_KEY,
@@ -172,4 +172,58 @@ export function restore(moves: Move[]) {
   }
   restored = true;
   syncWithGame(moves);
+}
+
+// ---------------------------------------------------------------------------
+// Swapping in a saved game (the game library's viewer)
+// ---------------------------------------------------------------------------
+
+/** When false, changes are not written to localStorage (viewer mode). */
+let persistEnabled = true;
+
+export interface ReviewSnapshot {
+  moves: Move[];
+  scores: (number | null)[];
+  best: (Move | null)[];
+}
+
+/** Takes the current review out (stopping any analysis) so another can be shown. */
+export function stash(): ReviewSnapshot {
+  cancel();
+  return {
+    moves: review.moves.slice(),
+    scores: review.scores.slice(),
+    best: review.best.slice(),
+  };
+}
+
+/** Puts a review in place without persisting it (for a saved game). */
+export function load(
+  snap: Pick<ReviewSnapshot, "scores" | "best"> | undefined,
+  moves: Move[],
+) {
+  cancel();
+  persistEnabled = false;
+  review.moves = moves.slice();
+  review.scores = snap ? snap.scores.slice(0, moves.length + 1) : [];
+  review.best = snap ? snap.best.slice(0, moves.length + 1) : [];
+  review.showBest = false;
+}
+
+/** Restores a stashed review and resumes persisting. */
+export function unstash(snap: ReviewSnapshot) {
+  cancel();
+  review.moves = snap.moves;
+  review.scores = snap.scores;
+  review.best = snap.best;
+  review.showBest = false;
+  persistEnabled = true;
+}
+
+export function snapshot(): ReviewSnapshot {
+  return {
+    moves: review.moves.slice(),
+    scores: review.scores.slice(),
+    best: review.best.slice(),
+  };
 }

@@ -69,6 +69,21 @@
               aria-hidden="true"></span>
             <select id="lang-select" data-i18n-aria="header.language"></select>
           </label>
+          <button type="button" class="btn" data-variant="ghost" data-size="sm"
+            id="library-btn" data-i18n-title="header.library">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              aria-hidden="true">
+              <path d="M15 12h-5" />
+              <path d="M15 8h-5" />
+              <path d="M19 17V5a2 2 0 0 0-2-2H4" />
+              <path
+                d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" />
+            </svg>
+            <span class="max-sm:sr-only"
+              data-i18n="header.library">Records</span>
+          </button>
           <button
             type="button"
             class="btn"
@@ -117,6 +132,7 @@
       <section class="min-w-0">
         <div
           class="board-col mx-auto w-full flex flex-col gap-3 max-w-[min(100%,max(20rem,calc(100dvh-14rem)))] md:max-w-[min(100%,max(20rem,calc(100dvh-12rem)))] lg:max-w-[min(100%,max(24rem,calc(100dvh-12rem)))]">
+          <div class="viewer-bar" id="viewer-card" hidden></div>
           <div class="player-bar" id="top-player"></div>
 
           <div class="board-frame w-full" dir="ltr">
@@ -356,6 +372,91 @@
         </button>
       </div>
     </dialog>
+
+    <!-- Game library dialog -->
+    <dialog id="library-dialog" class="dialog w-full sm:max-w-2xl max-h-[92dvh]"
+      aria-labelledby="library-title"
+      onclick="if (event.target === this) this.close()">
+      <div>
+        <header>
+          <h2 id="library-title" class="font-display text-xl"
+            data-i18n="library.title">Game records</h2>
+          <p data-i18n="library.desc">Games are saved in this browser.</p>
+        </header>
+        <section class="overflow-y-auto scrollbar flex flex-col gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="seg library-filter" role="radiogroup"
+              data-i18n-aria="library.filter">
+              <label><input type="radio" name="lib-filter" value="all" checked /><span data-i18n="library.filter.all">All</span></label>
+              <label><input type="radio" name="lib-filter" value="win" /><span data-i18n="library.filter.win">Wins</span></label>
+              <label><input type="radio" name="lib-filter" value="loss" /><span data-i18n="library.filter.loss">Losses</span></label>
+              <label><input type="radio" name="lib-filter" value="draw" /><span data-i18n="library.filter.draw">Draws</span></label>
+            </div>
+          </div>
+          <p class="text-xs text-destructive" id="library-warning" hidden
+            data-i18n="library.noStorage"></p>
+          <ul class="library-list" id="library-list"></ul>
+          <div class="flex flex-col gap-2" id="library-paste" hidden>
+            <textarea class="textarea font-mono text-xs" rows="6"
+              id="library-paste-text" dir="ltr"></textarea>
+            <div class="flex gap-2 justify-end">
+              <button type="button" class="btn" data-variant="ghost"
+                data-size="sm" id="library-paste-cancel"
+                data-i18n="btn.cancel">Cancel</button>
+              <button type="button" class="btn" data-size="sm"
+                id="library-paste-submit"
+                data-i18n="library.paste.submit">Import</button>
+            </div>
+          </div>
+        </section>
+        <footer class="library-actions">
+          <input type="file" id="library-file"
+            accept=".pgn,.txt,application/x-chess-pgn,text/plain" multiple
+            hidden />
+          <button type="button" class="btn" data-variant="outline"
+            data-size="sm" id="library-import-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              aria-hidden="true">
+              <path d="M12 3v12" />
+              <path d="m17 8-5-5-5 5" />
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            </svg>
+            <span data-i18n="library.import">Import PGN</span>
+          </button>
+          <button type="button" class="btn" data-variant="outline"
+            data-size="sm" id="library-paste-btn">
+            <span data-i18n="library.paste">Paste PGN</span>
+          </button>
+          <button type="button" class="btn" data-variant="outline"
+            data-size="sm" id="library-export-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              aria-hidden="true">
+              <path d="M12 15V3" />
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <path d="m7 10 5 5 5-5" />
+            </svg>
+            <span data-i18n="library.exportAll">Download all</span>
+          </button>
+        </footer>
+        <button type="button" class="btn" data-variant="ghost"
+          data-size="icon-sm" aria-label="Close dialog"
+          data-i18n-aria="btn.close" onclick="this.closest('dialog').close()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      </div>
+    </dialog>
+
+    <div class="toast-msg" id="toast" role="status" aria-live="polite"
+      hidden></div>
 
     <!-- Rules dialog -->
     <dialog
