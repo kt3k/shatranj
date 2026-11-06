@@ -268,4 +268,8 @@ export const es: Dict = {
   "library.askMineYes": "Sí, son mías",
   "library.duplicates.one": "{n} partida ya estaba guardada.",
   "library.duplicates.other": "{n} partidas ya estaban guardadas.",
+  "viewer.unsaved": "Sin guardar",
+  "viewer.discardConfirmMine":
+    "¿Salir de esta partida sin guardarla? Se perderán la partida y su revisión.",
+  "library.askMineNo": "No, son de otra persona",
 };

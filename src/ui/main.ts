@@ -117,6 +117,8 @@ const state = {
     saved: boolean;
     /** Opened from a share link in the address bar (no history entry). */
     fromHash: boolean;
+    /** That link, to put back if leaving is cancelled after Back. */
+    hash: string;
     live: {
       moves: Move[];
       player: Color;
@@ -1480,6 +1482,7 @@ function openRecord(rec: GameRecord, saved: boolean, fromHash = false) {
       record: rec,
       saved,
       fromHash,
+      hash: fromHash ? location.hash : "",
       live: {
         moves: state.moves.slice(),
         player: state.player,
@@ -1506,7 +1509,7 @@ function openRecord(rec: GameRecord, saved: boolean, fromHash = false) {
   revealBoard();
   // Move focus to the viewer bar and say what is shown.
   const bar = $("viewer-card");
-  bar.focus({ preventScroll: true });
+  bar.focus({ preventScroll: true, focusVisible: false } as FocusOptions);
   announce(
     `${t(saved || isMine(rec) ? "viewer.title" : "viewer.shared")}: ${
       sideLabel(rec, WHITE)
@@ -1533,7 +1536,11 @@ async function closeViewer(fromHistory = false): Promise<boolean> {
   // An unsaved shared game with a review would be lost: ask first.
   if (!v.saved && (Review.analysedCount() > 1 || review.running)) {
     const choice = await askChoice(
-      t("viewer.discardConfirm"),
+      t(
+        isMine(v.record)
+          ? "viewer.discardConfirmMine"
+          : "viewer.discardConfirm",
+      ),
       t("viewer.leave"),
       t("viewer.saveAndLeave"),
     );
@@ -1640,7 +1647,7 @@ function renderViewer() {
   card.innerHTML = `
     <div class="viewer-info">
       <span class="viewer-line"><span class="viewer-kind">${
-    t(mine || v.saved ? "viewer.title" : "viewer.shared")
+    t(v.saved ? "viewer.title" : mine ? "viewer.unsaved" : "viewer.shared")
   }</span>
       <span class="viewer-names">${esc(sideLabel(rec, WHITE))} – ${
     esc(sideLabel(rec, BLACK))
@@ -1776,9 +1783,18 @@ function shareURL(rec: GameRecord) {
   return `${shareBase()}#${params}`;
 }
 
+/** A human description of a game, e.g. for the app's share sheet. */
+function shareTitle(rec: GameRecord) {
+  return `${t("brand.primary")}: ${sideLabel(rec, WHITE)} – ${
+    sideLabel(rec, BLACK)
+  } · ${resultLabel(rec)} · ${
+    t("moves.count", { n: Math.ceil(rec.moves.length / 2) })
+  }`;
+}
+
 async function copyLink(rec: GameRecord) {
   const url = shareURL(rec);
-  if (callHost("share.link", { url, title: t("library.share") })) {
+  if (callHost("share.link", { url, title: shareTitle(rec) })) {
     return;
   }
   try {
@@ -1808,16 +1824,24 @@ function askChoice(
   message: string,
   okLabel: string,
   altLabel?: string,
+  { danger = true } = {},
 ): Promise<string> {
   const dialog = $<HTMLDialogElement>("confirm-dialog");
   $("confirm-dialog-text").textContent = message;
-  $("confirm-dialog-ok").textContent = okLabel;
+  const ok = $("confirm-dialog-ok");
+  ok.textContent = okLabel;
+  // Destructive styling only for destructive questions.
+  if (danger) ok.dataset.variant = "destructive";
+  else delete ok.dataset.variant;
   const alt = $<HTMLButtonElement>("confirm-dialog-alt");
   alt.hidden = !altLabel;
   alt.textContent = altLabel ?? "";
+  if (danger) delete alt.dataset.variant;
+  else alt.dataset.variant = "outline";
   dialog.returnValue = "";
-  // Not a history entry: closing it must not also pop the viewer's.
-  openDialog(dialog, false);
+  // Its own history entry: Back while it is open means Cancel, and leaves
+  // the entry of whatever is underneath (a dialog, the viewer) in place.
+  openDialog(dialog);
   (altLabel ? alt : dialog.querySelector<HTMLElement>("[autofocus]"))?.focus();
   return new Promise((resolve) => {
     dialog.addEventListener("close", () => resolve(dialog.returnValue), {
@@ -1959,8 +1983,12 @@ async function openFromHash() {
   const h = new URLSearchParams(location.hash.slice(1));
   const code = h.get("g");
   if (!code) {
-    // Back from a share link (or the hash was edited away): leave it.
-    if (state.viewer?.fromHash) await closeViewer(true);
+    // Back from a share link (or the hash was edited away): leave it. If
+    // the player chooses to stay, put the link back in the address bar.
+    const v = state.viewer;
+    if (v?.fromHash && !(await closeViewer(true)) && state.viewer === v) {
+      history.pushState(history.state, "", v.hash);
+    }
     return;
   }
   let moves: Move[];
@@ -2145,41 +2173,66 @@ async function onLibraryClick(e: Event) {
 }
 
 /** Imports PGN text. Returns the failures (for an inline report). */
-async function importPGN(
-  text: string,
-): Promise<{ imported: number; failures: PgnFailure[] }> {
-  const { games, errors } = parsePGN(text);
-  // Games exported from this site carry the player's side and level. They
-  // may be a friend's export, so only treat them as "mine" when confirmed.
-  const tagged = games.some((g) => g.tags.ShatranjPlayer);
-  const mine = tagged &&
-    (await askChoice(t("library.askMine"), t("library.askMineYes"))) === "ok";
-  const { added, skipped } = await saveImported(games, mine);
-  toast(
-    [
-      added ? t("library.imported", { n: added }) : "",
-      skipped ? t("library.duplicates", { n: skipped }) : "",
-      errors.length ? t("library.importFailed", { n: errors.length }) : "",
-    ].filter(Boolean).join(" "),
-  );
+type FileFailure = PgnFailure & { file?: string };
+
+/**
+ * Imports one or more PGN texts (files or a paste): parses everything,
+ * drops games already in the library, asks once whether games exported
+ * from this site are the player's own, saves, and shows one summary.
+ */
+async function importSources(
+  sources: { text: string; file?: string }[],
+): Promise<{ added: number; cancelled: boolean; failures: FileFailure[] }> {
+  const games: PgnGame[] = [];
+  const failures: FileFailure[] = [];
+  for (const src of sources) {
+    const r = parsePGN(src.text);
+    games.push(...r.games);
+    for (const e of r.errors) failures.push({ ...e, file: src.file });
+    if (r.games.length === 0 && r.errors.length === 0 && src.file) {
+      failures.push({
+        index: 0,
+        tags: {},
+        message: "",
+        moves: [],
+        file: src.file,
+      });
+    }
+  }
+  const res = await importGames(games);
+  if (!res.cancelled) {
+    const failed = failures.filter((f) => f.index > 0).length;
+    toast(
+      [
+        res.added ? t("library.imported", { n: res.added }) : "",
+        res.skipped ? t("library.duplicates", { n: res.skipped }) : "",
+        failed ? t("library.importFailed", { n: failed }) : "",
+      ].filter(Boolean).join(" "),
+    );
+  }
   await renderLibrary();
-  return { imported: games.length, failures: errors };
+  return { added: res.added + res.skipped, cancelled: res.cancelled, failures };
 }
 
-/** Saves imported games, skipping ones already in the library. */
-async function saveImported(games: PgnGame[], mine = false) {
+/** Saves games that are new to the library; asks about ownership once. */
+async function importGames(
+  games: PgnGame[],
+): Promise<{ added: number; skipped: number; cancelled: boolean }> {
   const now = Date.now();
   const dayOf = (ms: number) => new Date(ms).toDateString();
-  const known = new Set(
-    (await Library.listRecords()).map((r) =>
-      `${r.moves.join(",")}|${dayOf(r.createdAt)}`
-    ),
-  );
-  let i = 0, added = 0, skipped = 0;
+  const secOf = (ms: number) => Math.floor(ms / 1000);
+  // A game is a duplicate when the same moves were played at the same
+  // second (when the time is known) or on the same day (when it is not).
+  const known = new Set<string>();
+  for (const r of await Library.listRecords()) {
+    const mv = r.moves.join(",");
+    known.add(`${mv}|d${dayOf(r.createdAt)}`);
+    if (!r.timeUnknown) known.add(`${mv}|t${secOf(r.createdAt)}`);
+  }
+  const fresh: { g: PgnGame; when: number; timeKnown: boolean }[] = [];
+  let skipped = 0;
   for (const g of games) {
     const tags = g.tags;
-    const side = tags.ShatranjPlayer;
-    const lv = Number(tags.ShatranjLevel);
     const date = (tags.Date ?? "").match(/^(\d{4})\.(\d{2})\.(\d{2})$/);
     const time = (tags.Time ?? "").match(/^(\d{2}):(\d{2})(?::(\d{2}))?$/);
     const when = date
@@ -2192,24 +2245,44 @@ async function saveImported(games: PgnGame[], mine = false) {
         time ? +(time[3] ?? 0) : 0,
       ).getTime()
       : now;
-    const key = `${g.moves.join(",")}|${dayOf(when)}`;
+    const timeKnown = !!(date && time);
+    const mv = g.moves.join(",");
+    const key = timeKnown ? `${mv}|t${secOf(when)}` : `${mv}|d${dayOf(when)}`;
     if (known.has(key)) {
       skipped++;
       continue;
     }
     known.add(key);
-    added++;
+    fresh.push({ g, when, timeKnown });
+  }
+  // Games exported from this site carry the player's side and level. They
+  // may be a friend's export, so ask (once) before counting them as yours.
+  let mine = false;
+  if (fresh.some((f) => f.g.tags.ShatranjPlayer)) {
+    const choice = await askChoice(
+      t("library.askMine"),
+      t("library.askMineYes"),
+      t("library.askMineNo"),
+      { danger: false },
+    );
+    if (choice === "") return { added: 0, skipped, cancelled: true };
+    mine = choice === "ok";
+  }
+  let i = 0;
+  for (const { g, when, timeKnown } of fresh) {
+    const tags = g.tags;
+    const side = tags.ShatranjPlayer;
+    const lv = Number(tags.ShatranjLevel);
     const sided = side === "white" || side === "black";
-    const own = sided && mine;
     await Library.putRecord({
-      timeUnknown: !(date && time),
       id: Library.newId(),
-      // Newest first in the list; games with the same date keep file order.
-      createdAt: when - i,
+      // Newest first in the list; games with no time keep file order.
+      createdAt: timeKnown ? when : when - i,
       updatedAt: now - i,
+      timeUnknown: !timeKnown,
       moves: g.moves,
       source: "imported",
-      owner: own ? "me" : "other",
+      owner: sided && mine ? "me" : "other",
       ...(sided
         ? {
           player: side === "white" ? WHITE : BLACK,
@@ -2219,11 +2292,10 @@ async function saveImported(games: PgnGame[], mine = false) {
     });
     i++;
   }
-  return { added, skipped };
+  return { added: fresh.length, skipped, cancelled: false };
 }
 
 /** Inline report for a paste import that did not fully succeed. */
-type FileFailure = PgnFailure & { file?: string };
 let pendingPartials: FileFailure[] = [];
 function showPasteReport(failures: FileFailure[], noGames: boolean) {
   const el = $("library-paste-report");
@@ -2282,25 +2354,15 @@ function wireLibrary() {
   const file = $<HTMLInputElement>("library-file");
   $("library-import-btn").addEventListener("click", () => file.click());
   file.addEventListener("change", async () => {
-    // One report for all chosen files, naming the file of each problem.
-    const failures: FileFailure[] = [];
-    let any = false;
-    for (const f of file.files ?? []) {
-      const r = await importPGN(await f.text());
-      if (r.imported > 0) any = true;
-      if (r.imported === 0 && r.failures.length === 0) {
-        failures.push({
-          index: 0,
-          tags: {},
-          message: "",
-          moves: [],
-          file: f.name,
-        });
-      }
-      for (const x of r.failures) failures.push({ ...x, file: f.name });
-    }
+    const sources = await Promise.all(
+      [...(file.files ?? [])].map(async (f) => ({
+        text: await f.text(),
+        file: f.name,
+      })),
+    );
     file.value = "";
-    showPasteReport(failures, !any && failures.length === 0);
+    const r = await importSources(sources);
+    if (!r.cancelled) showPasteReport(r.failures, false);
   });
   const paste = $("library-paste");
   const ta = $<HTMLTextAreaElement>("library-paste-text");
@@ -2317,20 +2379,27 @@ function wireLibrary() {
       showPasteReport([], true);
       return;
     }
-    const { imported, failures } = await importPGN(ta.value);
-    showPasteReport(failures, imported === 0);
+    const r = await importSources([{ text: ta.value }]);
+    if (r.cancelled) return;
+    showPasteReport(r.failures, r.added === 0 && r.failures.length === 0);
     // Keep the text (and the panel) whenever something could not be read.
-    if (imported > 0 && failures.length === 0) {
+    if (r.added > 0 && r.failures.length === 0) {
       ta.value = "";
       paste.hidden = true;
     }
   });
   $("library-paste-report").addEventListener("click", async (e) => {
     if (!(e.target as Element).closest("#library-partial-btn")) return;
-    await saveImported(
+    const res = await importGames(
       pendingPartials.map((f) => ({ tags: f.tags, moves: f.moves })),
     );
-    toast(t("library.imported", { n: pendingPartials.length }));
+    if (res.cancelled) return;
+    toast(
+      [
+        res.added ? t("library.imported", { n: res.added }) : "",
+        res.skipped ? t("library.duplicates", { n: res.skipped }) : "",
+      ].filter(Boolean).join(" "),
+    );
     showPasteReport([], false);
     ta.value = "";
     paste.hidden = true;

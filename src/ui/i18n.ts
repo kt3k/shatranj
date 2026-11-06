@@ -301,6 +301,10 @@ const en: Dict = {
   "library.askMineYes": "Yes, they are mine",
   "library.duplicates.one": "{n} game was already in your records.",
   "library.duplicates.other": "{n} games were already in your records.",
+  "viewer.unsaved": "Not saved",
+  "viewer.discardConfirmMine":
+    "Leave this game without saving it? It and its review will be lost.",
+  "library.askMineNo": "No, someone else's",
 };
 
 const ja: Dict = {
@@ -550,6 +554,10 @@ const ja: Dict = {
     "これらの対局は、このサイトから手番の情報付きで書き出されたものです。あなた自身の対局ですか？ 自分の対局は勝ち・負けの集計に入ります。",
   "library.askMineYes": "はい、自分の対局です",
   "library.duplicates.other": "{n}局はすでに棋譜帳にありました。",
+  "viewer.unsaved": "未保存",
+  "viewer.discardConfirmMine":
+    "この対局を保存せずに離れますか？ 対局と振り返りは失われます。",
+  "library.askMineNo": "いいえ、他の人の対局です",
 };
 
 const ar: Dict = {
@@ -805,6 +813,10 @@ const ar: Dict = {
   "library.askMineYes": "نعم، إنها أدواري",
   "library.duplicates.one": "كان دورٌ واحد موجودًا بالفعل في سجلّك.",
   "library.duplicates.other": "{n} أدوار كانت موجودة بالفعل في سجلّك.",
+  "viewer.unsaved": "غير محفوظ",
+  "viewer.discardConfirmMine":
+    "أتغادر هذا الدور دون حفظه؟ سيضيع الدور ومراجعته.",
+  "library.askMineNo": "لا، إنها لشخص آخر",
 };
 
 const fa: Dict = {
@@ -1059,6 +1071,10 @@ const fa: Dict = {
   "library.askMineYes": "بله، مال من هستند",
   "library.duplicates.one": "{n} بازی از قبل در بایگانی شما بود.",
   "library.duplicates.other": "{n} بازی از قبل در بایگانی شما بود.",
+  "viewer.unsaved": "ذخیره‌نشده",
+  "viewer.discardConfirmMine":
+    "این بازی را بدون ذخیره ترک می‌کنید؟ بازی و بازبینی آن از دست می‌رود.",
+  "library.askMineNo": "نه، مال کس دیگری است",
 };
 
 const DICTS: Record<Lang, Dict> = {

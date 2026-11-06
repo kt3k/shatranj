@@ -269,4 +269,8 @@ export const fr: Dict = {
   "library.askMineYes": "Oui, ce sont les miennes",
   "library.duplicates.one": "{n} partie était déjà enregistrée.",
   "library.duplicates.other": "{n} parties étaient déjà enregistrées.",
+  "viewer.unsaved": "Non enregistrée",
+  "viewer.discardConfirmMine":
+    "Quitter cette partie sans l’enregistrer ? La partie et son analyse seront perdues.",
+  "library.askMineNo": "Non, celles de quelqu’un d’autre",
 };

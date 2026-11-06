@@ -1647,3 +1647,69 @@ body:has(dialog[open]) .toast-msg[popover] {
     animation: none;
   }
 }
+
+/* ------------------------------------------------------ Review round 8 */
+
+/* Viewer bar on phones: keep the actions on one row (labels shrink). */
+.viewer-actions {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+.viewer-actions .btn {
+  min-width: 0;
+}
+.viewer-actions .btn > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .viewer-info {
+    flex-basis: 100%;
+  }
+  .viewer-bar {
+    padding: 0.5rem 0.6rem;
+  }
+}
+
+/* Landscape phones: a compact new-game dialog so the choices are visible. */
+@media (orientation: landscape) and (max-height: 520px) {
+  #new-game-dialog header p,
+  #new-game-dialog [data-i18n="newGame.ivoryFirst"],
+  #new-game-dialog .level-option:not(:has(input:checked)) .level-desc {
+    display: none;
+  }
+  #new-game-dialog .level-option {
+    padding-block: 0.2rem;
+  }
+  #new-game-dialog section {
+    gap: 0.75rem;
+  }
+  /* Wider dialog: "Play as" on one row, opponents in two columns. */
+  #new-game-dialog,
+  #new-game-dialog > div {
+    max-width: min(46rem, calc(100vw - 2rem));
+  }
+  #new-game-dialog section > div:first-child {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+  #new-game-dialog section > div:first-child .seg {
+    flex: 1;
+  }
+  #level-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  #level-list {
+    gap: 0.4rem;
+  }
+  #new-game-dialog .level-option > .flex-col > :last-child {
+    display: none;
+  }
+  #new-game-dialog .level-option .star-badge {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+}

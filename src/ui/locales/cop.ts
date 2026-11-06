@@ -247,4 +247,8 @@ export const cop: Dict = {
   "library.askMine": "ⲛⲉⲓⲥⲱⲃⲉ ⲁⲩⲛ̄ⲧⲟⲩ ⲉⲃⲟⲗ ϩⲙ̄ ⲡⲉⲓⲙⲁ. ⲛⲉⲕⲥⲱⲃⲉ ⲛⲉ ⲛ̄ⲧⲟⲕ ⲡⲉ?",
   "library.askMineYes": "ⲥⲉ, ⲛⲟⲩⲓ̈ ⲛⲉ",
   "library.duplicates.other": "ⲥⲱⲃⲉ ⲉⲛⲉⲩϣⲟⲟⲡ ϩⲛ̄ ⲛⲉⲕⲥϩⲁⲓ ϫⲓⲛ ⲛ̄ϣⲟⲣⲡ̄: {n}",
+  "viewer.unsaved": "ⲙ̄ⲡⲟⲩϩⲁⲣⲉϩ ⲉⲣⲟϥ",
+  "viewer.discardConfirmMine":
+    "ⲕⲛⲁⲃⲱⲕ ⲉⲃⲟⲗ ϩⲙ̄ ⲡⲉⲓⲥⲱⲃⲉ ⲁϫⲛ̄ ϩⲁⲣⲉϩ ⲉⲣⲟϥ? ϥⲛⲁⲧⲁⲕⲟ.",
+  "library.askMineNo": "ⲙ̄ⲙⲟⲛ, ⲛⲁ ⲕⲉⲟⲩⲁ ⲛⲉ",
 };

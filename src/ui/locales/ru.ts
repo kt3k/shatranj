@@ -278,4 +278,8 @@ export const ru: Dict = {
   "library.duplicates.few": "{n} партии уже были сохранены.",
   "library.duplicates.many": "{n} партий уже были сохранены.",
   "library.duplicates.other": "{n} партии уже были сохранены.",
+  "viewer.unsaved": "Не сохранена",
+  "viewer.discardConfirmMine":
+    "Выйти из этой партии, не сохранив её? Партия и её разбор будут потеряны.",
+  "library.askMineNo": "Нет, чужие",
 };

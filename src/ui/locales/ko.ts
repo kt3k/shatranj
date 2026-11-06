@@ -246,4 +246,8 @@ export const ko: Dict = {
     "이 게임들은 이 사이트에서 플레이어 진영 정보와 함께 내보낸 것이에요. 직접 둔 게임인가요? 내 게임은 승패 기록에 포함돼요.",
   "library.askMineYes": "네, 내 게임이에요",
   "library.duplicates.other": "이미 기록에 있는 게임: {n}개",
+  "viewer.unsaved": "저장 안 됨",
+  "viewer.discardConfirmMine":
+    "이 게임을 저장하지 않고 나갈까요? 게임과 분석이 사라져요.",
+  "library.askMineNo": "아니요, 다른 사람의 게임이에요",
 };

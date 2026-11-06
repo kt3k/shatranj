@@ -269,4 +269,8 @@ export const de: Dict = {
   "library.askMineYes": "Ja, das sind meine",
   "library.duplicates.one": "{n} Partie war bereits gespeichert.",
   "library.duplicates.other": "{n} Partien waren bereits gespeichert.",
+  "viewer.unsaved": "Nicht gespeichert",
+  "viewer.discardConfirmMine":
+    "Diese Partie verlassen, ohne sie zu speichern? Die Partie und ihre Analyse gehen verloren.",
+  "library.askMineNo": "Nein, von jemand anderem",
 };

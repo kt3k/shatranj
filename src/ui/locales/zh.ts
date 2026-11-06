@@ -237,4 +237,7 @@ export const zh: Dict = {
     "这些对局是从本站导出的，带有玩家执子信息。它们是你自己的对局吗？你自己的对局会计入胜负统计。",
   "library.askMineYes": "是，是我的对局",
   "library.duplicates.other": "有 {n} 局已在棋谱中。",
+  "viewer.unsaved": "未保存",
+  "viewer.discardConfirmMine": "不保存就离开这局吗？对局及其复盘将会丢失。",
+  "library.askMineNo": "不，是别人的",
 };

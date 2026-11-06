@@ -259,4 +259,8 @@ export const tr: Dict = {
   "library.askMineYes": "Evet, benim",
   "library.duplicates.one": "Zaten kayıtlı oyun: {n}.",
   "library.duplicates.other": "Zaten kayıtlı oyun: {n}.",
+  "viewer.unsaved": "Kaydedilmedi",
+  "viewer.discardConfirmMine":
+    "Bu oyundan kaydetmeden çıkılsın mı? Oyun ve incelemesi kaybolacak.",
+  "library.askMineNo": "Hayır, başkasının",
 };
