@@ -242,4 +242,23 @@ export const es: Dict = {
   "viewer.save": "Guardar en mis partidas",
   "viewer.saved": "Guardada en tus partidas",
   "share.invalid": "No se pudo leer el enlace de esta partida.",
+  "library.tag.imported": "Importada",
+  "library.tag.shared": "Compartida",
+  "library.tag.current": "Partida actual",
+  "library.result.abandoned": "Sin terminar",
+  "library.emptyFilter": "Ninguna partida coincide con este filtro.",
+  "library.noGames":
+    "No se encontraron partidas en este texto. Pega una partida en PGN, p. ej. «1. e3 e6 2. Nf3 …».",
+  "library.badMove":
+    "Partida {index}: «{move}» en la jugada {number} no es una jugada legal de shatranj.",
+  "library.importPartial.one":
+    "Importar igualmente las jugadas legales de {n} partida",
+  "library.importPartial.other":
+    "Importar igualmente las jugadas legales de {n} partidas",
+  "viewer.continue": "Continuar esta partida",
+  "viewer.play": "Jugar una partida",
+  "viewer.discardConfirm":
+    "¿Salir de esta partida compartida sin guardarla? Se perderá su revisión.",
+  "status.viewerHelp":
+    "Usa ← → o la lista de jugadas para recorrer la partida.",
 };

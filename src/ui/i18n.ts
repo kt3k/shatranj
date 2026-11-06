@@ -278,6 +278,22 @@ const en: Dict = {
   "viewer.save": "Save to my records",
   "viewer.saved": "Saved to your records",
   "share.invalid": "This game link could not be read.",
+  "library.tag.imported": "Imported",
+  "library.tag.shared": "Shared",
+  "library.tag.current": "Current game",
+  "library.result.abandoned": "Unfinished",
+  "library.emptyFilter": "No games match this filter.",
+  "library.noGames":
+    "No games were found in this text. Paste a game in PGN, e.g. “1. e3 e6 2. Nf3 …”.",
+  "library.badMove":
+    "Game {index}: “{move}” at move {number} is not a legal shatranj move.",
+  "library.importPartial.one": "Import the legal moves of {n} game anyway",
+  "library.importPartial.other": "Import the legal moves of {n} games anyway",
+  "viewer.continue": "Continue this game",
+  "viewer.play": "Play a game",
+  "viewer.discardConfirm":
+    "Leave this shared game without saving it? Its review will be lost.",
+  "status.viewerHelp": "Use ← → or the move list to step through the game.",
 };
 
 const ja: Dict = {
@@ -506,6 +522,21 @@ const ja: Dict = {
   "viewer.save": "棋譜帳に保存",
   "viewer.saved": "棋譜帳に保存しました",
   "share.invalid": "この対局のリンクを読み込めませんでした。",
+  "library.tag.imported": "読み込み",
+  "library.tag.shared": "共有",
+  "library.tag.current": "現在の対局",
+  "library.result.abandoned": "中断",
+  "library.emptyFilter": "この条件に合う棋譜はありません。",
+  "library.noGames":
+    "このテキストには棋譜が見つかりませんでした。「1. e3 e6 2. Nf3 …」のようなPGN形式の棋譜を貼り付けてください。",
+  "library.badMove":
+    "第{index}局: {number}手目の「{move}」はシャトランジの合法手ではありません。",
+  "library.importPartial.other": "それでも{n}局の合法な手までを読み込む",
+  "viewer.continue": "この対局を続ける",
+  "viewer.play": "対局する",
+  "viewer.discardConfirm":
+    "この共有された対局を保存せずに閉じますか？振り返りの内容は失われます。",
+  "status.viewerHelp": "← → キーか棋譜で手順をたどれます。",
 };
 
 const ar: Dict = {
@@ -736,6 +767,24 @@ const ar: Dict = {
   "viewer.save": "احفظه في سجلّي",
   "viewer.saved": "حُفظ في سجلّك",
   "share.invalid": "تعذّرت قراءة رابط هذا الدور.",
+  "library.tag.imported": "مستورَد",
+  "library.tag.shared": "مُشارَك",
+  "library.tag.current": "الدور الحالي",
+  "library.result.abandoned": "لم يكتمل",
+  "library.emptyFilter": "لا أدوار تطابق هذا الاختيار.",
+  "library.noGames":
+    "لم يُعثر على أي دور في هذا النص. الصق دورًا بصيغة PGN، مثل «1. e3 e6 2. Nf3 …».",
+  "library.badMove":
+    "الدور {index}: «{move}» في النقلة {number} ليست نقلة جائزة في الشطرنج.",
+  "library.importPartial.one": "استورد النقلات الجائزة من دور واحد على أي حال",
+  "library.importPartial.two": "استورد النقلات الجائزة من دورين على أي حال",
+  "library.importPartial.few": "استورد النقلات الجائزة من {n} أدوار على أي حال",
+  "library.importPartial.many": "استورد النقلات الجائزة من {n} دورًا على أي حال",
+  "library.importPartial.other": "استورد النقلات الجائزة من {n} دور على أي حال",
+  "viewer.continue": "تابع هذا الدور",
+  "viewer.play": "العب دورًا",
+  "viewer.discardConfirm": "أتغادر هذا الدور المُشارَك دون حفظه؟ ستضيع مراجعته.",
+  "status.viewerHelp": "استخدم ← → أو قائمة النقلات للتنقل في الدور.",
 };
 
 const fa: Dict = {
@@ -967,6 +1016,22 @@ const fa: Dict = {
   "viewer.save": "ذخیره در بایگانی من",
   "viewer.saved": "در بایگانی شما ذخیره شد",
   "share.invalid": "این پیوند بازی خوانده نشد.",
+  "library.tag.imported": "واردشده",
+  "library.tag.shared": "هم‌رسانی‌شده",
+  "library.tag.current": "بازی کنونی",
+  "library.result.abandoned": "ناتمام",
+  "library.emptyFilter": "هیچ بازی‌ای با این گزینه جور نیست.",
+  "library.noGames":
+    "در این متن هیچ بازی‌ای پیدا نشد. یک بازی را در قالب PGN بچسبانید، مثلاً «1. e3 e6 2. Nf3 …».",
+  "library.badMove":
+    "بازی {index}: «{move}» در حرکت {number} حرکت مجاز شطرنج نیست.",
+  "library.importPartial.one": "با این حال حرکت‌های مجاز {n} بازی را وارد کن",
+  "library.importPartial.other": "با این حال حرکت‌های مجاز {n} بازی را وارد کن",
+  "viewer.continue": "ادامهٔ این بازی",
+  "viewer.play": "شروع بازی",
+  "viewer.discardConfirm":
+    "این بازی هم‌رسانی‌شده را بدون ذخیره ترک می‌کنید؟ بازبینی آن از دست می‌رود.",
+  "status.viewerHelp": "با ← → یا فهرست حرکت‌ها در بازی جابه‌جا شوید.",
 };
 
 const DICTS: Record<Lang, Dict> = {

@@ -130,7 +130,8 @@
       <section class="min-w-0">
         <div
           class="board-col mx-auto w-full flex flex-col gap-3 max-w-[min(100%,max(20rem,calc(100dvh-14rem)))] md:max-w-[min(100%,max(20rem,calc(100dvh-12rem)))] lg:max-w-[min(100%,max(24rem,calc(100dvh-12rem)))]">
-          <div class="viewer-bar" id="viewer-card" hidden></div>
+          <div class="viewer-bar" id="viewer-card" tabindex="-1" role="region"
+            data-i18n-aria="viewer.title" hidden></div>
           <div class="player-bar" id="top-player"></div>
 
           <div class="board-frame w-full" dir="ltr">
@@ -379,7 +380,8 @@
         <header>
           <h2 id="library-title" class="font-display text-xl"
             data-i18n="library.title">Game records</h2>
-          <p data-i18n="library.desc">Games are saved in this browser.</p>
+          <p class="library-desc"
+            data-i18n="library.desc">Games are saved in this browser.</p>
         </header>
         <section class="overflow-y-auto scrollbar flex flex-col gap-3">
           <div class="flex flex-wrap items-center gap-2">
@@ -397,6 +399,8 @@
           <div class="flex flex-col gap-2" id="library-paste" hidden>
             <textarea class="textarea font-mono text-xs" rows="6"
               id="library-paste-text" dir="ltr"></textarea>
+            <div class="library-paste-report" id="library-paste-report"
+              role="alert" hidden></div>
             <div class="flex gap-2 justify-end">
               <button type="button" class="btn" data-variant="ghost"
                 data-size="sm" id="library-paste-cancel"
@@ -454,7 +458,7 @@
     </dialog>
 
     <div class="toast-msg" id="toast" role="status" aria-live="polite"
-      hidden></div>
+      popover="manual" hidden></div>
 
     <!-- Rules dialog -->
     <dialog

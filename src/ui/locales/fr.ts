@@ -243,4 +243,23 @@ export const fr: Dict = {
   "viewer.save": "Enregistrer dans mes parties",
   "viewer.saved": "Enregistrée dans vos parties",
   "share.invalid": "Impossible de lire ce lien de partie.",
+  "library.tag.imported": "Importée",
+  "library.tag.shared": "Partagée",
+  "library.tag.current": "Partie actuelle",
+  "library.result.abandoned": "Inachevée",
+  "library.emptyFilter": "Aucune partie ne correspond à ce filtre.",
+  "library.noGames":
+    "Aucune partie trouvée dans ce texte. Collez une partie au format PGN, par ex. « 1. e3 e6 2. Nf3 … ».",
+  "library.badMove":
+    "Partie {index} : « {move} » au coup {number} n’est pas un coup légal au shatranj.",
+  "library.importPartial.one":
+    "Importer quand même les coups légaux de {n} partie",
+  "library.importPartial.other":
+    "Importer quand même les coups légaux de {n} parties",
+  "viewer.continue": "Continuer cette partie",
+  "viewer.play": "Jouer une partie",
+  "viewer.discardConfirm":
+    "Quitter cette partie partagée sans l’enregistrer ? Son analyse sera perdue.",
+  "status.viewerHelp":
+    "Utilisez ← → ou la liste des coups pour parcourir la partie.",
 };

@@ -101,7 +101,28 @@ function normSan(s: string): string {
   return t.replace(/=F$/, "");
 }
 
-export class PgnError extends Error {}
+export class PgnError extends Error {
+  constructor(
+    message: string,
+    /** For an illegal move: the token, its ply (1-based) and the legal prefix. */
+    readonly detail?: { san: string; ply: number; moves: Move[] },
+  ) {
+    super(message);
+  }
+}
+
+/** A game in a PGN text that could not be read completely. */
+export interface PgnFailure {
+  /** 1-based position of the game in the text. */
+  index: number;
+  tags: Record<string, string>;
+  message: string;
+  /** The offending move token and ply, when the failure is an illegal move. */
+  san?: string;
+  ply?: number;
+  /** The legal moves before the failure (may be empty). */
+  moves: Move[];
+}
 
 /** Parses SAN moves from the initial position. Throws PgnError on failure. */
 export function parseMoves(sanTokens: string[]): Move[] {
@@ -114,6 +135,7 @@ export function parseMoves(sanTokens: string[]): Move[] {
     if (m === undefined) {
       throw new PgnError(
         `Illegal or unknown move "${tok}" at ply ${out.length + 1}`,
+        { san: tok, ply: out.length + 1, moves: out.slice() },
       );
     }
     out.push(m);
@@ -123,9 +145,12 @@ export function parseMoves(sanTokens: string[]): Move[] {
 }
 
 /** Parses a PGN text with one or more games. */
-export function parsePGN(text: string): { games: PgnGame[]; errors: string[] } {
+export function parsePGN(
+  text: string,
+): { games: PgnGame[]; errors: PgnFailure[] } {
   const games: PgnGame[] = [];
-  const errors: string[] = [];
+  const errors: PgnFailure[] = [];
+  let index = 0;
   // Split into chunks: a new game starts at a tag line that follows movetext.
   const chunks: string[][] = [];
   let cur: string[] = [];
@@ -168,12 +193,19 @@ export function parsePGN(text: string): { games: PgnGame[]; errors: string[] } {
       .split(/\s+/)
       .filter((t) => t && !RESULT_TOKENS.includes(t));
     if (tokens.length === 0 && Object.keys(tags).length === 0) continue;
+    index++;
     try {
       games.push({ tags, moves: parseMoves(tokens) });
     } catch (e) {
-      errors.push(
-        `${tags.White ?? "?"} – ${tags.Black ?? "?"}: ${(e as Error).message}`,
-      );
+      const d = (e as PgnError).detail;
+      errors.push({
+        index,
+        tags,
+        message: (e as Error).message,
+        san: d?.san,
+        ply: d?.ply,
+        moves: d?.moves ?? [],
+      });
     }
   }
   return { games, errors };

@@ -247,4 +247,26 @@ export const ru: Dict = {
   "viewer.save": "Сохранить в мои партии",
   "viewer.saved": "Сохранено в ваших партиях",
   "share.invalid": "Не удалось прочитать ссылку на партию.",
+  "library.tag.imported": "Импортирована",
+  "library.tag.shared": "Общая",
+  "library.tag.current": "Текущая партия",
+  "library.result.abandoned": "Не окончена",
+  "library.emptyFilter": "Нет партий, подходящих под этот фильтр.",
+  "library.noGames":
+    "В этом тексте не найдено партий. Вставьте партию в формате PGN, например «1. e3 e6 2. Nf3 …».",
+  "library.badMove":
+    "Партия {index}: «{move}» на ходу {number} — недопустимый ход в шатрандже.",
+  "library.importPartial.one":
+    "Всё равно импортировать допустимые ходы {n} партии",
+  "library.importPartial.few":
+    "Всё равно импортировать допустимые ходы {n} партий",
+  "library.importPartial.many":
+    "Всё равно импортировать допустимые ходы {n} партий",
+  "library.importPartial.other":
+    "Всё равно импортировать допустимые ходы {n} партии",
+  "viewer.continue": "Продолжить эту партию",
+  "viewer.play": "Сыграть партию",
+  "viewer.discardConfirm":
+    "Покинуть эту общую партию, не сохранив её? Разбор будет потерян.",
+  "status.viewerHelp": "Листайте партию клавишами ← → или по списку ходов.",
 };

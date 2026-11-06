@@ -227,4 +227,19 @@ export const cop: Dict = {
   "viewer.save": "ϩⲁⲣⲉϩ ⲉⲣⲟϥ ϩⲛ̄ ⲛⲁⲥϩⲁⲓ",
   "viewer.saved": "ⲁϥϩⲁⲣⲉϩ ϩⲛ̄ ⲛⲉⲕⲥϩⲁⲓ",
   "share.invalid": "ⲙ̄ⲡⲛ̄ϣϭⲙ̄ϭⲟⲙ ⲉⲱϣ ⲙ̄ⲡⲉⲓⲥⲩⲛⲇⲉⲥⲙⲟⲥ ⲙ̄ⲡⲥⲱⲃⲉ.",
+  "library.tag.imported": "ⲁⲩⲉⲓⲛⲉ ⲙ̄ⲙⲟϥ ⲉϩⲟⲩⲛ",
+  "library.tag.shared": "ⲁⲩⲧⲛ̄ⲛⲟⲟⲩϥ",
+  "library.tag.current": "ⲡⲉⲕⲥⲱⲃⲉ ⲧⲉⲛⲟⲩ",
+  "library.result.abandoned": "ⲙ̄ⲡⲉϥϫⲱⲕ ⲉⲃⲟⲗ",
+  "library.emptyFilter": "ⲙⲛ̄ ⲗⲁⲁⲩ ⲛ̄ⲥⲱⲃⲉ ϩⲙ̄ ⲡⲉⲓⲟⲩⲱⲛϩ̄.",
+  "library.noGames":
+    "ⲙ̄ⲡⲛ̄ϩⲉ ⲉⲗⲁⲁⲩ ⲛ̄ⲥⲱⲃⲉ ϩⲛ̄ ⲧⲉⲓⲥϩⲁⲓ. ⲕⲱ ⲛ̄ⲟⲩⲥⲱⲃⲉ ⲛ̄ PGN, ⲛ̄ⲑⲉ ⲛ̄ “1. e3 e6 2. Nf3 …”.",
+  "library.badMove":
+    "ⲡⲥⲱⲃⲉ {index}, ⲡⲕⲓⲙ {number}: “{move}” ⲟⲩⲕⲓⲙ ⲁⲛ ⲡⲉ ⲉϥⲙⲉⲧ ϩⲙ̄ ⲡϣⲁⲧⲣⲁⲛϫ.",
+  "library.importPartial.other": "ⲉⲓⲛⲉ ⲉϩⲟⲩⲛ ⲛ̄ⲛ̄ⲕⲓⲙ ⲉⲧⲙⲉⲧ ϩⲟⲗⲱⲥ: {n} ⲛ̄ⲥⲱⲃⲉ",
+  "viewer.continue": "ⲙⲟⲟϣⲉ ϩⲙ̄ ⲡⲉⲓⲥⲱⲃⲉ",
+  "viewer.play": "ⲥⲱⲃⲉ ⲛ̄ⲟⲩⲥⲱⲃⲉ",
+  "viewer.discardConfirm":
+    "ⲉⲕⲛⲁⲕⲁ ⲡⲉⲓⲥⲱⲃⲉ ⲉⲁⲩⲧⲛ̄ⲛⲟⲟⲩϥ ⲛ̄ⲥⲱⲕ ⲉⲙ̄ⲡⲉⲕϩⲁⲣⲉϩ ⲉⲣⲟϥ? ⲡⲉⲝⲉⲧⲁⲥⲙⲟⲥ ⲛⲁⲧⲁⲕⲟ.",
+  "status.viewerHelp": "ⲁⲣⲓⲭⲣⲱ ⲛ̄ ← → ⲏ ⲛ̄ⲛ̄ⲕⲓⲙ ⲉⲧⲥⲏϩ ⲉⲙⲟⲟϣⲉ ϩⲙ̄ ⲡⲥⲱⲃⲉ.",
 };
