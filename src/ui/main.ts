@@ -32,6 +32,7 @@ import {
   toPGN,
 } from "../engine/record.ts";
 import { reviewMoves } from "../engine/analysis.ts";
+import { postToHost, shareBase } from "./host.ts";
 import {
   applyStatic,
   currentLang,
@@ -1570,7 +1571,11 @@ function recordPGN(rec: GameRecord) {
 }
 
 function download(name: string, text: string) {
-  const blob = new Blob([text], { type: "application/x-chess-pgn" });
+  // Inside an app the shell saves/shares the file natively: WebViews do not
+  // handle `<a download>` with blob: URLs.
+  const mimeType = "application/x-chess-pgn";
+  if (postToHost({ type: "saveFile", name, mimeType, text })) return;
+  const blob = new Blob([text], { type: mimeType });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = name;
@@ -1595,18 +1600,50 @@ function shareURL(rec: GameRecord) {
     if (rec.white) params.set("w", rec.white.slice(0, 60));
     if (rec.black) params.set("b", rec.black.slice(0, 60));
   }
-  return `${location.origin}${location.pathname}#${params}`;
+  return `${shareBase()}#${params}`;
 }
 
 async function copyLink(rec: GameRecord) {
   const url = shareURL(rec);
+  if (postToHost({ type: "shareLink", url, title: t("library.share") })) {
+    return;
+  }
   try {
     await navigator.clipboard.writeText(url);
     toast(t("library.copied"));
   } catch {
     // Clipboard blocked: show the link so it can be copied by hand.
-    prompt(t("library.share"), url);
+    showLink(url);
   }
+}
+
+/** Shows a link in a dialog, selected, with a copy button. */
+function showLink(url: string) {
+  const dialog = $<HTMLDialogElement>("link-dialog");
+  const input = $<HTMLInputElement>("link-dialog-url");
+  input.value = url;
+  dialog.showModal();
+  input.focus();
+  input.select();
+}
+
+/**
+ * In-page replacement for `confirm()`, which embedded WebViews do not show
+ * unless the app implements it (iOS returns false, so nothing would happen).
+ */
+function ask(message: string, okLabel: string): Promise<boolean> {
+  const dialog = $<HTMLDialogElement>("confirm-dialog");
+  $("confirm-dialog-text").textContent = message;
+  $("confirm-dialog-ok").textContent = okLabel;
+  dialog.returnValue = "";
+  dialog.showModal();
+  return new Promise((resolve) => {
+    dialog.addEventListener(
+      "close",
+      () => resolve(dialog.returnValue === "ok"),
+      { once: true },
+    );
+  });
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -1752,7 +1789,9 @@ async function onLibraryClick(e: Event) {
       download(`shatranj-${fileStamp(rec.createdAt)}.pgn`, recordPGN(rec));
       break;
     case "delete":
-      if (!confirm(t("library.deleteConfirm"))) return;
+      if (!(await ask(t("library.deleteConfirm"), t("library.delete")))) {
+        return;
+      }
       await Library.deleteRecord(rec.id);
       if (state.viewer?.record.id === rec.id) state.viewer.saved = false;
       if (rec.id === state.gameId) state.gameId = Library.newId();
@@ -1855,6 +1894,18 @@ function wireLibrary() {
         recordPGN(v.record),
       );
     }
+  });
+  $("link-dialog-copy").addEventListener("click", async () => {
+    const input = $<HTMLInputElement>("link-dialog-url");
+    input.select();
+    try {
+      await navigator.clipboard.writeText(input.value);
+    } catch {
+      // Older WebViews: copying the selection still works.
+      if (!document.execCommand("copy")) return;
+    }
+    $<HTMLDialogElement>("link-dialog").close();
+    toast(t("library.copied"));
   });
   globalThis.addEventListener("hashchange", openFromHash);
 }

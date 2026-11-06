@@ -77,12 +77,51 @@ async function buildCSS() {
   );
 }
 
+/**
+ * Web fonts are self-hosted (no CDN) so the game works offline and inside
+ * an app's WebView. Each entry is a Fontsource stylesheet; its woff2 files
+ * are copied to `dist/fonts/` and the @font-face rules (with their
+ * unicode-range subsets) are concatenated into `dist/fonts.css`.
+ */
+const FONTS: [pkg: string, weights: number[]][] = [
+  ["inter", [400, 500, 600, 700]],
+  ["marcellus", [400]],
+  ["reem-kufi", [400, 600]],
+  ["vazirmatn", [400, 500, 600, 700]],
+  ["noto-sans-coptic", [400]],
+];
+
+async function buildFonts() {
+  const t = performance.now();
+  await Deno.mkdir(`${DIST}/fonts`, { recursive: true });
+  const out: string[] = [];
+  for (const [pkg, weights] of FONTS) {
+    const dir = `node_modules/@fontsource/${pkg}`;
+    for (const w of weights) {
+      const css = await Deno.readTextFile(`${dir}/${w}.css`);
+      for (const [rule] of css.matchAll(/@font-face\s*{[^}]*}/g)) {
+        const file = rule.match(/url\(\.\/files\/([^)]+\.woff2)\)/)?.[1];
+        if (!file) continue;
+        await Deno.copyFile(`${dir}/files/${file}`, `${DIST}/fonts/${file}`);
+        out.push(
+          rule.replace(
+            /src:[^;]*;/,
+            `src: url(fonts/${file}) format("woff2");`,
+          ),
+        );
+      }
+    }
+  }
+  await Deno.writeTextFile(`${DIST}/fonts.css`, out.join("\n") + "\n");
+  console.log(`  ✓ fonts.css (${Math.round(performance.now() - t)}ms)`);
+}
+
 async function buildAll() {
   console.log("Building…");
   await Deno.mkdir(DIST, { recursive: true });
   await copyDir("static", DIST);
   await Deno.writeTextFile(`${DIST}/.nojekyll`, "");
-  await Promise.all([buildJS(), buildCSS()]);
+  await Promise.all([buildJS(), buildCSS(), buildFonts()]);
 }
 
 await buildAll();

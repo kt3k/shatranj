@@ -10,11 +10,11 @@ the computer, right in your browser.
 - Click any move in the list (or use ← →) to review earlier positions
 - Game review: the engine classifies every move (best … blunder), shows the
   better move on the board, an evaluation graph and accuracy for both sides
-- Interface in 13 languages — English, 日本語, العربية, فارسی, Español, Deutsch,
-  Français, Русский, Türkçe, 中文, 한국어, Coptic (ⲧⲙⲛ̄ⲧⲣⲙ̄ⲛ̄ⲕⲏⲙⲉ, the language of
-  9th-century Egypt) and, as a playful extra, Middle Egyptian in hieroglyphs
-  (𓂋𓈖𓆎𓅓𓏏𓊖); right-to-left layout for Arabic and Persian; picks your browser
-  language, switch any time
+- Interface in 12 languages — English, 日本語, العربية, فارسی, Español, Deutsch,
+  Français, Русский, Türkçe, 中文, 한국어 and Coptic (ⲧⲙⲛ̄ⲧⲣⲙ̄ⲛ̄ⲕⲏⲙⲉ, the language
+  of 9th-century Egypt); right-to-left layout for Arabic and Persian; picks your
+  browser language, switch any time
+- Works offline: fonts are self-hosted, nothing is loaded from a CDN
 - Game records: every game is saved in the browser (IndexedDB) and listed in a
   library — open any game to replay or review it, download one or all as PGN,
   import PGN files, or copy a share link that encodes the whole game in the URL
@@ -33,6 +33,14 @@ deno task build  # production build into dist/
 
 Stack: Deno (`deno bundle`), Tailwind CSS v4,
 [Basecoat](https://basecoatui.com).
+
+## Embedding in a native app
+
+The `dist/` build can be bundled into an iOS / Android app and shown in a
+WebView. See [docs/app-packaging.md](docs/app-packaging.md) for what the app
+shell must provide, and
+[docs/native-webview-html-embedding.md](docs/native-webview-html-embedding.md)
+for general best practices.
 
 ## Deployment
 

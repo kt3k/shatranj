@@ -2,19 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <title>Shatranj — the chess of Abbasid Baghdad</title>
     <meta
       name="description"
       content="Play shatranj, the medieval chess of the Abbasid court, against the computer. Five levels of difficulty, from novice to legend."
     />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Marcellus&family=Reem+Kufi:wght@400;600&family=Vazirmatn:wght@400;500;600;700&family=Noto+Sans+Coptic&family=Noto+Sans+Egyptian+Hieroglyphs&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="stylesheet" href="fonts.css" />
     <script>
     try {
       const t = localStorage.getItem("shatranj:theme");
@@ -525,6 +523,45 @@
             data-i18n="btn.reviewGame">Review game</button>
           <button type="button" class="btn" autofocus
             id="result-new-btn" data-i18n="btn.playAgain">Play again</button>
+        </footer>
+      </div>
+    </dialog>
+    <!-- Confirmation (in-page replacement for confirm()) -->
+    <dialog id="confirm-dialog" class="dialog w-full sm:max-w-md"
+      aria-labelledby="confirm-dialog-text"
+      onclick="if (event.target === this) this.close()">
+      <form method="dialog">
+        <header>
+          <p id="confirm-dialog-text"></p>
+        </header>
+        <footer>
+          <button type="submit" class="btn" data-variant="outline" value=""
+            autofocus data-i18n="btn.cancel">Cancel</button>
+          <button type="submit" class="btn" data-variant="destructive"
+            value="ok" id="confirm-dialog-ok">OK</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <!-- Shows a share link when the clipboard is unavailable -->
+    <dialog id="link-dialog" class="dialog w-full sm:max-w-lg"
+      aria-labelledby="link-dialog-title"
+      onclick="if (event.target === this) this.close()">
+      <div>
+        <header>
+          <h2 id="link-dialog-title" class="font-display text-xl"
+            data-i18n="library.share">Copy link</h2>
+        </header>
+        <section>
+          <input type="text" class="input w-full" id="link-dialog-url"
+            readonly dir="ltr" onfocus="this.select()" />
+        </section>
+        <footer>
+          <button type="button" class="btn" data-variant="outline"
+            onclick="this.closest('dialog').close()"
+            data-i18n="btn.cancel">Cancel</button>
+          <button type="button" class="btn" id="link-dialog-copy"
+            data-i18n="library.share">Copy link</button>
         </footer>
       </div>
     </dialog>
