@@ -83,25 +83,39 @@ async function buildCSS() {
  * are copied to `dist/fonts/` and the @font-face rules (with their
  * unicode-range subsets) are concatenated into `dist/fonts.css`.
  */
-const FONTS: [pkg: string, weights: number[]][] = [
-  ["inter", [400, 500, 600, 700]],
-  ["marcellus", [400]],
-  ["reem-kufi", [400, 600]],
-  ["vazirmatn", [400, 500, 600, 700]],
-  ["noto-sans-coptic", [400]],
+const FONTS: [pkg: string, weights: number[], subsets: string[]][] = [
+  // Body text. Russian needs only basic Cyrillic. No Greek: the Coptic
+  // letters in the Greek block (ϣ ϥ ϩ …) are not in Inter and come from
+  // Noto Sans Coptic.
+  ["inter", [400, 500, 600, 700], ["latin", "latin-ext", "cyrillic"]],
+  ["marcellus", [400], ["latin", "latin-ext"]],
+  ["reem-kufi", [400, 600], ["arabic", "latin", "latin-ext"]],
+  ["vazirmatn", [400, 500, 600, 700], ["arabic", "latin", "latin-ext"]],
+  // Latin in Coptic text is set in Inter (listed first), so only Coptic.
+  ["noto-sans-coptic", [400], ["coptic"]],
 ];
 
 async function buildFonts() {
   const t = performance.now();
+  // Start clean so subsets dropped from FONTS do not linger in dist/.
+  await Deno.remove(`${DIST}/fonts`, { recursive: true }).catch(() => {});
   await Deno.mkdir(`${DIST}/fonts`, { recursive: true });
   const out: string[] = [];
-  for (const [pkg, weights] of FONTS) {
+  const found = new Set<string>();
+  for (const [pkg, weights, subsets] of FONTS) {
     const dir = `node_modules/@fontsource/${pkg}`;
     for (const w of weights) {
       const css = await Deno.readTextFile(`${dir}/${w}.css`);
       for (const [rule] of css.matchAll(/@font-face\s*{[^}]*}/g)) {
         const file = rule.match(/url\(\.\/files\/([^)]+\.woff2)\)/)?.[1];
         if (!file) continue;
+        // e.g. inter-latin-ext-400-normal.woff2 → "latin-ext"
+        const subset = file.slice(pkg.length + 1).replace(
+          /-\d+-normal\.woff2$/,
+          "",
+        );
+        if (!subsets.includes(subset)) continue;
+        found.add(`${pkg}/${subset}`);
         await Deno.copyFile(`${dir}/files/${file}`, `${DIST}/fonts/${file}`);
         out.push(
           rule.replace(
@@ -112,6 +126,10 @@ async function buildFonts() {
       }
     }
   }
+  const missing = FONTS.flatMap(([pkg, , subsets]) =>
+    subsets.map((s) => `${pkg}/${s}`)
+  ).filter((s) => !found.has(s));
+  if (missing.length) throw new Error(`unknown font subsets: ${missing}`);
   await Deno.writeTextFile(`${DIST}/fonts.css`, out.join("\n") + "\n");
   console.log(`  ✓ fonts.css (${Math.round(performance.now() - t)}ms)`);
 }
