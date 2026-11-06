@@ -1,0 +1,58 @@
+# XcodeGen spec for the Shatranj iOS app: `xcodegen generate`.
+# Build the web app first (`deno task build` at the repository root): the
+# app bundles ../../dist and serves it as app://localhost/ through gawa.
+name: Shatranj
+options:
+  bundleIdPrefix: io.github.kt3k
+  deploymentTarget:
+    iOS: "15.0"
+packages:
+  Gawa:
+    url: https://github.com/kt3k/gawa
+    revision: b1c2d6a344b5bb537b0816792b998479b25558d9
+targets:
+  Shatranj:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: ../../dist
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: Gawa
+    info:
+      path: Sources/Info.plist
+      properties:
+        CFBundleDisplayName: Shatranj
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        # navigator.languages in WKWebView follows the app's localizations.
+        CFBundleLocalizations: [en, ja, ar, fa, es, de, fr, ru, tr, zh-Hans, ko]
+        CFBundleDevelopmentRegion: en
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          [
+            UIInterfaceOrientationPortrait,
+            UIInterfaceOrientationLandscapeLeft,
+            UIInterfaceOrientationLandscapeRight,
+          ]
+        UISupportedInterfaceOrientations~ipad:
+          [
+            UIInterfaceOrientationPortrait,
+            UIInterfaceOrientationPortraitUpsideDown,
+            UIInterfaceOrientationLandscapeLeft,
+            UIInterfaceOrientationLandscapeRight,
+          ]
+    settings:
+      base:
+        # Change to your own identifier and set DEVELOPMENT_TEAM to run on
+        # a device (Xcode → Signing & Capabilities).
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.kt3k.shatranj
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic

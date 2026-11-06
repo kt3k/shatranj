@@ -438,6 +438,9 @@
       "integrity": "sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A=="
     }
   },
+  "remote": {
+    "https://raw.githubusercontent.com/kt3k/gawa/b1c2d6a344b5bb537b0816792b998479b25558d9/web/mod.ts": "d927623e9821fbf82c7182504852e51d6a2492ac4703a6f97e115f9e05388525"
+  },
   "workspace": {
     "dependencies": [
       "jsr:@std/assert@1",

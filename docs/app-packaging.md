@@ -1,5 +1,23 @@
 # shatranj をネイティブアプリに埋め込む
 
+## iOS アプリを実機で動かす
+
+[`app/ios`](../app/ios) は gawa を使った最小のアプリシェル (XcodeGen +
+SwiftUI)。必要なもの: Mac と Xcode、iOS 15 以上の iPhone (iOS 16
+以降はデベロッパモードをオン)、Apple ID (無料の Personal Team
+でも自分の端末なら可。署名は 7 日で失効)。
+
+```sh
+brew install xcodegen deno
+deno install && deno task build      # dist/ を作る
+cd app/ios && xcodegen generate && open Shatranj.xcodeproj
+```
+
+Xcode の Signing & Capabilities で Team を選び、Bundle Identifier
+を自分用に変えてから実機を選んで Run。初回は iPhone の「設定 → 一般 → VPN
+とデバイス管理」で開発元を信頼する。デバッグ時は Mac の Safari の
+「開発」メニューから Web インスペクタが使える。
+
 `deno task build` の成果物 `dist/` を iOS / Android アプリに同梱し、WebView
 で表示するための要件。一般論は
 [native-webview-html-embedding.md](native-webview-html-embedding.md) を参照。
@@ -30,25 +48,22 @@
   に保存される。どちらもオリジン単位なので、
   **リリース後にスキーム・ホスト・パスを変えると全データが見えなくなる**。
 
-### 2. `shatranj` メッセージハンドラ
+### 2. gawa ブリッジとホストメソッド
 
-ページは `src/ui/host.ts` の `HostMessage` を JSON 文字列で送る
-(一方向、返信不要)。
+ネイティブとの通信には [gawa](https://github.com/kt3k/gawa) を使う (`deno.json`
+の `gawa` で版を固定)。アプリは `GawaBridge` を WebView
+に取り付け、`src/ui/host.ts` の `HostMethods` を実装する。送信元オリジンの検証と
+メインフレーム限定は gawa が行う。
 
-- iOS: `userContentController.add(handler, name: "shatranj")`
-- Android:
-  `WebViewCompat.addWebMessageListener(webView, "shatranj", setOf("https://appassets.androidplatform.net"), listener)`
+| メソッド     | パラメータ                 | アプリ側の処理                                                                       |
+| ------------ | -------------------------- | ------------------------------------------------------------------------------------ |
+| `files.save` | `name`, `mimeType`, `text` | 一時ファイルに書き出し、共有シート / `ACTION_SEND` (または「ファイルに保存」) を開く |
+| `share.link` | `url`, `title`             | 共有シート / `ACTION_SEND` (`text/plain`) を開く                                     |
 
-| `type`      | フィールド                 | アプリ側の処理                                                                       |
-| ----------- | -------------------------- | ------------------------------------------------------------------------------------ |
-| `saveFile`  | `name`, `mimeType`, `text` | 一時ファイルに書き出し、共有シート / `ACTION_SEND` (または「ファイルに保存」) を開く |
-| `shareLink` | `url`, `title`             | 共有シート / `ACTION_SEND` (`text/plain`) を開く                                     |
+ブリッジがない場合、ページはブラウザ用の処理にフォールバックするが、WebView では
+PGN のダウンロードが動かない。
 
-ハンドラを登録しない場合、ページはブラウザ用の処理にフォールバックするが、
-WebView では PGN のダウンロードが動かない。
-
-受信時は送信元オリジン (iOS `message.frameInfo.securityOrigin`、Android
-`sourceOrigin`) が自アプリのものか検証し、未知の `type` は無視すること。
+iOS の実装は [`app/ios`](../app/ios) を参照。
 
 ### 3. Android: ファイル選択
 

@@ -34,7 +34,7 @@ import {
   toPGN,
 } from "../engine/record.ts";
 import { reviewMoves } from "../engine/analysis.ts";
-import { postToHost, shareBase } from "./host.ts";
+import { callHost, shareBase } from "./host.ts";
 import {
   applyStatic,
   currentLang,
@@ -1743,7 +1743,7 @@ function download(name: string, text: string) {
   // Inside an app the shell saves/shares the file natively: WebViews do not
   // handle `<a download>` with blob: URLs.
   const mimeType = "application/x-chess-pgn";
-  if (postToHost({ type: "saveFile", name, mimeType, text })) return;
+  if (callHost("files.save", { name, mimeType, text })) return;
   const blob = new Blob([text], { type: mimeType });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -1778,7 +1778,7 @@ function shareURL(rec: GameRecord) {
 
 async function copyLink(rec: GameRecord) {
   const url = shareURL(rec);
-  if (postToHost({ type: "shareLink", url, title: t("library.share") })) {
+  if (callHost("share.link", { url, title: t("library.share") })) {
     return;
   }
   try {

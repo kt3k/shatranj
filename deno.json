@@ -16,11 +16,25 @@
     "@std/http": "jsr:@std/http@^1",
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.4",
     "basecoat-css": "npm:basecoat-css@^1.1.0",
+    "gawa": "https://raw.githubusercontent.com/kt3k/gawa/b1c2d6a344b5bb537b0816792b998479b25558d9/web/mod.ts",
     "tailwindcss": "npm:tailwindcss@^4.3.4"
   },
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "deno.ns", "deno.worker"]
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "deno.ns",
+      "deno.worker"
+    ]
   },
-  "fmt": { "exclude": ["dist/"] },
-  "lint": { "exclude": ["dist/"] }
+  "fmt": {
+    "exclude": [
+      "dist/"
+    ]
+  },
+  "lint": {
+    "exclude": [
+      "dist/"
+    ]
+  }
 }

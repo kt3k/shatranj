@@ -1,19 +1,12 @@
 /**
- * Integration with an optional native app shell (iOS / Android WebView).
+ * Integration with an optional native app shell (iOS / Android WebView),
+ * through the gawa bridge (https://github.com/kt3k/gawa).
  *
- * The web build runs unchanged in a browser. When it is embedded in an app,
- * the app registers a message handler named `shatranj`:
- *
- * - iOS:     `WKUserContentController.add(_:name: "shatranj")`
- *            → `window.webkit.messageHandlers.shatranj.postMessage(json)`
- * - Android: `WebViewCompat.addWebMessageListener(webView, "shatranj", …)`
- *            → `window.shatranj.postMessage(json)`
- *
- * Messages are JSON strings of {@link HostMessage}. They are one-way: the
- * page never waits for an answer.
- *
- * See docs/native-webview-html-embedding.md and docs/app-packaging.md.
+ * The web build runs unchanged in a browser. When it is embedded in an app
+ * that attaches a gawa bridge, the methods in {@link HostMethods} are
+ * handled natively. See docs/app-packaging.md.
  */
+import { createBridge } from "gawa";
 
 /** Public address of the web version, used for links shared from the app. */
 export const PUBLIC_URL = "https://kt3k.github.io/shatranj/";
@@ -21,34 +14,31 @@ export const PUBLIC_URL = "https://kt3k.github.io/shatranj/";
 /** Origins an app shell serves the bundled page from. */
 const APP_HOSTS = new Set(["appassets.androidplatform.net"]);
 
-export type HostMessage =
+/** What an app shell implements. */
+export type HostMethods = {
   /** Save (or share) a text file, e.g. a PGN. */
-  | { type: "saveFile"; name: string; mimeType: string; text: string }
+  "files.save": (p: { name: string; mimeType: string; text: string }) => void;
   /** Open the system share sheet for a link. */
-  | { type: "shareLink"; url: string; title: string };
+  "share.link": (p: { url: string; title: string }) => void;
+};
 
-type Poster = { postMessage(message: string): void };
+/** The bridge to the app shell; `host.available` is false in a browser. */
+export const host = createBridge<HostMethods>();
 
-function poster(): Poster | null {
+/**
+ * Asks the app shell to handle something; returns false when there is no
+ * app shell (the caller then uses the web fallback).
+ */
+export function callHost<K extends keyof HostMethods>(
+  method: K,
+  params: Parameters<HostMethods[K]>[0],
+): boolean {
+  if (!host.available) return false;
   // deno-lint-ignore no-explicit-any
-  const g = globalThis as any;
-  return g.webkit?.messageHandlers?.shatranj ??
-    (typeof g.shatranj?.postMessage === "function" ? g.shatranj : null);
-}
-
-/** True when running inside an app shell that handles {@link HostMessage}s. */
-export const inApp = () => poster() !== null;
-
-/** Sends a message to the app shell; returns false when there is none. */
-export function postToHost(message: HostMessage): boolean {
-  const p = poster();
-  if (!p) return false;
-  try {
-    p.postMessage(JSON.stringify(message));
-    return true;
-  } catch {
-    return false;
-  }
+  (host.call as any)(method, params).catch((e: Error) =>
+    console.error(`app shell: ${method} failed:`, e)
+  );
+  return true;
 }
 
 /**
