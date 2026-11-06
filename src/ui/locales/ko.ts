@@ -225,4 +225,19 @@ export const ko: Dict = {
   "viewer.save": "내 기록에 저장",
   "viewer.saved": "기록에 저장했어요",
   "share.invalid": "이 게임 링크를 읽을 수 없어요.",
+  "library.tag.imported": "가져옴",
+  "library.tag.shared": "공유됨",
+  "library.tag.current": "지금 게임",
+  "library.result.abandoned": "끝나지 않음",
+  "library.emptyFilter": "이 필터에 맞는 게임이 없어요.",
+  "library.noGames":
+    "이 텍스트에서 게임을 찾지 못했어요. PGN 형식의 게임을 붙여넣으세요. 예: “1. e3 e6 2. Nf3 …”.",
+  "library.badMove":
+    "게임 {index}, 수 {number}: “{move}” — 샤트란지 규칙에 맞지 않는 수예요.",
+  "library.importPartial.other": "그래도 올바른 수만 가져오기 (게임 {n}개)",
+  "viewer.continue": "이 게임 이어서 두기",
+  "viewer.play": "게임 두기",
+  "viewer.discardConfirm":
+    "공유된 게임을 저장하지 않고 나갈까요? 살펴본 내용이 사라져요.",
+  "status.viewerHelp": "← → 키나 기보 목록으로 게임을 한 수씩 살펴보세요.",
 };

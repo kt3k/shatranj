@@ -244,4 +244,22 @@ export const de: Dict = {
   "viewer.save": "In meinen Partien speichern",
   "viewer.saved": "In deinen Partien gespeichert",
   "share.invalid": "Dieser Partie-Link konnte nicht gelesen werden.",
+  "library.tag.imported": "Importiert",
+  "library.tag.shared": "Geteilt",
+  "library.tag.current": "Aktuelle Partie",
+  "library.result.abandoned": "Nicht beendet",
+  "library.emptyFilter": "Keine Partien passen zu diesem Filter.",
+  "library.noGames":
+    "In diesem Text wurden keine Partien gefunden. Füge eine Partie im PGN-Format ein, z. B. „1. e3 e6 2. Nf3 …“.",
+  "library.badMove":
+    "Partie {index}: „{move}“ in Zug {number} ist kein regelgerechter Schatrandsch-Zug.",
+  "library.importPartial.one":
+    "Trotzdem die regelgerechten Züge von {n} Partie importieren",
+  "library.importPartial.other":
+    "Trotzdem die regelgerechten Züge von {n} Partien importieren",
+  "viewer.continue": "Diese Partie fortsetzen",
+  "viewer.play": "Eine Partie spielen",
+  "viewer.discardConfirm":
+    "Diese geteilte Partie verlassen, ohne sie zu speichern? Ihre Analyse geht verloren.",
+  "status.viewerHelp": "Mit ← → oder der Zugliste gehst du durch die Partie.",
 };

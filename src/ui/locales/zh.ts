@@ -216,4 +216,19 @@ export const zh: Dict = {
   "viewer.save": "保存到我的记录",
   "viewer.saved": "已保存到你的记录",
   "share.invalid": "无法读取此对局链接。",
+  "library.tag.imported": "已导入",
+  "library.tag.shared": "分享",
+  "library.tag.current": "当前对局",
+  "library.result.abandoned": "未下完",
+  "library.emptyFilter": "没有符合此筛选条件的对局。",
+  "library.noGames":
+    "在这段文字中没有找到对局。请粘贴 PGN 格式的对局，例如“1. e3 e6 2. Nf3 …”。",
+  "library.badMove":
+    "第 {index} 局：第 {number} 步的“{move}”不是合法的沙特兰兹着法。",
+  "library.importPartial.other": "仍然导入这 {n} 局中的合法着法",
+  "viewer.continue": "继续这局棋",
+  "viewer.play": "下一局棋",
+  "viewer.discardConfirm":
+    "不保存就离开这局分享的对局吗？对它的查看进度将会丢失。",
+  "status.viewerHelp": "用 ← → 键或着法列表逐步查看对局。",
 };

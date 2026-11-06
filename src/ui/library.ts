@@ -21,6 +21,11 @@ export interface GameRecord {
   /** Outcome when the game was saved (recomputed on load anyway). */
   winner?: Color | 0 | null;
   reason?: string;
+  /** Whose game this is: the player's own, or someone else's (shared or
+   * imported). Saving a shared game does not make it the player's. */
+  owner?: "me" | "other";
+  /** A played game that was left unfinished when a new one started. */
+  abandoned?: boolean;
   /** Review data when the game was analysed. */
   review?: { scores: (number | null)[]; best: (Move | null)[] };
 }

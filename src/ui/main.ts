@@ -28,6 +28,8 @@ import {
   decodeShare,
   encodeShare,
   parsePGN,
+  type PgnFailure,
+  type PgnGame,
   pgnResult,
   toPGN,
 } from "../engine/record.ts";
@@ -347,6 +349,7 @@ function startFromDialog() {
 /** Starts a new game with the current settings. */
 function newGame() {
   cancelThinking();
+  retireLive();
   const choice = state.colorChoice;
   state.player = choice === "black"
     ? BLACK
@@ -877,7 +880,7 @@ function renderStatus() {
       : t("status.reviewMove", { move: ltr(moveLabel(ply - 1)) });
     detail.textContent = matchMedia("(pointer: coarse)").matches
       ? ""
-      : t("status.reviewHelp");
+      : t(state.viewer ? "status.viewerHelp" : "status.reviewHelp");
   } else if (state.hintSan) {
     icon.innerHTML = turnIcon(state.player);
     title.textContent = t("status.hint", { move: ltr(state.hintSan) });
@@ -1000,7 +1003,11 @@ function renderReviewStrip() {
     ply >= state.moves.length ? "disabled" : ""
   }><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
     <button type="button" class="btn" data-size="sm" data-live>${
-    t("nav.live")
+    t(
+      state.viewer
+        ? (state.viewer.live.moves.length ? "viewer.close" : "viewer.play")
+        : "nav.live",
+    )
   }</button>`;
 }
 
@@ -1012,7 +1019,7 @@ function renderMoveNav() {
   $<HTMLButtonElement>("nav-prev").disabled = ply === 0;
   $<HTMLButtonElement>("nav-next").disabled = ply >= total;
   $<HTMLButtonElement>("nav-last").disabled = ply >= total;
-  $("nav-live").hidden = state.viewPly === null;
+  $("nav-live").hidden = state.viewPly === null || !!state.viewer;
   const analyse = $<HTMLButtonElement>("analyse-btn");
   analyse.hidden = state.result.over || review.running || Review.hasReview() ||
     total < 2;
@@ -1062,7 +1069,6 @@ function renderReview() {
   const done = Review.analysedCount();
   const needed = total + 1;
   const reviews = Review.reviews();
-  const level = LEVELS.find((l) => l.id === state.level)!;
 
   let body = "";
   if (!Review.hasReview() && !review.running) {
@@ -1108,8 +1114,10 @@ function renderReview() {
       Review.isComplete() ? "" : " opacity-60"
     }">
         <div class="review-row review-head"><span></span><span></span>
-          <span>${t("review.you")}</span><span class="truncate">${
-      lname(level.id)
+          <span class="truncate">${
+      esc(columnLabel(state.player))
+    }</span><span class="truncate">${
+      esc(columnLabel(-state.player as Color))
     }</span></div>
         <div class="review-row review-acc"><span></span><span>${
       t("review.accuracy")
@@ -1377,19 +1385,40 @@ const esc = (s: string) =>
       ]!,
   );
 
-/** Player-bar name from an imported/shared record, or null for the usual. */
+/** Whose game a record is: the player's own, or someone else's. */
+function isMine(rec: GameRecord): boolean {
+  if (rec.owner) return rec.owner === "me";
+  // Records saved before `owner` existed.
+  if (rec.source === "played") return true;
+  return rec.source === "imported" && rec.player !== undefined;
+}
+
+/** Name for one side of a record ("You", the opponent, or a PGN name). */
+function sideLabel(rec: GameRecord, color: Color): string {
+  if (rec.player !== undefined) {
+    if (color !== rec.player) return lname(rec.level ?? 3);
+    return isMine(rec) ? t("player.you") : sideName(color);
+  }
+  return (color === WHITE ? rec.white : rec.black) || sideName(color);
+}
+
+/** Player-bar name from an open record, or null for the usual rendering. */
 function recordName(color: Color): string | null {
   const rec = state.viewer?.record;
   if (!rec) return null;
-  if (rec.player !== undefined) {
-    // In someone else's shared game, "You" would be wrong: show the colour.
-    return rec.source === "shared" && !state.viewer!.saved &&
-        color === rec.player
-      ? sideName(color)
-      : null;
+  // Keep the usual rendering (with the level badge) for the opponent and
+  // for "You" in the player's own games.
+  if (rec.player !== undefined && (color !== rec.player || isMine(rec))) {
+    return null;
   }
-  const n = color === WHITE ? rec.white : rec.black;
-  return n || sideName(color);
+  return sideLabel(rec, color);
+}
+
+/** Review-card column heading for a side. */
+function columnLabel(color: Color): string {
+  const rec = state.viewer?.record;
+  if (rec) return sideLabel(rec, color);
+  return color === state.player ? t("player.you") : lname(state.level);
 }
 
 function liveRecord(): GameRecord {
@@ -1402,6 +1431,7 @@ function liveRecord(): GameRecord {
     updatedAt: Date.now(),
     moves: state.moves.slice(),
     source: "played",
+    owner: "me",
     player: state.player,
     level: state.level,
     winner: res.over ? res.winner : null,
@@ -1420,9 +1450,22 @@ function persistLive() {
   Library.putRecord(liveRecord());
 }
 
+/** Before the live game is replaced: keep it, marked unfinished if it is. */
+function retireLive() {
+  if (state.moves.length < 2) return;
+  Library.putRecord({ ...liveRecord(), abandoned: !state.result.over });
+}
+
+const clearHash = () => {
+  if (location.hash) {
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+};
+
 /** Opens a record in the viewer, stashing the live game. */
-function openRecord(rec: GameRecord, saved: boolean) {
+function openRecord(rec: GameRecord, saved: boolean, fromHash = false) {
   cancelThinking();
+  if (!fromHash) clearHash();
   if (!state.viewer) {
     state.viewer = {
       record: rec,
@@ -1436,6 +1479,7 @@ function openRecord(rec: GameRecord, saved: boolean) {
       },
     };
   } else {
+    keepViewerReview();
     state.viewer.record = rec;
     state.viewer.saved = saved;
   }
@@ -1450,12 +1494,37 @@ function openRecord(rec: GameRecord, saved: boolean) {
   state.viewPly = rec.moves.length;
   render();
   revealBoard();
+  // Move focus to the viewer bar and say what is shown.
+  const bar = $("viewer-card");
+  bar.focus({ preventScroll: true });
+  announce(
+    `${t(saved || isMine(rec) ? "viewer.title" : "viewer.shared")}: ${
+      sideLabel(rec, WHITE)
+    } – ${sideLabel(rec, BLACK)}`,
+  );
 }
 
-function closeViewer() {
+/** Stores whatever review exists (even partial) into a saved record. */
+function keepViewerReview() {
   const v = state.viewer;
-  if (!v) return;
+  if (!v || Review.analysedCount() === 0) return;
+  const snap = Review.snapshot();
+  v.record.review = { scores: snap.scores, best: snap.best };
+  if (v.saved) Library.putRecord(v.record);
+}
+
+/** Leaves the viewer. Returns false if the player chose to stay. */
+function closeViewer(): boolean {
+  const v = state.viewer;
+  if (!v) return true;
+  // An unsaved shared game with a review would be lost: ask first.
+  if (
+    !v.saved && (Review.analysedCount() > 1 || review.running) &&
+    !confirm(t("viewer.discardConfirm"))
+  ) return false;
+  keepViewerReview();
   state.viewer = null;
+  clearHash();
   state.player = v.live.player;
   state.level = v.live.level;
   state.flipped = v.live.flipped;
@@ -1464,83 +1533,149 @@ function closeViewer() {
   replay(v.live.moves);
   render();
   requestAIMove();
+  return true;
+}
+
+/** Makes an unfinished game of the player's own the live game again. */
+function continueRecord(rec: GameRecord) {
+  if (!closeViewer()) return;
+  cancelThinking();
+  retireLive();
+  state.gameId = rec.id;
+  state.createdAt = rec.createdAt;
+  state.player = rec.player ?? WHITE;
+  state.level = rec.level ?? 3;
+  state.colorChoice = state.player === WHITE ? "white" : "black";
+  state.flipped = state.player === BLACK;
+  state.viewPly = null;
+  clearHint();
+  Review.clear();
+  replay(rec.moves);
+  save();
+  persistLive();
+  render();
+  requestAIMove();
+}
+
+const canContinue = (rec: GameRecord) =>
+  isMine(rec) && rec.player !== undefined && rec.id !== state.gameId &&
+  !recordResult(rec).over;
+
+const ICON_LINK =
+  `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
+const ICON_DOWNLOAD =
+  `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>`;
+const ICON_TRASH =
+  `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
+const ICON_BACK =
+  `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>`;
+
+const iconBtn = (act: string, label: string, icon: string) =>
+  `<button type="button" class="btn" data-variant="ghost" data-size="icon-sm" data-act="${act}" aria-label="${label}" title="${label}">${icon}</button>`;
+
+/** On landscape phones the board column is too narrow for the viewer bar:
+ * put it at the top of the side panel there, above the board elsewhere. */
+const landscapePhone = matchMedia(
+  "(orientation: landscape) and (max-height: 520px)",
+);
+function placeViewerBar() {
+  const card = $("viewer-card");
+  const target = landscapePhone.matches
+    ? document.querySelector<HTMLElement>(".side-panel")!
+    : document.querySelector<HTMLElement>(".board-col")!;
+  if (card.parentElement !== target) target.prepend(card);
 }
 
 function renderViewer() {
+  placeViewerBar();
   const card = $("viewer-card");
   const v = state.viewer;
   card.hidden = !v;
   if (!v) return;
   const rec = v.record;
-  const foreign = rec.source === "shared" && !v.saved;
-  // In someone else's shared game the human side is shown by colour.
-  const human = (c: Color) => foreign ? sideName(c) : t("player.you");
-  const white = rec.player !== undefined
-    ? (rec.player === WHITE ? human(WHITE) : lname(rec.level ?? 3))
-    : rec.white || sideName(WHITE);
-  const black = rec.player !== undefined
-    ? (rec.player === BLACK ? human(BLACK) : lname(rec.level ?? 3))
-    : rec.black || sideName(BLACK);
+  const mine = isMine(rec);
   const meta = [
-    formatDate(rec.createdAt),
+    formatDate(rec.createdAt, true),
     resultLabel(rec),
     t("moves.count", { n: Math.ceil(rec.moves.length / 2) }),
   ].join(" · ");
+  const noLiveGame = v.live.moves.length === 0;
+  const primary = (act: string, label: string) =>
+    `<button type="button" class="btn" data-size="sm" data-act="${act}">${label}</button>`;
+  const outline = (act: string, label: string) =>
+    `<button type="button" class="btn" data-variant="outline" data-size="sm" data-act="${act}">${label}</button>`;
+  const back = `${ICON_BACK}<span>${
+    t(noLiveGame ? "viewer.play" : "viewer.close")
+  }</span>`;
   card.innerHTML = `
     <div class="viewer-info">
-      <span class="viewer-kind">${
-    t(foreign ? "viewer.shared" : "viewer.title")
+      <span class="viewer-line"><span class="viewer-kind">${
+    t(mine || v.saved ? "viewer.title" : "viewer.shared")
   }</span>
-      <span class="viewer-names">${esc(white)} – ${esc(black)}</span>
+      <span class="viewer-names">${esc(sideLabel(rec, WHITE))} – ${
+    esc(sideLabel(rec, BLACK))
+  }</span></span>
       <span class="viewer-meta">${meta}</span>
     </div>
     <div class="viewer-actions">
-      <button type="button" class="btn" data-size="sm" data-act="close">${
-    t("viewer.close")
-  }</button>
       ${
     v.saved
-      ? ""
-      : `<button type="button" class="btn" data-variant="outline" data-size="sm" data-act="save">${
-        t("viewer.save")
-      }</button>`
+      ? (canContinue(rec)
+        ? primary("continue", t("viewer.continue")) + outline("close", back)
+        : primary("close", back))
+      : primary("save", t("viewer.save")) + outline("close", back)
   }
-      <button type="button" class="btn" data-variant="outline" data-size="sm" data-act="share">${
-    t("library.share")
-  }</button>
-      <button type="button" class="btn" data-variant="outline" data-size="sm" data-act="pgn">PGN</button>
+      ${iconBtn("share", t("library.share"), ICON_LINK)}
+      ${iconBtn("pgn", t("library.download"), ICON_DOWNLOAD)}
     </div>`;
 }
 
-function formatDate(ms: number) {
+function formatDate(ms: number, withTime = false) {
+  const opts: Intl.DateTimeFormatOptions = withTime
+    ? { dateStyle: "medium", timeStyle: "short" }
+    : { dateStyle: "medium" };
+  const iso = new Date(ms).toISOString().slice(0, withTime ? 16 : 10)
+    .replace("T", " ");
+  // Coptic and Egyptian have no CLDR data: an ISO date beats an English one.
+  if (currentLang() === "cop" || currentLang() === "egy") return iso;
   try {
-    return new Intl.DateTimeFormat(intlLocale(), {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(ms);
+    return new Intl.DateTimeFormat(intlLocale(), opts).format(ms);
   } catch {
-    return new Date(ms).toISOString().slice(0, 16).replace("T", " ");
+    return iso;
   }
 }
 
-/** Outcome of a record, from the human's side when known. */
-function outcome(rec: GameRecord): "win" | "loss" | "draw" | "unfinished" {
+/** Final result of a record's moves (memoised per record). */
+const resultCache = new Map<string, { key: number; res: GameResult }>();
+function recordResult(rec: GameRecord): GameResult {
+  const hit = resultCache.get(rec.id);
+  if (hit && hit.key === rec.moves.length) return hit.res;
   const pos = Position.initial();
   for (const m of rec.moves) pos.makeMove(m);
   const res = pos.result();
-  if (!res.over) return "unfinished";
+  resultCache.set(rec.id, { key: rec.moves.length, res });
+  return res;
+}
+
+type Outcome = "win" | "loss" | "draw" | "unfinished" | "abandoned" | "other";
+
+/** Outcome from the player's point of view; "other" for others' games. */
+function outcome(rec: GameRecord): Outcome {
+  if (!isMine(rec)) return "other";
+  const res = recordResult(rec);
+  if (!res.over) {
+    return rec.id === state.gameId && !state.viewer
+      ? "unfinished"
+      : "abandoned";
+  }
   if (res.winner === 0) return "draw";
-  const me = rec.player ?? WHITE;
-  return res.winner === me ? "win" : "loss";
+  return res.winner === (rec.player ?? WHITE) ? "win" : "loss";
 }
 
 function resultLabel(rec: GameRecord) {
-  if (rec.player === undefined) {
-    const pos = Position.initial();
-    for (const m of rec.moves) pos.makeMove(m);
-    return pgnResult(pos.result());
-  }
-  return t(`library.result.${outcome(rec)}`);
+  const o = outcome(rec);
+  if (o === "other") return pgnResult(recordResult(rec));
+  return t(`library.result.${o}`);
 }
 
 function englishName(rec: GameRecord, color: Color) {
@@ -1562,7 +1697,8 @@ function recordPGN(rec: GameRecord) {
     White: englishName(rec, WHITE),
     Black: englishName(rec, BLACK),
   };
-  if (rec.player !== undefined) {
+  // Only the player's own games carry the tags that restore "You" on import.
+  if (rec.player !== undefined && isMine(rec)) {
     tags.ShatranjPlayer = rec.player === WHITE ? "white" : "black";
     tags.ShatranjLevel = String(rec.level ?? 3);
   }
@@ -1595,6 +1731,7 @@ function shareURL(rec: GameRecord) {
     if (rec.white) params.set("w", rec.white.slice(0, 60));
     if (rec.black) params.set("b", rec.black.slice(0, 60));
   }
+  params.set("d", Math.floor(rec.createdAt / 1000).toString(36));
   return `${location.origin}${location.pathname}#${params}`;
 }
 
@@ -1610,12 +1747,31 @@ async function copyLink(rec: GameRecord) {
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
+/** A short notice. Uses the top layer so it shows above open dialogs. */
 function toast(text: string) {
+  if (!text) return;
   const el = $("toast");
   el.textContent = text;
-  el.hidden = false;
+  const pop = el as HTMLElement & {
+    showPopover?: () => void;
+    hidePopover?: () => void;
+  };
+  if (pop.showPopover) {
+    // `hidden` would win over the popover (Tailwind's reset is !important).
+    el.hidden = false;
+    // Re-show so it is the topmost layer even above a dialog opened later.
+    if (el.matches(":popover-open")) pop.hidePopover!();
+    pop.showPopover();
+  } else {
+    el.hidden = false;
+    document.querySelector("dialog[open]")?.appendChild(el);
+  }
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => (el.hidden = true), 2600);
+  toastTimer = setTimeout(() => {
+    if (pop.hidePopover) {
+      if (el.matches(":popover-open")) pop.hidePopover();
+    } else el.hidden = true;
+  }, 3200);
 }
 
 /** Opens a game from a share link in the URL hash, if any. */
@@ -1623,17 +1779,19 @@ function openFromHash() {
   const h = new URLSearchParams(location.hash.slice(1));
   const code = h.get("g");
   if (!code) return;
-  history.replaceState(null, "", location.pathname + location.search);
   try {
     const moves = decodeShare(code);
     const p = h.get("p");
     const lv = Number(h.get("l"));
+    const d = parseInt(h.get("d") ?? "", 36);
+    const when = Number.isFinite(d) && d > 0 ? d * 1000 : Date.now();
     const rec: GameRecord = {
       id: Library.newId(),
-      createdAt: Date.now(),
+      createdAt: when,
       updatedAt: Date.now(),
       moves,
       source: "shared",
+      owner: "other",
       ...(p === "w" || p === "b"
         ? {
           player: p === "w" ? WHITE : BLACK,
@@ -1641,8 +1799,11 @@ function openFromHash() {
         }
         : { white: h.get("w") ?? undefined, black: h.get("b") ?? undefined }),
     };
-    openRecord(rec, false);
+    // The link stays in the address bar while the game is shown, so a
+    // reload or a bookmark keeps it.
+    openRecord(rec, false, true);
   } catch {
+    clearHash();
     toast(t("share.invalid"));
   }
 }
@@ -1658,24 +1819,32 @@ async function openLibrary() {
 let libraryCache: GameRecord[] = [];
 
 async function renderLibrary() {
-  libraryCache = await Library.listRecords();
+  libraryCache = (await Library.listRecords()).sort((a, b) =>
+    b.createdAt - a.createdAt
+  );
   const filter = document.querySelector<HTMLInputElement>(
     'input[name="lib-filter"]:checked',
   )?.value ?? "all";
   const items = libraryCache.filter((r) =>
     filter === "all" || outcome(r) === filter
   );
+  $<HTMLButtonElement>("library-export-btn").disabled =
+    libraryCache.length === 0;
   const list = $("library-list");
   if (items.length === 0) {
-    list.innerHTML = `<li class="library-empty">${t("library.empty")}</li>`;
+    list.innerHTML = `<li class="library-empty">${
+      t(libraryCache.length ? "library.emptyFilter" : "library.empty")
+    }</li>`;
     return;
   }
   list.innerHTML = items.map((rec) => {
     const o = outcome(rec);
-    let opponent: string;
+    const mine = isMine(rec);
+    const current = rec.id === state.gameId;
+    let title: string;
     let accuracy = "";
-    if (rec.player !== undefined) {
-      opponent = t("library.vs", { name: lname(rec.level ?? 3) });
+    if (mine && rec.player !== undefined) {
+      title = esc(t("library.vs", { name: lname(rec.level ?? 3) }));
       if (rec.review) {
         const rs = reviewMoves(rec.moves, rec.review.scores, rec.review.best);
         if (rs.length === rec.moves.length && rs.length > 0) {
@@ -1685,23 +1854,32 @@ async function renderLibrary() {
         }
       }
     } else {
-      opponent = `${esc(rec.white || sideName(WHITE))} – ${
-        esc(rec.black || sideName(BLACK))
-      }`;
+      title = `${esc(sideLabel(rec, WHITE))} – ${esc(sideLabel(rec, BLACK))}`;
     }
+    const tag = current
+      ? `<span class="lib-tag lib-tag-current">${
+        t("library.tag.current")
+      }</span>`
+      : mine
+      ? ""
+      : `<span class="lib-tag">${
+        t(
+          rec.source === "shared"
+            ? "library.tag.shared"
+            : "library.tag.imported",
+        )
+      }</span>`;
     const side = rec.player ?? WHITE;
     return `
       <li class="library-item" data-id="${esc(rec.id)}">
-        <span class="lib-result lib-${o}">${
-      rec.player === undefined ? resultLabel(rec) : t(`library.result.${o}`)
-    }</span>
+        <span class="lib-result lib-${o}">${resultLabel(rec)}</span>
         <span class="lib-main">
           <span class="lib-title"><span class="turn-icon">${
       pieceSVG(side * SHAH)
-    }</span>${opponent}</span>
+    }</span><span class="truncate">${title}</span>${tag}</span>
           <span class="lib-meta">${
       [
-        formatDate(rec.updatedAt),
+        formatDate(rec.createdAt),
         t("moves.count", { n: Math.ceil(rec.moves.length / 2) }),
         accuracy,
       ].filter(Boolean).join(" · ")
@@ -1711,21 +1889,11 @@ async function renderLibrary() {
           <button type="button" class="btn" data-size="sm" data-act="open">${
       t("library.open")
     }</button>
-          <button type="button" class="btn" data-variant="ghost" data-size="icon-sm" data-act="share" aria-label="${
-      t("library.share")
-    }" title="${
-      t("library.share")
-    }"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
-          <button type="button" class="btn" data-variant="ghost" data-size="icon-sm" data-act="pgn" aria-label="${
-      t("library.download")
-    }" title="${
-      t("library.download")
-    }"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg></button>
-          <button type="button" class="btn" data-variant="ghost" data-size="icon-sm" data-act="delete" aria-label="${
-      t("library.delete")
-    }" title="${
-      t("library.delete")
-    }"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+          ${iconBtn("share", t("library.share"), ICON_LINK)}
+          ${iconBtn("pgn", t("library.download"), ICON_DOWNLOAD)}
+          ${
+      // The live game keeps saving itself, so it cannot be deleted here.
+      current ? "" : iconBtn("delete", t("library.delete"), ICON_TRASH)}
         </span>
       </li>`;
   }).join("");
@@ -1751,19 +1919,45 @@ async function onLibraryClick(e: Event) {
     case "pgn":
       download(`shatranj-${fileStamp(rec.createdAt)}.pgn`, recordPGN(rec));
       break;
-    case "delete":
+    case "delete": {
       if (!confirm(t("library.deleteConfirm"))) return;
+      // Remember where focus should go once the row is gone.
+      const next = (item.nextElementSibling ?? item.previousElementSibling) as
+        | HTMLElement
+        | null;
+      const nextId = next?.dataset.id;
       await Library.deleteRecord(rec.id);
       if (state.viewer?.record.id === rec.id) state.viewer.saved = false;
-      if (rec.id === state.gameId) state.gameId = Library.newId();
       await renderLibrary();
       render();
+      const target = nextId
+        ? $("library-list").querySelector<HTMLElement>(
+          `[data-id="${CSS.escape(nextId)}"] [data-act=open]`,
+        )
+        : null;
+      (target ?? $("library-list")).focus();
       break;
+    }
   }
 }
 
-async function importPGN(text: string) {
+/** Imports PGN text. Returns the failures (for an inline report). */
+async function importPGN(
+  text: string,
+): Promise<{ imported: number; failures: PgnFailure[] }> {
   const { games, errors } = parsePGN(text);
+  await saveImported(games);
+  toast(
+    [
+      games.length ? t("library.imported", { n: games.length }) : "",
+      errors.length ? t("library.importFailed", { n: errors.length }) : "",
+    ].filter(Boolean).join(" "),
+  );
+  await renderLibrary();
+  return { imported: games.length, failures: errors };
+}
+
+async function saveImported(games: PgnGame[]) {
   const now = Date.now();
   let i = 0;
   for (const g of games) {
@@ -1772,30 +1966,61 @@ async function importPGN(text: string) {
     const lv = Number(tags.ShatranjLevel);
     const date = (tags.Date ?? "").match(/^(\d{4})\.(\d{2})\.(\d{2})$/);
     const when = date
-      ? new Date(+date[1], +date[2] - 1, +date[3]).getTime()
+      ? new Date(+date[1], +date[2] - 1, +date[3], 12).getTime()
       : now;
+    const own = side === "white" || side === "black";
     await Library.putRecord({
       id: Library.newId(),
-      createdAt: when,
-      updatedAt: now + i++, // keep file order at the top of the list
+      // Newest first in the list; games with the same date keep file order.
+      createdAt: when - i,
+      updatedAt: now - i,
       moves: g.moves,
       source: "imported",
-      ...(side === "white" || side === "black"
+      owner: own ? "me" : "other",
+      ...(own
         ? {
           player: side === "white" ? WHITE : BLACK,
           level: LEVELS.some((l) => l.id === lv) ? lv : 3,
         }
         : { white: tags.White, black: tags.Black }),
     });
+    i++;
   }
-  if (errors.length) console.warn("PGN import errors:", errors);
-  toast(
-    [
-      games.length ? t("library.imported", { n: games.length }) : "",
-      errors.length ? t("library.importFailed", { n: errors.length }) : "",
-    ].filter(Boolean).join(" "),
-  );
-  await renderLibrary();
+}
+
+/** Inline report for a paste import that did not fully succeed. */
+let pendingPartials: PgnFailure[] = [];
+function showPasteReport(failures: PgnFailure[], noGames: boolean) {
+  const el = $("library-paste-report");
+  pendingPartials = failures.filter((f) => f.moves.length > 0);
+  if (!noGames && failures.length === 0) {
+    el.hidden = true;
+    el.innerHTML = "";
+    return;
+  }
+  el.hidden = false;
+  const lines = noGames && failures.length === 0
+    ? [`<li>${t("library.noGames")}</li>`]
+    : failures.slice(0, 8).map((f) =>
+      `<li>${
+        esc(
+          f.san
+            ? t("library.badMove", {
+              index: f.index,
+              move: f.san,
+              number: Math.ceil((f.ply ?? 1) / 2),
+            })
+            : `${t("library.importFailed", { n: 1 })} (${f.index})`,
+        )
+      }</li>`
+    );
+  el.innerHTML = `<ul>${lines.join("")}</ul>${
+    pendingPartials.length
+      ? `<button type="button" class="btn" data-variant="outline" data-size="sm" id="library-partial-btn">${
+        t("library.importPartial", { n: pendingPartials.length })
+      }</button>`
+      : ""
+  }`;
 }
 
 async function exportAll() {
@@ -1803,7 +2028,7 @@ async function exportAll() {
   if (all.length === 0) return;
   download(
     `shatranj-records-${fileStamp(Date.now())}.pgn`,
-    all.map(recordPGN).join("\n"),
+    all.sort((a, b) => a.createdAt - b.createdAt).map(recordPGN).join("\n"),
   );
 }
 
@@ -1820,19 +2045,39 @@ function wireLibrary() {
     for (const f of file.files ?? []) await importPGN(await f.text());
     file.value = "";
   });
+  const paste = $("library-paste");
+  const ta = $<HTMLTextAreaElement>("library-paste-text");
   $("library-paste-btn").addEventListener("click", () => {
-    $("library-paste").hidden = false;
-    $<HTMLTextAreaElement>("library-paste-text").focus();
+    paste.hidden = false;
+    ta.focus();
   });
   $("library-paste-cancel").addEventListener("click", () => {
-    $("library-paste").hidden = true;
+    paste.hidden = true;
+    showPasteReport([], false);
   });
   $("library-paste-submit").addEventListener("click", async () => {
-    const ta = $<HTMLTextAreaElement>("library-paste-text");
-    if (!ta.value.trim()) return;
-    await importPGN(ta.value);
+    if (!ta.value.trim()) {
+      showPasteReport([], true);
+      return;
+    }
+    const { imported, failures } = await importPGN(ta.value);
+    showPasteReport(failures, imported === 0);
+    // Keep the text (and the panel) whenever something could not be read.
+    if (imported > 0 && failures.length === 0) {
+      ta.value = "";
+      paste.hidden = true;
+    }
+  });
+  $("library-paste-report").addEventListener("click", async (e) => {
+    if (!(e.target as Element).closest("#library-partial-btn")) return;
+    await saveImported(
+      pendingPartials.map((f) => ({ tags: f.tags, moves: f.moves })),
+    );
+    toast(t("library.imported", { n: pendingPartials.length }));
+    showPasteReport([], false);
     ta.value = "";
-    $("library-paste").hidden = true;
+    paste.hidden = true;
+    await renderLibrary();
   });
   $("library-export-btn").addEventListener("click", exportAll);
   $("viewer-card").addEventListener("click", async (e) => {
@@ -1841,9 +2086,10 @@ function wireLibrary() {
     const v = state.viewer;
     if (!act || !v) return;
     if (act === "close") closeViewer();
+    else if (act === "continue") continueRecord(v.record);
     else if (act === "save") {
-      v.record.source = v.record.source === "shared" ? "shared" : "imported";
       v.record.updatedAt = Date.now();
+      keepViewerReview();
       await Library.putRecord(v.record);
       v.saved = true;
       toast(t("viewer.saved"));
@@ -1945,6 +2191,7 @@ function init() {
     else openNewGameDialog();
   });
   wireLibrary();
+  landscapePhone.addEventListener("change", placeViewerBar);
   $("start-game-btn").addEventListener("click", startFromDialog);
   $("result-new-btn").addEventListener("click", () => {
     $<HTMLDialogElement>("result-dialog").close();
@@ -2042,6 +2289,13 @@ function init() {
       state.selected = -1;
       state.targets = [];
       render();
+      return;
+    }
+    if (
+      e.key === "Escape" && state.viewer &&
+      !document.querySelector("dialog[open]")
+    ) {
+      closeViewer();
       return;
     }
     // Single-key shortcuts, unless typing or a dialog is open.

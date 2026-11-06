@@ -233,4 +233,23 @@ export const tr: Dict = {
   "viewer.save": "Kayıtlarıma ekle",
   "viewer.saved": "Kayıtlarına eklendi",
   "share.invalid": "Bu oyun bağlantısı okunamadı.",
+  "library.tag.imported": "İçe aktarıldı",
+  "library.tag.shared": "Paylaşıldı",
+  "library.tag.current": "Şu anki oyun",
+  "library.result.abandoned": "Yarıda kaldı",
+  "library.emptyFilter": "Bu filtreye uyan oyun yok.",
+  "library.noGames":
+    "Bu metinde oyun bulunamadı. PGN biçiminde bir oyun yapıştır, ör. “1. e3 e6 2. Nf3 …”.",
+  "library.badMove":
+    "Oyun {index}, hamle {number}: “{move}” geçerli bir şatranc hamlesi değil.",
+  "library.importPartial.one":
+    "Geçerli hamleleri yine de içe aktar (oyun: {n})",
+  "library.importPartial.other":
+    "Geçerli hamleleri yine de içe aktar (oyun: {n})",
+  "viewer.continue": "Bu oyuna devam et",
+  "viewer.play": "Oyun oyna",
+  "viewer.discardConfirm":
+    "Bu paylaşılan oyundan kaydetmeden çıkılsın mı? İncelemesi kaybolacak.",
+  "status.viewerHelp":
+    "Oyunda ilerlemek için ← → tuşlarını ya da hamle listesini kullan.",
 };
