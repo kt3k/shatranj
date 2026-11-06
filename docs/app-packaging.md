@@ -1,5 +1,27 @@
 # shatranj をネイティブアプリに埋め込む
 
+## iOS アプリを Xcode なしで実機に入れる
+
+GitHub Actions の `ios app` ワークフローが、main への push と手動実行 (Actions →
+ios app → Run workflow) のたびに署名なしの `Shatranj.ipa` を成果物として作る (30
+日保存)。PC (Windows / Mac) のサイドロードツールで 自分の Apple ID
+で署名して入れる。
+
+1. 実行結果ページの Artifacts から `Shatranj-ipa-<commit>` をダウンロードし、
+   展開して `Shatranj.ipa` を取り出す。
+2. [Sideloadly](https://sideloadly.io/) (または AltStore) を入れる。Windows では
+   Apple のサイトから iTunes と iCloud を入れておく (Microsoft Store
+   版は不可のことがある)。
+3. iPhone を USB で接続して「このコンピュータを信頼」。
+4. Sideloadly に IPA をドラッグし、Apple ID を入れて Start。
+5. iPhone で「設定 → プライバシーとセキュリティ → デベロッパモード」をオン (iOS
+   16 以降、要再起動)、「設定 → 一般 → VPN とデバイス管理」で開発元を信頼。
+
+無料の Apple ID では 7 日で起動できなくなるので、同じ IPA で再署名する
+(ビルドし直す必要はない)。同時に入れられるのは 3 アプリまで。Apple ID
+をサードパーティのツールに渡すことになるので、気になる場合は検証用の Apple ID
+を使う。
+
 ## iOS アプリを実機で動かす
 
 [`app/ios`](../app/ios) は gawa を使った最小のアプリシェル (XcodeGen +

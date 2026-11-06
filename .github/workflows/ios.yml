@@ -1,11 +1,20 @@
 name: ios app
 
+# Builds the iOS app shell (app/ios). On main and on manual runs it also
+# produces an unsigned Shatranj.ipa artifact, to be signed and installed on
+# a device with a sideloading tool (see docs/app-packaging.md).
+
 on:
   push:
     branches: [main]
     paths: ["app/ios/**", "src/**", "static/**", ".github/workflows/ios.yml"]
   pull_request:
     paths: ["app/ios/**", ".github/workflows/ios.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -16,11 +25,52 @@ jobs:
         with:
           deno-version: v2.x
       - run: deno install && deno task build
-      - name: Build the app (iOS Simulator)
+      - name: Generate the Xcode project
         working-directory: app/ios
         run: |
           brew install xcodegen
           xcodegen generate
+      - name: Build (iOS Simulator)
+        working-directory: app/ios
+        run: |
           xcodebuild build -project Shatranj.xcodeproj -scheme Shatranj \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO -quiet
+
+      - name: Build for devices, unsigned
+        if: github.event_name != 'pull_request'
+        working-directory: app/ios
+        run: |
+          xcodebuild build -project Shatranj.xcodeproj -scheme Shatranj \
+            -configuration Release -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            -quiet
+      - name: Package Shatranj.ipa
+        if: github.event_name != 'pull_request'
+        working-directory: app/ios
+        run: |
+          app=build/Build/Products/Release-iphoneos/Shatranj.app
+          test -f "$app/Shatranj" && test -f "$app/dist/index.html"
+          mkdir -p out/Payload
+          cp -R "$app" out/Payload/
+          (cd out && zip -qry Shatranj.ipa Payload)
+          ls -l out/Shatranj.ipa
+      - uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request'
+        with:
+          name: Shatranj-ipa-${{ github.sha }}
+          path: app/ios/out/Shatranj.ipa
+          retention-days: 30
+          if-no-files-found: error
+      - name: Summary
+        if: github.event_name != 'pull_request'
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ### Shatranj.ipa (unsigned)
+
+          Download the artifact below, then sign and install it with a
+          sideloading tool (e.g. Sideloadly or AltStore) using your Apple ID.
+          See `docs/app-packaging.md`. With a free Apple ID the app must be
+          re-signed every 7 days.
+          EOF
