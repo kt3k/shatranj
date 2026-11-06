@@ -233,7 +233,7 @@ export const de: Dict = {
   "library.import": "PGN importieren",
   "library.paste": "PGN einfügen",
   "library.paste.submit": "Importieren",
-  "library.exportAll": "Alle laden",
+  "library.exportAll": "Alle herunterladen",
   "library.imported.one": "{n} Partie importiert.",
   "library.imported.other": "{n} Partien importiert.",
   "library.importFailed.one": "{n} Partie konnte nicht gelesen werden.",
@@ -262,4 +262,11 @@ export const de: Dict = {
   "viewer.discardConfirm":
     "Diese geteilte Partie verlassen, ohne sie zu speichern? Ihre Analyse geht verloren.",
   "status.viewerHelp": "Mit ← → oder der Zugliste gehst du durch die Partie.",
+  "viewer.leave": "Verlassen ohne Speichern",
+  "viewer.saveAndLeave": "Speichern und verlassen",
+  "library.askMine":
+    "Diese Partien wurden von dieser Seite mit der Seite des Spielers exportiert. Sind es deine eigenen Partien? Eigene Partien zählen zu deinen Siegen und Niederlagen.",
+  "library.askMineYes": "Ja, das sind meine",
+  "library.duplicates.one": "{n} Partie war bereits gespeichert.",
+  "library.duplicates.other": "{n} Partien waren bereits gespeichert.",
 };

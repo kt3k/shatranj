@@ -294,6 +294,13 @@ const en: Dict = {
   "viewer.discardConfirm":
     "Leave this shared game without saving it? Its review will be lost.",
   "status.viewerHelp": "Use ← → or the move list to step through the game.",
+  "viewer.leave": "Leave without saving",
+  "viewer.saveAndLeave": "Save and leave",
+  "library.askMine":
+    "These games were exported from this site with a player's side. Are they your own games? Your own games count towards your wins and losses.",
+  "library.askMineYes": "Yes, they are mine",
+  "library.duplicates.one": "{n} game was already in your records.",
+  "library.duplicates.other": "{n} games were already in your records.",
 };
 
 const ja: Dict = {
@@ -537,6 +544,12 @@ const ja: Dict = {
   "viewer.discardConfirm":
     "この共有された対局を保存せずに閉じますか？振り返りの内容は失われます。",
   "status.viewerHelp": "← → キーか棋譜で手順をたどれます。",
+  "viewer.leave": "保存せずに離れる",
+  "viewer.saveAndLeave": "保存して離れる",
+  "library.askMine":
+    "これらの対局は、このサイトから手番の情報付きで書き出されたものです。あなた自身の対局ですか？ 自分の対局は勝ち・負けの集計に入ります。",
+  "library.askMineYes": "はい、自分の対局です",
+  "library.duplicates.other": "{n}局はすでに棋譜帳にありました。",
 };
 
 const ar: Dict = {
@@ -785,6 +798,13 @@ const ar: Dict = {
   "viewer.play": "العب دورًا",
   "viewer.discardConfirm": "أتغادر هذا الدور المُشارَك دون حفظه؟ ستضيع مراجعته.",
   "status.viewerHelp": "استخدم ← → أو قائمة النقلات للتنقل في الدور.",
+  "viewer.leave": "المغادرة دون حفظ",
+  "viewer.saveAndLeave": "احفظ وغادر",
+  "library.askMine":
+    "صُدّرت هذه الأدوار من هذا الموقع مع جانب اللاعب. هل هي أدوارك أنت؟ أدوارك تُحتسب في انتصاراتك وهزائمك.",
+  "library.askMineYes": "نعم، إنها أدواري",
+  "library.duplicates.one": "كان دورٌ واحد موجودًا بالفعل في سجلّك.",
+  "library.duplicates.other": "{n} أدوار كانت موجودة بالفعل في سجلّك.",
 };
 
 const fa: Dict = {
@@ -1032,6 +1052,13 @@ const fa: Dict = {
   "viewer.discardConfirm":
     "این بازی هم‌رسانی‌شده را بدون ذخیره ترک می‌کنید؟ بازبینی آن از دست می‌رود.",
   "status.viewerHelp": "با ← → یا فهرست حرکت‌ها در بازی جابه‌جا شوید.",
+  "viewer.leave": "خروج بدون ذخیره",
+  "viewer.saveAndLeave": "ذخیره و خروج",
+  "library.askMine":
+    "این بازی‌ها از همین سایت همراه با طرفِ بازیکن صادر شده‌اند. آیا بازی‌های خود شما هستند؟ بازی‌های خودتان در برد و باخت شما شمرده می‌شوند.",
+  "library.askMineYes": "بله، مال من هستند",
+  "library.duplicates.one": "{n} بازی از قبل در بایگانی شما بود.",
+  "library.duplicates.other": "{n} بازی از قبل در بایگانی شما بود.",
 };
 
 const DICTS: Record<Lang, Dict> = {

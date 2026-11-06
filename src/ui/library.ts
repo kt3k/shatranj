@@ -24,6 +24,8 @@ export interface GameRecord {
   /** Whose game this is: the player's own, or someone else's (shared or
    * imported). Saving a shared game does not make it the player's. */
   owner?: "me" | "other";
+  /** The time of day is not known (imported without a PGN Time tag). */
+  timeUnknown?: boolean;
   /** A played game that was left unfinished when a new one started. */
   abandoned?: boolean;
   /** Review data when the game was analysed. */

@@ -261,4 +261,11 @@ export const es: Dict = {
     "¿Salir de esta partida compartida sin guardarla? Se perderá su revisión.",
   "status.viewerHelp":
     "Usa ← → o la lista de jugadas para recorrer la partida.",
+  "viewer.leave": "Salir sin guardar",
+  "viewer.saveAndLeave": "Guardar y salir",
+  "library.askMine":
+    "Estas partidas se exportaron desde este sitio con el bando del jugador. ¿Son tus propias partidas? Tus partidas cuentan en tus victorias y derrotas.",
+  "library.askMineYes": "Sí, son mías",
+  "library.duplicates.one": "{n} partida ya estaba guardada.",
+  "library.duplicates.other": "{n} partidas ya estaban guardadas.",
 };

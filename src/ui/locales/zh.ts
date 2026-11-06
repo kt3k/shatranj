@@ -231,4 +231,10 @@ export const zh: Dict = {
   "viewer.discardConfirm":
     "不保存就离开这局分享的对局吗？对它的查看进度将会丢失。",
   "status.viewerHelp": "用 ← → 键或着法列表逐步查看对局。",
+  "viewer.leave": "不保存直接离开",
+  "viewer.saveAndLeave": "保存后离开",
+  "library.askMine":
+    "这些对局是从本站导出的，带有玩家执子信息。它们是你自己的对局吗？你自己的对局会计入胜负统计。",
+  "library.askMineYes": "是，是我的对局",
+  "library.duplicates.other": "有 {n} 局已在棋谱中。",
 };

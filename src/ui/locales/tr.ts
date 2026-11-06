@@ -252,4 +252,11 @@ export const tr: Dict = {
     "Bu paylaşılan oyundan kaydetmeden çıkılsın mı? İncelemesi kaybolacak.",
   "status.viewerHelp":
     "Oyunda ilerlemek için ← → tuşlarını ya da hamle listesini kullan.",
+  "viewer.leave": "Kaydetmeden çık",
+  "viewer.saveAndLeave": "Kaydet ve çık",
+  "library.askMine":
+    "Bu oyunlar bu siteden oyuncu tarafı bilgisiyle dışa aktarılmış. Senin kendi oyunların mı? Kendi oyunların galibiyet ve yenilgilerine sayılır.",
+  "library.askMineYes": "Evet, benim",
+  "library.duplicates.one": "Zaten kayıtlı oyun: {n}.",
+  "library.duplicates.other": "Zaten kayıtlı oyun: {n}.",
 };

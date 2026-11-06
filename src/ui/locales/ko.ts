@@ -240,4 +240,10 @@ export const ko: Dict = {
   "viewer.discardConfirm":
     "공유된 게임을 저장하지 않고 나갈까요? 살펴본 내용이 사라져요.",
   "status.viewerHelp": "← → 키나 기보 목록으로 게임을 한 수씩 살펴보세요.",
+  "viewer.leave": "저장하지 않고 나가기",
+  "viewer.saveAndLeave": "저장하고 나가기",
+  "library.askMine":
+    "이 게임들은 이 사이트에서 플레이어 진영 정보와 함께 내보낸 것이에요. 직접 둔 게임인가요? 내 게임은 승패 기록에 포함돼요.",
+  "library.askMineYes": "네, 내 게임이에요",
+  "library.duplicates.other": "이미 기록에 있는 게임: {n}개",
 };

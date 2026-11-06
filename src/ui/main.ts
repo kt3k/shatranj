@@ -115,6 +115,8 @@ const state = {
   viewer: null as null | {
     record: GameRecord;
     saved: boolean;
+    /** Opened from a share link in the address bar (no history entry). */
+    fromHash: boolean;
     live: {
       moves: Move[];
       player: Color;
@@ -326,10 +328,10 @@ function syncSetupInputs() {
 
 function openNewGameDialog() {
   syncSetupInputs();
-  $<HTMLDialogElement>("new-game-dialog").showModal();
+  openDialog($<HTMLDialogElement>("new-game-dialog"));
   // Focus the current choice rather than the first option.
   document.querySelector<HTMLInputElement>('input[name="level"]:checked')
-    ?.focus();
+    ?.focus({ preventScroll: true });
 }
 
 /** Starts a new game with the settings chosen in the new-game dialog. */
@@ -1003,13 +1005,13 @@ function renderReviewStrip() {
   }" ${
     ply >= state.moves.length ? "disabled" : ""
   }><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
-    <button type="button" class="btn" data-size="sm" data-live>${
-    t(
-      state.viewer
-        ? (state.viewer.live.moves.length ? "viewer.close" : "viewer.play")
-        : "nav.live",
-    )
-  }</button>`;
+    ${
+    // In the viewer the bar above the board already offers the way back.
+    state.viewer
+      ? ""
+      : `<button type="button" class="btn" data-size="sm" data-live>${
+        t("nav.live")
+      }</button>`}`;
 }
 
 function renderMoveNav() {
@@ -1045,6 +1047,11 @@ function startReview() {
     render();
   });
   render();
+  // On phones the review card is below the board: show that it started.
+  const card = $("review-card");
+  if (card.getBoundingClientRect().top > innerHeight - 80) {
+    card.scrollIntoView({ block: "start" });
+  }
 }
 
 function saveReviewToRecord() {
@@ -1308,7 +1315,7 @@ function showResult() {
     text: reasonText(res.reason),
     n: Math.ceil(state.sans.length / 2),
   });
-  $<HTMLDialogElement>("result-dialog").showModal();
+  openDialog($<HTMLDialogElement>("result-dialog"));
 }
 
 function renderLevels() {
@@ -1468,9 +1475,11 @@ function openRecord(rec: GameRecord, saved: boolean, fromHash = false) {
   cancelThinking();
   if (!fromHash) clearHash();
   if (!state.viewer) {
+    if (!fromHash) pushEntry({ viewer: true });
     state.viewer = {
       record: rec,
       saved,
+      fromHash,
       live: {
         moves: state.moves.slice(),
         player: state.player,
@@ -1514,16 +1523,35 @@ function keepViewerReview() {
   if (v.saved) Library.putRecord(v.record);
 }
 
-/** Leaves the viewer. Resolves to false if the player chose to stay. */
-async function closeViewer(): Promise<boolean> {
+/**
+ * Leaves the viewer. Resolves to false if the player chose to stay.
+ * `fromHistory`: called because Back was pressed (the entry is gone).
+ */
+async function closeViewer(fromHistory = false): Promise<boolean> {
   const v = state.viewer;
   if (!v) return true;
   // An unsaved shared game with a review would be lost: ask first.
-  if (
-    !v.saved && (Review.analysedCount() > 1 || review.running) &&
-    !(await ask(t("viewer.discardConfirm"), t("viewer.close")))
-  ) return false;
+  if (!v.saved && (Review.analysedCount() > 1 || review.running)) {
+    const choice = await askChoice(
+      t("viewer.discardConfirm"),
+      t("viewer.leave"),
+      t("viewer.saveAndLeave"),
+    );
+    if (choice === "") return false;
+    if (choice === "alt") {
+      keepViewerReview();
+      v.record.updatedAt = Date.now();
+      await Library.putRecord(v.record);
+      v.saved = true;
+      toast(t("viewer.saved"));
+    }
+  }
   if (state.viewer !== v) return true;
+  if (!fromHistory) {
+    historySettled.then(() => {
+      if (history.state?.viewer) backQuietly();
+    });
+  }
   keepViewerReview();
   state.viewer = null;
   clearHash();
@@ -1597,7 +1625,7 @@ function renderViewer() {
   const rec = v.record;
   const mine = isMine(rec);
   const meta = [
-    formatDate(rec.createdAt, true),
+    formatDate(rec.createdAt, !rec.timeUnknown),
     resultLabel(rec),
     t("moves.count", { n: Math.ceil(rec.moves.length / 2) }),
   ].join(" · ");
@@ -1676,7 +1704,10 @@ function outcome(rec: GameRecord): Outcome {
 
 function resultLabel(rec: GameRecord) {
   const o = outcome(rec);
-  if (o === "other") return pgnResult(recordResult(rec));
+  if (o === "other") {
+    const r = pgnResult(recordResult(rec));
+    return r === "*" ? t("library.result.abandoned") : r;
+  }
   return t(`library.result.${o}`);
 }
 
@@ -1696,6 +1727,7 @@ function recordPGN(rec: GameRecord) {
   const pad = (n: number) => String(n).padStart(2, "0");
   const tags: Record<string, string> = {
     Date: `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`,
+    Time: `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`,
     White: englishName(rec, WHITE),
     Black: englishName(rec, BLACK),
   };
@@ -1722,11 +1754,14 @@ function download(name: string, text: string) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-const fileStamp = (ms: number) =>
-  new Date(ms).toISOString().slice(0, 16).replace(/[-:]/g, "").replace(
-    "T",
-    "-",
-  );
+/** "20261106-1430" in local time, for file names. */
+const fileStamp = (ms: number) => {
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${
+    p(d.getHours())
+  }${p(d.getMinutes())}`;
+};
 
 function shareURL(rec: GameRecord) {
   const params = new URLSearchParams({ g: encodeShare(rec.moves) });
@@ -1760,28 +1795,135 @@ function showLink(url: string) {
   const dialog = $<HTMLDialogElement>("link-dialog");
   const input = $<HTMLInputElement>("link-dialog-url");
   input.value = url;
-  dialog.showModal();
+  openDialog(dialog);
   input.focus();
   input.select();
 }
 
 /**
- * In-page replacement for `confirm()`, which embedded WebViews do not show
- * unless the app implements it (iOS returns false, so nothing would happen).
+ * In-page replacement for `confirm()` (embedded WebViews do not show it),
+ * with an optional second action. Resolves to "ok", "alt" or "" (cancelled).
  */
-function ask(message: string, okLabel: string): Promise<boolean> {
+function askChoice(
+  message: string,
+  okLabel: string,
+  altLabel?: string,
+): Promise<string> {
   const dialog = $<HTMLDialogElement>("confirm-dialog");
   $("confirm-dialog-text").textContent = message;
   $("confirm-dialog-ok").textContent = okLabel;
+  const alt = $<HTMLButtonElement>("confirm-dialog-alt");
+  alt.hidden = !altLabel;
+  alt.textContent = altLabel ?? "";
   dialog.returnValue = "";
-  dialog.showModal();
+  // Not a history entry: closing it must not also pop the viewer's.
+  openDialog(dialog, false);
+  (altLabel ? alt : dialog.querySelector<HTMLElement>("[autofocus]"))?.focus();
   return new Promise((resolve) => {
-    dialog.addEventListener(
-      "close",
-      () => resolve(dialog.returnValue === "ok"),
-      { once: true },
-    );
+    dialog.addEventListener("close", () => resolve(dialog.returnValue), {
+      once: true,
+    });
   });
+}
+
+function ask(message: string, okLabel: string): Promise<boolean> {
+  return askChoice(message, okLabel).then((v) => v === "ok");
+}
+
+/**
+ * Opens a modal dialog and, by default, adds a history entry for it, so the
+ * browser's (or Android's) Back button closes the dialog instead of leaving
+ * the page.
+ */
+function openDialog(d: HTMLDialogElement, withHistory = true) {
+  if (d.open) return;
+  d.showModal();
+  if (!withHistory) return;
+  pushEntry({ dialog: d.id });
+  d.addEventListener("close", () => {
+    historySettled.then(() => {
+      if (history.state?.dialog === d.id) backQuietly();
+    });
+  }, { once: true });
+}
+
+// History entries the page adds itself (dialogs, the viewer) are popped by
+// the page when they close. Those "quiet" backs must not be mistaken for the
+// user pressing Back, and new entries must wait until they have happened.
+let quietBacks = 0;
+const settleQueue: (() => void)[] = [];
+let historySettled: Promise<void> = Promise.resolve();
+
+function backQuietly() {
+  quietBacks++;
+  historySettled = new Promise((resolve) => settleQueue.push(resolve));
+  history.back();
+}
+
+function pushEntry(extra: Record<string, unknown>) {
+  historySettled.then(() =>
+    history.pushState(
+      // A dialog's entry is never inherited by what is opened after it.
+      { ...(history.state ?? {}), dialog: undefined, ...extra },
+      "",
+    )
+  );
+}
+
+/** Closes a dialog and waits until its history entry has been removed. */
+async function closeDialog(d: HTMLDialogElement) {
+  d.close();
+  // The close event (which schedules the quiet Back) fires asynchronously.
+  await new Promise((r) => setTimeout(r, 0));
+  await historySettled;
+}
+
+/** Back button: close the top dialog, or leave the viewer. */
+async function onPopState() {
+  if (quietBacks > 0) {
+    quietBacks--;
+    settleQueue.shift()?.();
+    return;
+  }
+  const open = [...document.querySelectorAll<HTMLDialogElement>(
+    "dialog[open]",
+  )].pop();
+  if (open && history.state?.dialog !== open.id) {
+    open.close();
+    return;
+  }
+  if (state.viewer && !history.state?.viewer && !state.viewer.fromHash) {
+    if (!(await closeViewer(true))) pushEntry({ viewer: true });
+  }
+}
+
+/** Delegated handlers that replace inline on* attributes (strict CSP). */
+function wireDialogs() {
+  document.addEventListener("click", (e) => {
+    const el = e.target as HTMLElement;
+    const closer = el.closest("[data-close]");
+    if (closer) {
+      closer.closest("dialog")?.close();
+      return;
+    }
+    // A click on the backdrop (the dialog element itself) closes it, but
+    // only if the press also started there (not a text-selection drag).
+    if (
+      el instanceof HTMLDialogElement &&
+      el.hasAttribute("data-backdrop-close") &&
+      el.dataset.backdropPress === "true"
+    ) el.close();
+  });
+  document.addEventListener("pointerdown", (e) => {
+    const el = e.target as HTMLElement;
+    const d = el.closest("dialog");
+    if (d) d.dataset.backdropPress = String(el === d);
+  });
+  document.addEventListener("focusin", (e) => {
+    const el = e.target as HTMLInputElement;
+    if (el.matches?.("[data-select-on-focus]")) el.select();
+  });
+  globalThis.addEventListener("popstate", onPopState);
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -1813,12 +1955,36 @@ function toast(text: string) {
 }
 
 /** Opens a game from a share link in the URL hash, if any. */
-function openFromHash() {
+async function openFromHash() {
   const h = new URLSearchParams(location.hash.slice(1));
   const code = h.get("g");
-  if (!code) return;
+  if (!code) {
+    // Back from a share link (or the hash was edited away): leave it.
+    if (state.viewer?.fromHash) await closeViewer(true);
+    return;
+  }
+  let moves: Move[];
   try {
-    const moves = decodeShare(code);
+    moves = decodeShare(code);
+  } catch {
+    clearHash();
+    toast(t("share.invalid"));
+    return;
+  }
+  // The same game already saved (e.g. saved, then the page reloaded): open
+  // that record instead of offering to save a second copy.
+  const dSec = parseInt(h.get("d") ?? "", 36);
+  const existing = (await Library.listRecords()).find((r) =>
+    r.moves.length === moves.length && r.moves.every((m, i) =>
+      m === moves[i]
+    ) &&
+    (!Number.isFinite(dSec) || Math.floor(r.createdAt / 1000) === dSec)
+  );
+  if (existing) {
+    openRecord(existing, true, true);
+    return;
+  }
+  {
     const p = h.get("p");
     const lv = Number(h.get("l"));
     const d = parseInt(h.get("d") ?? "", 36);
@@ -1840,16 +2006,13 @@ function openFromHash() {
     // The link stays in the address bar while the game is shown, so a
     // reload or a bookmark keeps it.
     openRecord(rec, false, true);
-  } catch {
-    clearHash();
-    toast(t("share.invalid"));
   }
 }
 
 // --- Library dialog -------------------------------------------------------
 
 async function openLibrary() {
-  $<HTMLDialogElement>("library-dialog").showModal();
+  openDialog($<HTMLDialogElement>("library-dialog"));
   $("library-warning").hidden = await Library.isPersistent();
   await renderLibrary();
 }
@@ -1945,7 +2108,7 @@ async function onLibraryClick(e: Event) {
   if (!rec) return;
   switch (btn.dataset.act) {
     case "open":
-      $<HTMLDialogElement>("library-dialog").close();
+      await closeDialog($<HTMLDialogElement>("library-dialog"));
       if (rec.id === state.gameId && !state.viewer) {
         // The live game itself: just review it in place.
         viewAt(state.moves.length);
@@ -1986,10 +2149,16 @@ async function importPGN(
   text: string,
 ): Promise<{ imported: number; failures: PgnFailure[] }> {
   const { games, errors } = parsePGN(text);
-  await saveImported(games);
+  // Games exported from this site carry the player's side and level. They
+  // may be a friend's export, so only treat them as "mine" when confirmed.
+  const tagged = games.some((g) => g.tags.ShatranjPlayer);
+  const mine = tagged &&
+    (await askChoice(t("library.askMine"), t("library.askMineYes"))) === "ok";
+  const { added, skipped } = await saveImported(games, mine);
   toast(
     [
-      games.length ? t("library.imported", { n: games.length }) : "",
+      added ? t("library.imported", { n: added }) : "",
+      skipped ? t("library.duplicates", { n: skipped }) : "",
       errors.length ? t("library.importFailed", { n: errors.length }) : "",
     ].filter(Boolean).join(" "),
   );
@@ -1997,19 +2166,43 @@ async function importPGN(
   return { imported: games.length, failures: errors };
 }
 
-async function saveImported(games: PgnGame[]) {
+/** Saves imported games, skipping ones already in the library. */
+async function saveImported(games: PgnGame[], mine = false) {
   const now = Date.now();
-  let i = 0;
+  const dayOf = (ms: number) => new Date(ms).toDateString();
+  const known = new Set(
+    (await Library.listRecords()).map((r) =>
+      `${r.moves.join(",")}|${dayOf(r.createdAt)}`
+    ),
+  );
+  let i = 0, added = 0, skipped = 0;
   for (const g of games) {
     const tags = g.tags;
     const side = tags.ShatranjPlayer;
     const lv = Number(tags.ShatranjLevel);
     const date = (tags.Date ?? "").match(/^(\d{4})\.(\d{2})\.(\d{2})$/);
+    const time = (tags.Time ?? "").match(/^(\d{2}):(\d{2})(?::(\d{2}))?$/);
     const when = date
-      ? new Date(+date[1], +date[2] - 1, +date[3], 12).getTime()
+      ? new Date(
+        +date[1],
+        +date[2] - 1,
+        +date[3],
+        time ? +time[1] : 12,
+        time ? +time[2] : 0,
+        time ? +(time[3] ?? 0) : 0,
+      ).getTime()
       : now;
-    const own = side === "white" || side === "black";
+    const key = `${g.moves.join(",")}|${dayOf(when)}`;
+    if (known.has(key)) {
+      skipped++;
+      continue;
+    }
+    known.add(key);
+    added++;
+    const sided = side === "white" || side === "black";
+    const own = sided && mine;
     await Library.putRecord({
+      timeUnknown: !(date && time),
       id: Library.newId(),
       // Newest first in the list; games with the same date keep file order.
       createdAt: when - i,
@@ -2017,7 +2210,7 @@ async function saveImported(games: PgnGame[]) {
       moves: g.moves,
       source: "imported",
       owner: own ? "me" : "other",
-      ...(own
+      ...(sided
         ? {
           player: side === "white" ? WHITE : BLACK,
           level: LEVELS.some((l) => l.id === lv) ? lv : 3,
@@ -2026,11 +2219,13 @@ async function saveImported(games: PgnGame[]) {
     });
     i++;
   }
+  return { added, skipped };
 }
 
 /** Inline report for a paste import that did not fully succeed. */
-let pendingPartials: PgnFailure[] = [];
-function showPasteReport(failures: PgnFailure[], noGames: boolean) {
+type FileFailure = PgnFailure & { file?: string };
+let pendingPartials: FileFailure[] = [];
+function showPasteReport(failures: FileFailure[], noGames: boolean) {
   const el = $("library-paste-report");
   pendingPartials = failures.filter((f) => f.moves.length > 0);
   if (!noGames && failures.length === 0) {
@@ -2042,7 +2237,7 @@ function showPasteReport(failures: PgnFailure[], noGames: boolean) {
   const lines = noGames && failures.length === 0
     ? [`<li>${t("library.noGames")}</li>`]
     : failures.slice(0, 8).map((f) =>
-      `<li>${
+      `<li>${f.file ? `<strong>${esc(f.file)}</strong> — ` : ""}${
         esc(
           f.san
             ? t("library.badMove", {
@@ -2050,6 +2245,8 @@ function showPasteReport(failures: PgnFailure[], noGames: boolean) {
               move: f.san,
               number: Math.ceil((f.ply ?? 1) / 2),
             })
+            : f.index === 0
+            ? t("library.noGames")
             : `${t("library.importFailed", { n: 1 })} (${f.index})`,
         )
       }</li>`
@@ -2061,6 +2258,9 @@ function showPasteReport(failures: PgnFailure[], noGames: boolean) {
       }</button>`
       : ""
   }`;
+  // On small screens the report can be below the fold: bring it into view.
+  el.scrollIntoView({ block: "nearest" });
+  el.focus({ preventScroll: true });
 }
 
 async function exportAll() {
@@ -2082,8 +2282,25 @@ function wireLibrary() {
   const file = $<HTMLInputElement>("library-file");
   $("library-import-btn").addEventListener("click", () => file.click());
   file.addEventListener("change", async () => {
-    for (const f of file.files ?? []) await importPGN(await f.text());
+    // One report for all chosen files, naming the file of each problem.
+    const failures: FileFailure[] = [];
+    let any = false;
+    for (const f of file.files ?? []) {
+      const r = await importPGN(await f.text());
+      if (r.imported > 0) any = true;
+      if (r.imported === 0 && r.failures.length === 0) {
+        failures.push({
+          index: 0,
+          tags: {},
+          message: "",
+          moves: [],
+          file: f.name,
+        });
+      }
+      for (const x of r.failures) failures.push({ ...x, file: f.name });
+    }
     file.value = "";
+    showPasteReport(failures, !any && failures.length === 0);
   });
   const paste = $("library-paste");
   const ta = $<HTMLTextAreaElement>("library-paste-text");
@@ -2242,14 +2459,15 @@ function init() {
     else openNewGameDialog();
   });
   wireLibrary();
+  wireDialogs();
   landscapePhone.addEventListener("change", placeViewerBar);
   $("start-game-btn").addEventListener("click", startFromDialog);
-  $("result-new-btn").addEventListener("click", () => {
-    $<HTMLDialogElement>("result-dialog").close();
+  $("result-new-btn").addEventListener("click", async () => {
+    await closeDialog($<HTMLDialogElement>("result-dialog"));
     newGame();
   });
-  $("result-change-btn").addEventListener("click", () => {
-    $<HTMLDialogElement>("result-dialog").close();
+  $("result-change-btn").addEventListener("click", async () => {
+    await closeDialog($<HTMLDialogElement>("result-dialog"));
     openNewGameDialog();
   });
   $("moves").addEventListener("click", (e) => {
@@ -2276,8 +2494,8 @@ function init() {
   $("nav-last").addEventListener("click", () => viewAt(state.moves.length));
   $("nav-live").addEventListener("click", goLive);
   $("analyse-btn").addEventListener("click", startReview);
-  $("result-review-btn").addEventListener("click", () => {
-    $<HTMLDialogElement>("result-dialog").close();
+  $("result-review-btn").addEventListener("click", async () => {
+    await closeDialog($<HTMLDialogElement>("result-dialog"));
     startReview();
   });
   $("review-card").addEventListener("click", (e) => {
@@ -2295,7 +2513,7 @@ function init() {
   });
   $("status-extra").addEventListener("click", (e) => {
     if ((e.target as Element).closest("#newcomer-btn")) {
-      $<HTMLDialogElement>("rules-dialog").showModal();
+      openDialog($<HTMLDialogElement>("rules-dialog"));
       return;
     }
     if ((e.target as Element).closest("#show-best-btn")) {
@@ -2325,7 +2543,7 @@ function init() {
   });
   $("rules-btn").addEventListener(
     "click",
-    () => $<HTMLDialogElement>("rules-dialog").showModal(),
+    () => openDialog($<HTMLDialogElement>("rules-dialog")),
   );
   $("theme-btn").addEventListener("click", () => {
     const dark = document.documentElement.classList.toggle("dark");
@@ -2346,7 +2564,9 @@ function init() {
       e.key === "Escape" && state.viewer &&
       !document.querySelector("dialog[open]")
     ) {
-      void closeViewer();
+      // Act on the next frame, or this same Esc would cancel the confirm.
+      e.preventDefault();
+      requestAnimationFrame(() => void closeViewer());
       return;
     }
     // Single-key shortcuts, unless typing or a dialog is open.

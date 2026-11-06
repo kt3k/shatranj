@@ -242,4 +242,9 @@ export const cop: Dict = {
   "viewer.discardConfirm":
     "ⲉⲕⲛⲁⲕⲁ ⲡⲉⲓⲥⲱⲃⲉ ⲉⲁⲩⲧⲛ̄ⲛⲟⲟⲩϥ ⲛ̄ⲥⲱⲕ ⲉⲙ̄ⲡⲉⲕϩⲁⲣⲉϩ ⲉⲣⲟϥ? ⲡⲉⲝⲉⲧⲁⲥⲙⲟⲥ ⲛⲁⲧⲁⲕⲟ.",
   "status.viewerHelp": "ⲁⲣⲓⲭⲣⲱ ⲛ̄ ← → ⲏ ⲛ̄ⲛ̄ⲕⲓⲙ ⲉⲧⲥⲏϩ ⲉⲙⲟⲟϣⲉ ϩⲙ̄ ⲡⲥⲱⲃⲉ.",
+  "viewer.leave": "ⲃⲱⲕ ⲉⲃⲟⲗ ⲁϫⲛ̄ ϩⲁⲣⲉϩ",
+  "viewer.saveAndLeave": "ϩⲁⲣⲉϩ ⲁⲩⲱ ⲃⲱⲕ ⲉⲃⲟⲗ",
+  "library.askMine": "ⲛⲉⲓⲥⲱⲃⲉ ⲁⲩⲛ̄ⲧⲟⲩ ⲉⲃⲟⲗ ϩⲙ̄ ⲡⲉⲓⲙⲁ. ⲛⲉⲕⲥⲱⲃⲉ ⲛⲉ ⲛ̄ⲧⲟⲕ ⲡⲉ?",
+  "library.askMineYes": "ⲥⲉ, ⲛⲟⲩⲓ̈ ⲛⲉ",
+  "library.duplicates.other": "ⲥⲱⲃⲉ ⲉⲛⲉⲩϣⲟⲟⲡ ϩⲛ̄ ⲛⲉⲕⲥϩⲁⲓ ϫⲓⲛ ⲛ̄ϣⲟⲣⲡ̄: {n}",
 };

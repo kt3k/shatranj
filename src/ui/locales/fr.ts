@@ -262,4 +262,11 @@ export const fr: Dict = {
     "Quitter cette partie partagée sans l’enregistrer ? Son analyse sera perdue.",
   "status.viewerHelp":
     "Utilisez ← → ou la liste des coups pour parcourir la partie.",
+  "viewer.leave": "Quitter sans enregistrer",
+  "viewer.saveAndLeave": "Enregistrer et quitter",
+  "library.askMine":
+    "Ces parties ont été exportées depuis ce site avec le camp du joueur. S’agit-il de vos propres parties ? Vos parties comptent dans vos victoires et vos défaites.",
+  "library.askMineYes": "Oui, ce sont les miennes",
+  "library.duplicates.one": "{n} partie était déjà enregistrée.",
+  "library.duplicates.other": "{n} parties étaient déjà enregistrées.",
 };

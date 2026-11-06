@@ -13,17 +13,9 @@
     />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="fonts.css" />
-    <script>
-    try {
-      const t = localStorage.getItem("shatranj:theme");
-      if (
-        t === "dark" ||
-        (!t && matchMedia("(prefers-color-scheme: dark)").matches)
-      ) {
-        document.documentElement.classList.add("dark");
-      }
-    } catch (_) {}
-    </script>
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'" />
+    <script src="theme.js"></script>
     <link rel="stylesheet" href="styles.css" />
     <script type="module" src="main.js"></script>
   </head>
@@ -321,7 +313,7 @@
     <!-- New game dialog -->
     <dialog id="new-game-dialog" class="dialog w-full sm:max-w-lg max-h-[92dvh]"
       aria-labelledby="new-game-title"
-      onclick="if (event.target === this) this.close()">
+      data-backdrop-close>
       <div>
         <header>
           <h2 id="new-game-title" class="font-display text-xl"
@@ -348,7 +340,7 @@
         </section>
         <footer>
           <button type="button" class="btn" data-variant="outline"
-            onclick="this.closest('dialog').close()"
+            data-close
             data-i18n="btn.cancel">Cancel</button>
           <button type="button" class="btn" id="start-game-btn">
             <svg width="16" height="16" viewBox="0 0 100 100"
@@ -361,7 +353,7 @@
         <button type="button" class="btn" data-variant="ghost"
           data-size="icon-sm" aria-label="Close dialog"
           data-i18n-aria="btn.close"
-          onclick="this.closest('dialog').close()">
+          data-close>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
             viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -375,7 +367,7 @@
     <!-- Game library dialog -->
     <dialog id="library-dialog" class="dialog w-full sm:max-w-2xl max-h-[92dvh]"
       aria-labelledby="library-title"
-      onclick="if (event.target === this) this.close()">
+      data-backdrop-close>
       <div>
         <header>
           <h2 id="library-title" class="font-display text-xl"
@@ -399,8 +391,6 @@
           <div class="flex flex-col gap-2" id="library-paste" hidden>
             <textarea class="textarea font-mono text-xs" rows="6"
               id="library-paste-text" dir="ltr"></textarea>
-            <div class="library-paste-report" id="library-paste-report"
-              role="alert" hidden></div>
             <div class="flex gap-2 justify-end">
               <button type="button" class="btn" data-variant="ghost"
                 data-size="sm" id="library-paste-cancel"
@@ -410,6 +400,8 @@
                 data-i18n="library.paste.submit">Import</button>
             </div>
           </div>
+          <div class="library-paste-report" id="library-paste-report"
+            role="alert" tabindex="-1" hidden></div>
         </section>
         <footer class="library-actions">
           <input type="file" id="library-file"
@@ -446,7 +438,7 @@
         </footer>
         <button type="button" class="btn" data-variant="ghost"
           data-size="icon-sm" aria-label="Close dialog"
-          data-i18n-aria="btn.close" onclick="this.closest('dialog').close()">
+          data-i18n-aria="btn.close" data-close>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
             viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -465,7 +457,7 @@
       id="rules-dialog"
       class="dialog w-full sm:max-w-2xl max-h-[90dvh]"
       aria-labelledby="rules-title"
-      onclick="if (event.target === this) this.close()"
+      data-backdrop-close
     >
       <div>
         <header>
@@ -485,13 +477,13 @@
         </section>
         <footer>
           <button type="button" class="btn"
-            onclick="this.closest('dialog').close()"
+            data-close
             data-i18n="btn.returnToBoard">Return to the board</button>
         </footer>
         <button type="button" class="btn" data-variant="ghost"
           data-size="icon-sm" aria-label="Close dialog"
           data-i18n-aria="btn.close"
-          onclick="this.closest('dialog').close()">
+          data-close>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
             viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -507,7 +499,7 @@
       id="result-dialog"
       class="dialog w-full sm:max-w-lg"
       aria-labelledby="result-title"
-      onclick="if (event.target === this) this.close()"
+      data-backdrop-close
     >
       <div>
         <header class="items-center text-center">
@@ -517,7 +509,7 @@
         </header>
         <footer class="result-actions">
           <button type="button" class="btn" data-variant="ghost"
-            onclick="this.closest('dialog').close()"
+            data-close
             data-i18n="btn.viewBoard">View the board</button>
           <button type="button" class="btn" data-variant="outline"
             id="result-change-btn"
@@ -533,7 +525,7 @@
     <!-- Confirmation (in-page replacement for confirm()) -->
     <dialog id="confirm-dialog" class="dialog w-full sm:max-w-md"
       aria-labelledby="confirm-dialog-text"
-      onclick="if (event.target === this) this.close()">
+      data-backdrop-close>
       <form method="dialog">
         <header>
           <p id="confirm-dialog-text"></p>
@@ -543,6 +535,8 @@
             autofocus data-i18n="btn.cancel">Cancel</button>
           <button type="submit" class="btn" data-variant="destructive"
             value="ok" id="confirm-dialog-ok">OK</button>
+          <button type="submit" class="btn" value="alt" id="confirm-dialog-alt"
+            hidden></button>
         </footer>
       </form>
     </dialog>
@@ -550,7 +544,7 @@
     <!-- Shows a share link when the clipboard is unavailable -->
     <dialog id="link-dialog" class="dialog w-full sm:max-w-lg"
       aria-labelledby="link-dialog-title"
-      onclick="if (event.target === this) this.close()">
+      data-backdrop-close>
       <div>
         <header>
           <h2 id="link-dialog-title" class="font-display text-xl"
@@ -558,11 +552,11 @@
         </header>
         <section>
           <input type="text" class="input w-full" id="link-dialog-url"
-            readonly dir="ltr" onfocus="this.select()" />
+            readonly dir="ltr" data-select-on-focus />
         </section>
         <footer>
           <button type="button" class="btn" data-variant="outline"
-            onclick="this.closest('dialog').close()"
+            data-close
             data-i18n="btn.cancel">Cancel</button>
           <button type="button" class="btn" id="link-dialog-copy"
             data-i18n="library.share">Copy link</button>

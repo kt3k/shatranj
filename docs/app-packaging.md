@@ -12,7 +12,9 @@
 | `confirm` / `prompt` | `<dialog>` による自前 UI に置換 (WKWebView は `WKUIDelegate` 未実装だと `confirm` が常に false)                                                            |
 | 共有リンク           | アプリ内オリジン (独自スキーム / `file:` / `appassets.androidplatform.net`) から開かれているときは公開 URL `https://kt3k.github.io/shatranj/` を基準にする |
 | PGN 保存・リンク共有 | アプリシェルがあればメッセージで依頼する (下記)。なければ従来どおり `<a download>` / クリップボード                                                        |
-| セーフエリア         | `viewport-fit=cover` + `env(safe-area-inset-*)`。ヘッダー・本文・トーストが余白を取る                                                                      |
+| セーフエリア         | `viewport-fit=cover` + `env(safe-area-inset-*)`。ヘッダー・本文・トースト・ダイアログが余白を取る                                                          |
+| CSP                  | `index.html` に `script-src 'self'` などの CSP。インラインスクリプト・`on*` 属性はなし (テーマ初期化は `theme.js`)                                         |
+| 戻る操作             | ダイアログと棋譜の閲覧モードは History API のエントリを持つ。「戻る」でダイアログが閉じ、閲覧モードから元の対局に戻る                                      |
 
 ## アプリシェルが必ず実装すること
 
@@ -60,7 +62,14 @@ iOS は追加実装不要。
 自オリジン以外へのナビゲーションはシステムブラウザに渡す (Android
 `shouldOverrideUrlLoading`、iOS `decidePolicyFor navigationAction`)。
 
-### 5. エッジ・トゥ・エッジ
+### 5. Android: 戻るボタン
+
+`OnBackPressedCallback` で `webView.canGoBack()` なら `webView.goBack()`、
+そうでなければ既定の動作 (アプリを閉じる) にする。ページ側はダイアログと
+閲覧モードを履歴エントリにしているので、これだけで「戻る」が期待どおり
+ダイアログを閉じ、閲覧中の棋譜から対局に戻る。
+
+### 6. エッジ・トゥ・エッジ
 
 WebView を画面全体に広げる (iOS は safe area を無視して配置、Android は
 targetSdk 35 の既定動作)。余白はページ側の `env(safe-area-inset-*)`
@@ -74,7 +83,6 @@ targetSdk 35 の既定動作)。余白はページ側の `env(safe-area-inset-*)
   URL に付けて読み込む (`hashchange` で受け取れる)。
 - 棋譜のネイティブストレージへの移行やバックアップ (現状は WebView の IndexedDB
   のみ)。
-- Android の戻るボタンで開いているダイアログを閉じる。
 - iOS の `webViewWebContentProcessDidTerminate` で再読み込み。
 - iOS の `Info.plist` で対応言語 (`CFBundleLocalizations`) を宣言し、
   `navigator.languages` が端末の言語を反映するようにする。

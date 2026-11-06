@@ -1566,3 +1566,84 @@ html:is([lang="ar"], [lang="fa"]) .viewer-kind {
   list-style: disc;
   padding-inline-start: 1.1rem;
 }
+
+/* ------------------------------------------------------ Review round 7 */
+
+/* Basecoat caps every dialog panel at 28rem; the library and rules need
+   room for names and tables. */
+#library-dialog > div,
+#rules-dialog > div {
+  max-width: min(42rem, calc(100vw - 2rem));
+}
+
+/* Dialogs stay clear of the notch / status bar and the home indicator
+   when the app runs edge to edge. */
+.dialog > * {
+  max-height: calc(
+    100dvh - 2 * max(1rem, env(safe-area-inset-top),
+    env(safe-area-inset-bottom))
+  );
+}
+
+/* With a dialog open, toasts move to the top so they never cover its
+   buttons (they are in the top layer, above the dialog). */
+body:has(dialog[open]) .toast-msg[popover] {
+  inset: max(1rem, env(safe-area-inset-top)) auto auto 50%;
+}
+
+/* Library titles may wrap instead of being cut to a few letters. */
+.lib-title .truncate {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+}
+.lib-title {
+  flex-wrap: wrap;
+  row-gap: 0.15rem;
+}
+
+/* Touch: 16px form text (iOS zooms into smaller), 44px dialog buttons,
+   and no long-press callout / text selection on the interface chrome. */
+@media (pointer: coarse) {
+  textarea,
+  input[type="text"],
+  input:not([type]) {
+    font-size: 16px;
+  }
+  .dialog footer .btn {
+    min-height: 2.75rem;
+  }
+  header,
+  .btn,
+  .board-frame,
+  .player-bar,
+  .seg,
+  .review-strip,
+  .lib-actions,
+  .viewer-actions {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Destructive confirm button: enough contrast for its label. */
+#confirm-dialog-ok[data-variant="destructive"] {
+  color: oklch(0.45 0.18 27);
+}
+.dark #confirm-dialog-ok[data-variant="destructive"] {
+  color: oklch(0.8 0.12 27);
+}
+
+/* Narrow phones: a smaller wordmark so it is not truncated. */
+@media (max-width: 400px) {
+  #brand-primary {
+    font-size: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .square.hint::after {
+    animation: none;
+  }
+}
