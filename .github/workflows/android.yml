@@ -38,6 +38,16 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
+      # The wrapper's Gradle download is redirected to GitHub releases,
+      # which sometimes answers 5xx; retry it before building.
+      - name: Download Gradle
+        working-directory: app/android
+        run: |
+          for i in 1 2 3 4 5; do
+            ./gradlew --version --console=plain && exit 0
+            echo "retrying in $((i * 20))s"; sleep $((i * 20))
+          done
+          exit 1
       - name: Build (debug APK)
         working-directory: app/android
         run: ./gradlew assembleDebug --console=plain
