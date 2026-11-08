@@ -28,8 +28,8 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      # setup-deno fetches Deno from GitHub releases, which fails on the
-      # arm64 macOS runners; install.sh downloads from dl.deno.land.
+      # deno.land/install.sh downloads from dl.deno.land; setup-deno takes
+      # stable releases from GitHub releases, which often fail with 504.
       - name: Install Deno
         run: |
           curl -fsSL https://deno.land/install.sh | sh -s -- -y --no-modify-path
