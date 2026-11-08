@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 7.x: a round lapis badge with the gold star. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="48dp"
+  android:height="48dp"
+  android:viewportWidth="100"
+  android:viewportHeight="100">
+  <path android:fillColor="@color/lapis"
+    android:pathData="M50 0a50 50 0 1 0 0.01 0Z" />
+  <group android:scaleX="0.7" android:scaleY="0.7" android:pivotX="50"
+    android:pivotY="50">
+    <path android:fillColor="@color/gold"
+      android:pathData="M50 4 L64 22 L83 17 L78 36 L96 50 L78 64 L83 83 L64 78 L50 96 L36 78 L17 83 L22 64 L4 50 L22 36 L17 17 L36 22Z" />
+  </group>
+</vector>

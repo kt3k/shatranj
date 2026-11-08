@@ -22,6 +22,50 @@ ios app → Run workflow) のたびに署名なしの `Shatranj.ipa` を成果�
 をサードパーティのツールに渡すことになるので、気になる場合は検証用の Apple ID
 を使う。
 
+## Android アプリを入れる
+
+GitHub Actions の `android app` ワークフローが、main への push と手動実行
+(Actions → android app → Run workflow) のたびにデバッグ署名の `Shatranj.apk`
+を成果物として作る (30 日保存)。
+
+1. 実行結果ページの Artifacts から `Shatranj-apk-<commit>` をダウンロードし、
+   展開して `Shatranj.apk` を取り出す。
+2. Android 端末で APK を開き、「この提供元のアプリを許可」してインストールする
+   (PC からなら `adb install Shatranj.apk`)。
+
+デバッグ署名の鍵は CI の実行ごとに変わるので、新しい APK
+で上書きできないときは一度アンインストールする (棋譜も消えるので、先に
+「すべて書き出す」で PGN を保存しておく)。Google Play
+に出すときはリリース署名の鍵を Secrets に置いて `assembleRelease` /
+`bundleRelease` にする。
+
+## Android アプリをローカルでビルドする
+
+[`app/android`](../app/android) は gawa を使った最小のアプリシェル (Kotlin、
+minSdk 24 / targetSdk 35)。gawa の Android ライブラリは
+`app/android/gradle.properties` の `gawaRevision` のコミットを初回ビルド時に
+`app/android/.gawa/` へ clone してソースからビルドする (web の `deno.json` と
+iOS の `project.yml` と同じコミットに揃える)。必要なもの: JDK 17 と Android SDK
+(Android Studio に付属)。
+
+```sh
+deno install && deno task build      # dist/ を作る
+cd app/android && ./gradlew assembleDebug
+adb install app/build/outputs/apk/debug/app-debug.apk
+```
+
+Android Studio で `app/android` を開いてもよい。デバッグビルドは PC の Chrome の
+`chrome://inspect` から WebView を検証できる。
+
+アプリシェルが実装していること: `WebViewAssetLoader` で
+`https://appassets.androidplatform.net/` から配信、`files.save`
+(キャッシュに書いて 共有シート)、`share.link`
+(共有シート)、`<input type="file">` のファイル選択、 戻るボタン (WebView
+の履歴を戻り、最初の画面ならアプリを閉じる)、edge-to-edge
+(システムバーと切り欠きの分は WebView
+の外側に余白を取る)、レンダラーが落ちたときの 再生成、ライト / ダークのテーマ
+(ページの `prefers-color-scheme` に反映)。
+
 ## iOS アプリを実機で動かす
 
 [`app/ios`](../app/ios) は gawa を使った最小のアプリシェル (XcodeGen +

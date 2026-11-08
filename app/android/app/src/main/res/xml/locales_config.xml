@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The UI languages (src/ui/i18n.ts); the page picks one from
+     navigator.languages, which follows the device's languages. -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+  <locale android:name="en" />
+  <locale android:name="ja" />
+  <locale android:name="ar" />
+  <locale android:name="fa" />
+  <locale android:name="es" />
+  <locale android:name="de" />
+  <locale android:name="fr" />
+  <locale android:name="ru" />
+  <locale android:name="tr" />
+  <locale android:name="zh" />
+  <locale android:name="ko" />
+  <locale android:name="cop" />
+</locale-config>

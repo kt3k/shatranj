@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- The page's background, gold and lapis colours (src/styles.css). -->
+  <color name="background">#FAF5EB</color>
+  <color name="gold">#D19936</color>
+  <color name="lapis">#17397B</color>
+</resources>

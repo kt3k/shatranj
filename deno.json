@@ -29,12 +29,20 @@
   },
   "fmt": {
     "exclude": [
-      "dist/"
+      "dist/",
+      "app/android/.gawa/",
+      "app/android/.gradle/",
+      "app/android/build/",
+      "app/android/app/build/"
     ]
   },
   "lint": {
     "exclude": [
-      "dist/"
+      "dist/",
+      "app/android/.gawa/",
+      "app/android/.gradle/",
+      "app/android/build/",
+      "app/android/app/build/"
     ]
   }
 }
