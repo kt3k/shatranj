@@ -10,6 +10,11 @@ export const es: Dict = {
   "header.rules": "Reglas",
   "header.theme": "Cambiar modo oscuro",
   "header.language": "Idioma",
+  "header.settings": "Ajustes",
+  "theme.title": "Apariencia",
+  "theme.light": "Claro",
+  "theme.dark": "Oscuro",
+  "theme.auto": "Automático",
   "board.aria":
     "Tablero de shatranj. Usa las flechas para mover el cursor y Enter para tomar o colocar una pieza.",
   "square.piece": "{square}: {piece} de {side}",

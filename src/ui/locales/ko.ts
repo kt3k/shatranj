@@ -10,6 +10,11 @@ export const ko: Dict = {
   "header.rules": "규칙",
   "header.theme": "다크 모드 전환",
   "header.language": "언어",
+  "header.settings": "설정",
+  "theme.title": "테마",
+  "theme.light": "라이트",
+  "theme.dark": "다크",
+  "theme.auto": "자동",
   "board.aria":
     "샤트란지 판. 화살표 키로 커서를 움직이고 Enter로 기물을 들거나 놓으세요.",
   "square.piece": "{square} {side} {piece}",

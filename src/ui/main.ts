@@ -2470,7 +2470,9 @@ function applyLanguage(l: Lang) {
     '[data-i18n="rules.subtitle"]',
   );
   if (sub) sub.hidden = t("rules.subtitle") === "";
-  $<HTMLSelectElement>("lang-select").value = l;
+  document.querySelectorAll<HTMLSelectElement>(".lang-select").forEach(
+    (sel) => sel.value = l,
+  );
   const info = LANGS.find((x) => x.code === l)!;
   $("lang-current").innerHTML =
     `<span class="max-sm:hidden">${info.name}</span><span class="sm:hidden">${l.toUpperCase()}</span>`;
@@ -2479,21 +2481,91 @@ function applyLanguage(l: Lang) {
   renderRules();
 }
 
+type ThemeMode = "light" | "dark" | "auto";
+const darkQuery = matchMedia("(prefers-color-scheme: dark)");
+
+function themeMode(): ThemeMode {
+  try {
+    const t = localStorage.getItem("shatranj:theme");
+    if (t === "light" || t === "dark") return t;
+  } catch {
+    // storage unavailable
+  }
+  return "auto";
+}
+
+function applyTheme() {
+  const mode = themeMode();
+  document.documentElement.classList.toggle(
+    "dark",
+    mode === "dark" || (mode === "auto" && darkQuery.matches),
+  );
+  document.querySelectorAll<HTMLInputElement>('input[name="theme"]').forEach(
+    (r) => r.checked = r.value === mode,
+  );
+}
+
+function setTheme(mode: ThemeMode) {
+  try {
+    if (mode === "auto") localStorage.removeItem("shatranj:theme");
+    else localStorage.setItem("shatranj:theme", mode);
+  } catch {
+    // storage unavailable: still applies for this visit
+    document.documentElement.classList.toggle("dark", mode === "dark");
+    return;
+  }
+  applyTheme();
+}
+
+/** Phones: language and appearance in one popover under the gear button. */
+function wireSettingsMenu() {
+  const menu = $("settings-menu");
+  const btn = $("settings-btn");
+  menu.addEventListener("beforetoggle", (e) => {
+    const open = (e as ToggleEvent).newState === "open";
+    btn.setAttribute("aria-expanded", String(open));
+    if (open) {
+      // Hang the menu just under the header, aligned to the gear.
+      const r = btn.getBoundingClientRect();
+      menu.style.top = `${Math.round(r.bottom + 6)}px`;
+    }
+  });
+  menu.addEventListener("toggle", (e) => {
+    if ((e as ToggleEvent).newState === "open") {
+      menu.querySelector<HTMLSelectElement>(".lang-select")?.focus({
+        focusVisible: false,
+      } as FocusOptions);
+    }
+  });
+  document.querySelectorAll<HTMLInputElement>('input[name="theme"]').forEach(
+    (r) => r.addEventListener("change", () => setTheme(r.value as ThemeMode)),
+  );
+  darkQuery.addEventListener("change", () => {
+    if (themeMode() === "auto") applyTheme();
+  });
+  applyTheme();
+}
+
 function init() {
   boardEl = $("board");
   createWorker();
 
-  const select = $<HTMLSelectElement>("lang-select");
-  select.innerHTML = LANGS.map((l) =>
-    `<option value="${l.code}" lang="${l.code}">${l.name}</option>`
-  ).join("");
-  select.addEventListener("change", () => {
-    const l = select.value as Lang;
-    saveLang(l);
-    applyLanguage(l);
-    render();
-    if ($<HTMLDialogElement>("library-dialog").open) renderLibrary();
-  });
+  // The header picker (wide screens) and the settings menu (phones).
+  document.querySelectorAll<HTMLSelectElement>(".lang-select").forEach(
+    (select) => {
+      select.innerHTML = LANGS.map((l) =>
+        `<option value="${l.code}" lang="${l.code}">${l.name}</option>`
+      ).join("");
+      select.addEventListener("change", () => {
+        const l = select.value as Lang;
+        saveLang(l);
+        applyLanguage(l);
+        render();
+        if ($<HTMLDialogElement>("library-dialog").open) renderLibrary();
+      });
+    },
+  );
+  wireSettingsMenu();
   applyLanguage(detectLang());
 
   const saved = load();
@@ -2615,12 +2687,9 @@ function init() {
     () => openDialog($<HTMLDialogElement>("rules-dialog")),
   );
   $("theme-btn").addEventListener("click", () => {
-    const dark = document.documentElement.classList.toggle("dark");
-    try {
-      localStorage.setItem("shatranj:theme", dark ? "dark" : "light");
-    } catch {
-      // ignore
-    }
+    setTheme(
+      document.documentElement.classList.contains("dark") ? "light" : "dark",
+    );
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && state.selected !== -1) {

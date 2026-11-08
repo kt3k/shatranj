@@ -10,6 +10,11 @@ export const ru: Dict = {
   "header.rules": "Правила",
   "header.theme": "Тёмная тема",
   "header.language": "Язык",
+  "header.settings": "Настройки",
+  "theme.title": "Оформление",
+  "theme.light": "Светлая",
+  "theme.dark": "Тёмная",
+  "theme.auto": "Авто",
   "board.aria":
     "Доска шатранджа. Перемещайте курсор стрелками; Enter — взять или поставить фигуру.",
   "square.piece": "{square}: {piece} {side}",

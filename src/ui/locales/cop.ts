@@ -10,6 +10,11 @@ export const cop: Dict = {
   "header.rules": "ⲛ̄ⲛⲟⲙⲟⲥ",
   "header.theme": "ϣⲓⲃⲉ ⲉⲡⲕⲁⲕⲉ ⲏ ⲉⲡⲟⲩⲟⲉⲓⲛ",
   "header.language": "ⲧⲁⲥⲡⲉ",
+  "header.settings": "ⲧⲁⲝⲓⲥ",
+  "theme.title": "ⲡⲉⲓⲛⲉ",
+  "theme.light": "ⲟⲩⲟⲉⲓⲛ",
+  "theme.dark": "ⲕⲁⲕⲉ",
+  "theme.auto": "ⲙ̄ⲙⲓⲛ ⲙ̄ⲙⲟϥ",
   "board.aria":
     "ⲡⲡⲓⲛⲁⲝ ⲙ̄ⲡϣⲁⲧⲣⲁⲛϫ. ⲁⲣⲓⲭⲣⲱ ⲛ̄ⲛ̄ⲥⲟⲧⲉ ⲉⲕⲓⲙ ⲙ̄ⲡⲥⲏⲙⲉⲓⲟⲛ, ⲁⲩⲱ ⲛ̄ Enter ⲉϥⲓ ⲏ ⲉⲕⲱ ⲛ̄ⲟⲩⲯⲏⲫⲟⲥ.",
   "square.piece": "{square}: {piece} ⲛ̄{side}",

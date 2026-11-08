@@ -1713,3 +1713,55 @@ body:has(dialog[open]) .toast-msg[popover] {
     height: 1.75rem;
   }
 }
+
+/* ------------------------------------------------------ Header settings */
+
+/* Phones: language and appearance live in a popover under the gear, so
+   the header keeps only Records and Rules beside the title. */
+.settings-menu {
+  position: fixed;
+  inset: auto;
+  inset-inline-end: max(0.75rem, env(safe-area-inset-right));
+  margin: 0;
+  width: min(18rem, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: 0 12px 32px -8px oklch(0 0 0 / 0.25);
+}
+.settings-menu:popover-open {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.settings-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.settings-menu select {
+  font-size: 1rem; /* avoids iOS zoom on focus */
+}
+.settings-menu .seg label {
+  min-height: 2.5rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .settings-menu:popover-open {
+    animation: settings-in 120ms ease-out;
+  }
+}
+@keyframes settings-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@media (max-width: 639.98px) {
+  .lang-picker {
+    display: none;
+  }
+}

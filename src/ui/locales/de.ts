@@ -11,6 +11,11 @@ export const de: Dict = {
   "header.rules": "Regeln",
   "header.theme": "Dunkelmodus umschalten",
   "header.language": "Sprache",
+  "header.settings": "Einstellungen",
+  "theme.title": "Darstellung",
+  "theme.light": "Hell",
+  "theme.dark": "Dunkel",
+  "theme.auto": "Automatisch",
   "board.aria":
     "Schatrandsch-Brett. Bewege den Cursor mit den Pfeiltasten; mit Enter nimmst du eine Figur auf oder setzt sie ab.",
   "square.piece": "{square}: {piece} ({side})",

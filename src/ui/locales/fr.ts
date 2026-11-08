@@ -10,6 +10,11 @@ export const fr: Dict = {
   "header.rules": "Règles",
   "header.theme": "Basculer le mode sombre",
   "header.language": "Langue",
+  "header.settings": "Réglages",
+  "theme.title": "Apparence",
+  "theme.light": "Clair",
+  "theme.dark": "Sombre",
+  "theme.auto": "Auto",
   "board.aria":
     "Échiquier de shatranj. Utilisez les flèches pour déplacer le curseur et Entrée pour prendre ou poser une pièce.",
   "square.piece": "{square} : {piece} {side}",

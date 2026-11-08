@@ -46,7 +46,8 @@
         <span class="hidden lg:inline text-sm text-muted-foreground ms-2"
           data-i18n="header.tagline">The game of the Abbasid court · Baghdad, 9th century</span>
         <div class="ms-auto flex items-center gap-1">
-          <label class="lang-picker" data-i18n-title="header.language">
+          <label class="lang-picker max-sm:hidden"
+            data-i18n-title="header.language">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
               viewBox="0 0 24 24" fill="none" stroke="currentColor"
               stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -57,7 +58,8 @@
             </svg>
             <span class="lang-current" id="lang-current"
               aria-hidden="true"></span>
-            <select id="lang-select" data-i18n-aria="header.language"></select>
+            <select id="lang-select" class="lang-select"
+              data-i18n-aria="header.language"></select>
           </label>
           <button type="button" class="btn" data-variant="ghost" data-size="sm"
             id="library-btn" data-i18n-title="header.library">
@@ -91,7 +93,7 @@
           </button>
           <button
             type="button"
-            class="btn"
+            class="btn max-sm:hidden"
             data-variant="ghost"
             data-size="icon"
             id="theme-btn"
@@ -112,9 +114,47 @@
                 d="M12 2v2M12 20v2m-7.07-14.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
             </svg>
           </button>
+          <!-- Phones: language and appearance share one settings menu so
+               the title keeps its room. -->
+          <button type="button" class="btn sm:hidden" data-variant="ghost"
+            data-size="icon" id="settings-btn" popovertarget="settings-menu"
+            aria-haspopup="dialog" aria-label="Settings"
+            data-i18n-aria="header.settings" data-i18n-title="header.settings">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              aria-hidden="true">
+              <path
+                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
         </div>
       </div>
     </header>
+
+    <div id="settings-menu" class="settings-menu" popover role="dialog"
+      aria-labelledby="settings-title">
+      <h2 id="settings-title" class="text-sm font-semibold"
+        data-i18n="header.settings">Settings</h2>
+      <label class="settings-row">
+        <span class="text-xs font-medium text-muted-foreground"
+          data-i18n="header.language">Language</span>
+        <select class="lang-select select w-full"></select>
+      </label>
+      <div class="settings-row">
+        <span class="text-xs font-medium text-muted-foreground"
+          id="theme-label" data-i18n="theme.title">Appearance</span>
+        <div class="seg" role="radiogroup" aria-labelledby="theme-label">
+          <label><input type="radio" name="theme" value="light" /><span
+              data-i18n="theme.light">Light</span></label>
+          <label><input type="radio" name="theme" value="dark" /><span
+              data-i18n="theme.dark">Dark</span></label>
+          <label><input type="radio" name="theme" value="auto" /><span
+              data-i18n="theme.auto">Auto</span></label>
+        </div>
+      </div>
+    </div>
 
     <main
       class="play-layout mx-auto max-w-6xl px-4 py-6 lg:py-10 grid gap-6 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">

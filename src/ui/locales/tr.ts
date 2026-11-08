@@ -10,6 +10,11 @@ export const tr: Dict = {
   "header.rules": "Kurallar",
   "header.theme": "Karanlık modu aç/kapat",
   "header.language": "Dil",
+  "header.settings": "Ayarlar",
+  "theme.title": "Görünüm",
+  "theme.light": "Açık",
+  "theme.dark": "Koyu",
+  "theme.auto": "Otomatik",
   "board.aria":
     "Şatranc tahtası. İmleci ok tuşlarıyla hareket ettir, taşı almak ya da bırakmak için Enter'a bas.",
   "square.piece": "{square} {side} {piece}",
