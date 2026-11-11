@@ -1,0 +1,43 @@
+<!-- Shatranj app icon: the Round City of Baghdad (four gates, outer
+     wall) around a shatranj board. Master for every app icon size; see
+     docs/app-packaging.md. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="1024"
+  height="1024">
+  <defs>
+    <radialGradient id="night" cx="50%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#1D2744" />
+      <stop offset="1" stop-color="#070B16" />
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F0C76A" />
+      <stop offset="1" stop-color="#B07A22" />
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" fill="url(#night)" />
+  <circle cx="50" cy="50" r="35" fill="#162244" stroke="url(#gold)"
+    stroke-width="7" />
+  <circle cx="74.749" cy="74.749" r="6.5" fill="url(#gold)" />
+  <circle cx="25.251" cy="74.749" r="6.5" fill="url(#gold)" />
+  <circle cx="25.251" cy="25.251" r="6.5" fill="url(#gold)" />
+  <circle cx="74.749" cy="25.251" r="6.5" fill="url(#gold)" />
+  <g transform="rotate(45 50 50)">
+    <rect x="34" y="34" width="8" height="8" fill="#FAF5EB" />
+    <rect x="34" y="42" width="8" height="8" fill="#141826" />
+    <rect x="34" y="50" width="8" height="8" fill="#FAF5EB" />
+    <rect x="34" y="58" width="8" height="8" fill="#141826" />
+    <rect x="42" y="34" width="8" height="8" fill="#141826" />
+    <rect x="42" y="42" width="8" height="8" fill="#FAF5EB" />
+    <rect x="42" y="50" width="8" height="8" fill="#141826" />
+    <rect x="42" y="58" width="8" height="8" fill="#FAF5EB" />
+    <rect x="50" y="34" width="8" height="8" fill="#FAF5EB" />
+    <rect x="50" y="42" width="8" height="8" fill="#141826" />
+    <rect x="50" y="50" width="8" height="8" fill="#FAF5EB" />
+    <rect x="50" y="58" width="8" height="8" fill="#141826" />
+    <rect x="58" y="34" width="8" height="8" fill="#141826" />
+    <rect x="58" y="42" width="8" height="8" fill="#FAF5EB" />
+    <rect x="58" y="50" width="8" height="8" fill="#141826" />
+    <rect x="58" y="58" width="8" height="8" fill="#FAF5EB" />
+    <rect x="34" y="34" width="32" height="32" fill="none" stroke="#F0C76A"
+      stroke-width="2" />
+  </g>
+</svg>

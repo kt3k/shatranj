@@ -66,6 +66,21 @@ Android Studio で `app/android` を開いてもよい。デバッグビルド�
 の外側に余白を取る)、レンダラーが落ちたときの 再生成、ライト / ダークのテーマ
 (ページの `prefers-color-scheme` に反映)。
 
+## アプリアイコン
+
+元データは [`design/app-icon.svg`](../design/app-icon.svg)
+(円城バグダードと盤)。 各サイズはこれから作っている:
+
+| 用途       | ファイル                                                                                                             |
+| ---------- | -------------------------------------------------------------------------------------------------------------------- |
+| iOS        | `app/ios/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png` (1024px、アルファなし。Xcode が各サイズを生成) |
+| Android 8+ | `res/drawable/ic_launcher_{background,foreground,monochrome}.xml` (アダプティブアイコン。前景は中央 66dp に収める)   |
+| Android 7  | `res/mipmap/ic_launcher.xml`                                                                                         |
+| Web        | `static/favicon.svg`、`static/apple-touch-icon.png` (180px)                                                          |
+
+デザインを変えたら上のすべてを作り直す (PNG は SVG をブラウザで描画して
+書き出し、アルファチャンネルを外す)。
+
 ## iOS アプリを実機で動かす
 
 [`app/ios`](../app/ios) は gawa を使った最小のアプリシェル (XcodeGen +

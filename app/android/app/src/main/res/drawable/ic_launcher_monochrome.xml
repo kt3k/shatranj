@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed (monochrome) icon, Android 13+: wall, gates, frame and light squares. Generated from design/app-icon.svg. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:aapt="http://schemas.android.com/aapt"
+  android:width="108dp"
+  android:height="108dp"
+  android:viewportWidth="108"
+  android:viewportHeight="108">
+  <group android:translateX="21.000" android:translateY="21.000"
+    android:scaleX="0.66" android:scaleY="0.66">
+    <path android:strokeWidth="7" android:fillColor="#00000000"
+      android:pathData="M15.000,50.000 a35,35 0 1,0 70,0 a35,35 0 1,0 -70,0"
+      android:strokeColor="#FFFFFFFF" />
+    <path
+      android:pathData="M68.249,74.749 a6.5,6.5 0 1,0 13.0,0 a6.5,6.5 0 1,0 -13.0,0"
+      android:fillColor="#FFFFFFFF" />
+    <path
+      android:pathData="M18.751,74.749 a6.5,6.5 0 1,0 13.0,0 a6.5,6.5 0 1,0 -13.0,0"
+      android:fillColor="#FFFFFFFF" />
+    <path
+      android:pathData="M18.751,25.251 a6.5,6.5 0 1,0 13.0,0 a6.5,6.5 0 1,0 -13.0,0"
+      android:fillColor="#FFFFFFFF" />
+    <path
+      android:pathData="M68.249,25.251 a6.5,6.5 0 1,0 13.0,0 a6.5,6.5 0 1,0 -13.0,0"
+      android:fillColor="#FFFFFFFF" />
+    <group android:rotation="45" android:pivotX="50" android:pivotY="50">
+      <path android:fillColor="#FFFFFFFF" android:pathData="M34,34h8v8h-8z" />
+      <path android:fillColor="#FFFFFFFF" android:pathData="M34,50h8v8h-8z" />
+      <path android:fillColor="#FFFFFFFF" android:pathData="M42,42h8v8h-8z" />
+      <path android:fillColor="#FFFFFFFF" android:pathData="M42,58h8v8h-8z" />
+      <path android:fillColor="#FFFFFFFF" android:pathData="M50,34h8v8h-8z" />
+      <path android:fillColor="#FFFFFFFF" android:pathData="M50,50h8v8h-8z" />
+      <path android:fillColor="#FFFFFFFF" android:pathData="M58,42h8v8h-8z" />
+      <path android:fillColor="#FFFFFFFF" android:pathData="M58,58h8v8h-8z" />
+      <path android:strokeWidth="2" android:fillColor="#00000000"
+        android:strokeColor="#FFFFFFFF" android:pathData="M34,34h32v32h-32z" />
+    </group>
+  </group>
+</vector>

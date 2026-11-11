@@ -1,15 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 7.x: a round lapis badge with the gold star. -->
+<!-- Android 7.x: the full icon on a rounded square. Generated from design/app-icon.svg. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:aapt="http://schemas.android.com/aapt"
   android:width="48dp"
   android:height="48dp"
   android:viewportWidth="100"
   android:viewportHeight="100">
-  <path android:fillColor="@color/lapis"
-    android:pathData="M50 0a50 50 0 1 0 0.01 0Z" />
-  <group android:scaleX="0.7" android:scaleY="0.7" android:pivotX="50"
-    android:pivotY="50">
-    <path android:fillColor="@color/gold"
-      android:pathData="M50 4 L64 22 L83 17 L78 36 L96 50 L78 64 L83 83 L64 78 L50 96 L36 78 L17 83 L22 64 L4 50 L22 36 L17 17 L36 22Z" />
+  <path
+    android:pathData="M18,0h64a18,18 0 0 1 18,18v64a18,18 0 0 1 -18,18h-64a18,18 0 0 1 -18,-18v-64a18,18 0 0 1 18,-18z">
+    <aapt:attr name="android:fillColor">
+      <gradient android:type="radial" android:centerX="50" android:centerY="40"
+        android:gradientRadius="75">
+        <item android:offset="0" android:color="#1D2744" />
+        <item android:offset="1" android:color="#070B16" />
+      </gradient>
+    </aapt:attr>
+  </path>
+  <group android:translateX="5" android:translateY="5" android:scaleX="0.9"
+    android:scaleY="0.9">
+    <path android:fillColor="#162244"
+      android:pathData="M15.000,50.000 a35,35 0 1,0 70,0 a35,35 0 1,0 -70,0" />
+    <path android:strokeWidth="7" android:fillColor="#00000000"
+      android:pathData="M15.000,50.000 a35,35 0 1,0 70,0 a35,35 0 1,0 -70,0">
+      <aapt:attr name="android:strokeColor">
+        <gradient android:type="linear" android:startX="0"
+          android:startY="11.500" android:endX="0" android:endY="88.500">
+          <item android:offset="0" android:color="#F0C76A" />
+          <item android:offset="1" android:color="#B07A22" />
+        </gradient>
+      </aapt:attr>
+    </path>
+    <path
+      android:pathData="M68.249,74.749 a6.5,6.5 0 1,0 13.0,0 a6.5,6.5 0 1,0 -13.0,0">
+      <aapt:attr name="android:fillColor">
+        <gradient android:type="linear" android:startX="0"
+          android:startY="68.249" android:endX="0" android:endY="81.249">
+          <item android:offset="0" android:color="#F0C76A" />
+          <item android:offset="1" android:color="#B07A22" />
+        </gradient>
+      </aapt:attr>
+    </path>
+    <path
+      android:pathData="M18.751,74.749 a6.5,6.5 0 1,0 13.0,0 a6.5,6.5 0 1,0 -13.0,0">
+      <aapt:attr name="android:fillColor">
+        <gradient android:type="linear" android:startX="0"
+          android:startY="68.249" android:endX="0" android:endY="81.249">
+          <item android:offset="0" android:color="#F0C76A" />
+          <item android:offset="1" android:color="#B07A22" />
+        </gradient>
+      </aapt:attr>
+    </path>
+    <path
+      android:pathData="M18.751,25.251 a6.5,6.5 0 1,0 13.0,0 a6.5,6.5 0 1,0 -13.0,0">
+      <aapt:attr name="android:fillColor">
+        <gradient android:type="linear" android:startX="0"
+          android:startY="18.751" android:endX="0" android:endY="31.751">
+          <item android:offset="0" android:color="#F0C76A" />
+          <item android:offset="1" android:color="#B07A22" />
+        </gradient>
+      </aapt:attr>
+    </path>
+    <path
+      android:pathData="M68.249,25.251 a6.5,6.5 0 1,0 13.0,0 a6.5,6.5 0 1,0 -13.0,0">
+      <aapt:attr name="android:fillColor">
+        <gradient android:type="linear" android:startX="0"
+          android:startY="18.751" android:endX="0" android:endY="31.751">
+          <item android:offset="0" android:color="#F0C76A" />
+          <item android:offset="1" android:color="#B07A22" />
+        </gradient>
+      </aapt:attr>
+    </path>
+    <group android:rotation="45" android:pivotX="50" android:pivotY="50">
+      <path android:fillColor="#FAF5EB" android:pathData="M34,34h8v8h-8z" />
+      <path android:fillColor="#141826" android:pathData="M34,42h8v8h-8z" />
+      <path android:fillColor="#FAF5EB" android:pathData="M34,50h8v8h-8z" />
+      <path android:fillColor="#141826" android:pathData="M34,58h8v8h-8z" />
+      <path android:fillColor="#141826" android:pathData="M42,34h8v8h-8z" />
+      <path android:fillColor="#FAF5EB" android:pathData="M42,42h8v8h-8z" />
+      <path android:fillColor="#141826" android:pathData="M42,50h8v8h-8z" />
+      <path android:fillColor="#FAF5EB" android:pathData="M42,58h8v8h-8z" />
+      <path android:fillColor="#FAF5EB" android:pathData="M50,34h8v8h-8z" />
+      <path android:fillColor="#141826" android:pathData="M50,42h8v8h-8z" />
+      <path android:fillColor="#FAF5EB" android:pathData="M50,50h8v8h-8z" />
+      <path android:fillColor="#141826" android:pathData="M50,58h8v8h-8z" />
+      <path android:fillColor="#141826" android:pathData="M58,34h8v8h-8z" />
+      <path android:fillColor="#FAF5EB" android:pathData="M58,42h8v8h-8z" />
+      <path android:fillColor="#141826" android:pathData="M58,50h8v8h-8z" />
+      <path android:fillColor="#FAF5EB" android:pathData="M58,58h8v8h-8z" />
+      <path android:strokeWidth="2" android:fillColor="#00000000"
+        android:strokeColor="#F0C76A" android:pathData="M34,34h32v32h-32z" />
+    </group>
   </group>
 </vector>
