@@ -34,7 +34,7 @@ import {
   toPGN,
 } from "../engine/record.ts";
 import { reviewMoves } from "../engine/analysis.ts";
-import { callHost, shareBase } from "./host.ts";
+import { callHost, host, shareBase } from "./host.ts";
 import {
   applyStatic,
   currentLang,
@@ -49,6 +49,7 @@ import {
   num,
   percent,
   saveLang,
+  setAppMode,
   setLang,
   t,
 } from "./i18n.ts";
@@ -2180,6 +2181,28 @@ type FileFailure = PgnFailure & { file?: string };
  * drops games already in the library, asks once whether games exported
  * from this site are the player's own, saves, and shows one summary.
  */
+/** Imports files the app shell received, in the records dialog. */
+let importingOpened = false;
+async function importOpenedFiles() {
+  if (importingOpened) return;
+  importingOpened = true;
+  try {
+    for (;;) {
+      const files = await host.call("files.takeOpened");
+      if (files.length === 0) break;
+      if (!$<HTMLDialogElement>("library-dialog").open) await openLibrary();
+      const r = await importSources(
+        files.map((f) => ({ text: f.text, file: f.name })),
+      );
+      if (!r.cancelled) showPasteReport(r.failures, false);
+    }
+  } catch (e) {
+    console.error("opening files from the app failed:", e);
+  } finally {
+    importingOpened = false;
+  }
+}
+
 async function importSources(
   sources: { text: string; file?: string }[],
 ): Promise<{ added: number; cancelled: boolean; failures: FileFailure[] }> {
@@ -2364,6 +2387,11 @@ function wireLibrary() {
     const r = await importSources(sources);
     if (!r.cancelled) showPasteReport(r.failures, false);
   });
+  if (host.available) {
+    // PGN files opened with the app ("Open in Shatranj" / share sheet).
+    host.on("files.opened", () => importOpenedFiles());
+    importOpenedFiles();
+  }
   const paste = $("library-paste");
   const ta = $<HTMLTextAreaElement>("library-paste-text");
   $("library-paste-btn").addEventListener("click", () => {
@@ -2566,6 +2594,7 @@ function init() {
     },
   );
   wireSettingsMenu();
+  setAppMode(host.available);
   applyLanguage(detectLang());
 
   const saved = load();

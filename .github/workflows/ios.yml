@@ -62,6 +62,9 @@ jobs:
         run: |
           app=build/Build/Products/Release-iphoneos/Shatranj.app
           test -f "$app/Shatranj" && test -f "$app/dist/index.html"
+          test -f "$app/PrivacyInfo.xcprivacy"
+          /usr/libexec/PlistBuddy -c "Print :ITSAppUsesNonExemptEncryption" "$app/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleDocumentTypes:0:LSItemContentTypes:0" "$app/Info.plist"
           mkdir -p out/Payload
           cp -R "$app" out/Payload/
           (cd out && zip -qry Shatranj.ipa Payload)

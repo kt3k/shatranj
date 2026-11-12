@@ -20,10 +20,22 @@ export type HostMethods = {
   "files.save": (p: { name: string; mimeType: string; text: string }) => void;
   /** Open the system share sheet for a link. */
   "share.link": (p: { url: string; title: string }) => void;
+  /** Game records kept by the app (one JSON document per record). */
+  "records.list": () => string[];
+  "records.put": (p: { id: string; json: string }) => void;
+  "records.delete": (p: { id: string }) => void;
+  /** PGN files opened with the app ("Open in Shatranj") since the last call. */
+  "files.takeOpened": () => { name: string; text: string }[];
+};
+
+/** Events the app shell sends. */
+export type HostEvents = {
+  /** A file was opened with the app; fetch it with `files.takeOpened`. */
+  "files.opened": null;
 };
 
 /** The bridge to the app shell; `host.available` is false in a browser. */
-export const host = createBridge<HostMethods>();
+export const host = createBridge<HostMethods, HostEvents>();
 
 /**
  * Asks the app shell to handle something; returns false when there is no

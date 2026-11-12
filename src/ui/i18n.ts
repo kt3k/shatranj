@@ -54,6 +54,8 @@ const en: Dict = {
   "header.rules": "Rules",
   "header.theme": "Toggle dark mode",
   "header.language": "Language",
+  "about.privacy": "Privacy policy",
+  "about.licenses": "Licenses",
   "header.settings": "Settings",
   "theme.title": "Appearance",
   "theme.light": "Light",
@@ -273,6 +275,11 @@ const en: Dict = {
   "library.paste": "Paste PGN",
   "library.paste.submit": "Import",
   "library.exportAll": "Download all",
+  "library.desc@app":
+    "Your games are saved on this device automatically. Export them as PGN to keep a backup or move them to another device.",
+  "library.share@app": "Share link",
+  "library.download@app": "Export PGN",
+  "library.exportAll@app": "Export all",
   "library.imported.one": "Imported {n} game.",
   "library.imported.other": "Imported {n} games.",
   "library.importFailed.one": "{n} game could not be read.",
@@ -322,6 +329,8 @@ const ja: Dict = {
   "header.rules": "ルール",
   "header.theme": "ダークモード切替",
   "header.language": "言語",
+  "about.privacy": "プライバシーポリシー",
+  "about.licenses": "ライセンス",
   "header.settings": "設定",
   "theme.title": "テーマ",
   "theme.light": "ライト",
@@ -535,6 +544,11 @@ const ja: Dict = {
   "library.paste": "PGNを貼り付け",
   "library.paste.submit": "読み込む",
   "library.exportAll": "すべて保存",
+  "library.desc@app":
+    "対局はこの端末に自動で保存されます。バックアップや別の端末への移行には、PGNで書き出してください。",
+  "library.share@app": "リンクを共有",
+  "library.download@app": "PGNを書き出す",
+  "library.exportAll@app": "すべて書き出す",
   "library.imported.other": "{n}局を読み込みました。",
   "library.importFailed.other": "{n}局を読み込めませんでした。",
   "viewer.title": "保存した対局",
@@ -580,6 +594,8 @@ const ar: Dict = {
   "header.rules": "القواعد",
   "header.theme": "تبديل الوضع الداكن",
   "header.language": "اللغة",
+  "about.privacy": "سياسة الخصوصية",
+  "about.licenses": "التراخيص",
   "header.settings": "الإعدادات",
   "theme.title": "المظهر",
   "theme.light": "فاتح",
@@ -787,6 +803,11 @@ const ar: Dict = {
   "library.paste": "لصق PGN",
   "library.paste.submit": "استيراد",
   "library.exportAll": "تنزيل الكل",
+  "library.desc@app":
+    "تُحفظ أدوارك على هذا الجهاز تلقائيًا. صدّرها بصيغة PGN لتحتفظ بنسخة احتياطية أو لتنقلها إلى جهاز آخر.",
+  "library.share@app": "مشاركة الرابط",
+  "library.download@app": "تصدير PGN",
+  "library.exportAll@app": "تصدير الكل",
   "library.imported.one": "استُورد دور واحد.",
   "library.imported.two": "استُورد دوران.",
   "library.imported.few": "استُوردت {n} أدوار.",
@@ -844,6 +865,8 @@ const fa: Dict = {
   "header.rules": "قواعد",
   "header.theme": "تغییر حالت تیره",
   "header.language": "زبان",
+  "about.privacy": "سیاست حریم خصوصی",
+  "about.licenses": "مجوزها",
   "header.settings": "تنظیمات",
   "theme.title": "ظاهر",
   "theme.light": "روشن",
@@ -1058,6 +1081,11 @@ const fa: Dict = {
   "library.paste": "چسباندن PGN",
   "library.paste.submit": "وارد کردن",
   "library.exportAll": "بارگیری همه",
+  "library.desc@app":
+    "بازی‌های شما به‌طور خودکار روی همین دستگاه ذخیره می‌شوند. برای پشتیبان‌گیری یا انتقال به دستگاهی دیگر، آن‌ها را به‌صورت PGN صادر کنید.",
+  "library.share@app": "اشتراک‌گذاری پیوند",
+  "library.download@app": "صدور PGN",
+  "library.exportAll@app": "صدور همه",
   "library.imported.one": "{n} بازی وارد شد.",
   "library.imported.other": "{n} بازی وارد شد.",
   "library.importFailed.one": "{n} بازی خوانده نشد.",
@@ -1155,7 +1183,21 @@ export function percent(n: number) {
   }).format(n / 100);
 }
 
+let appMode = false;
+
+/**
+ * Inside an app shell, keys with an `@app` variant use it (e.g. "on this
+ * device" instead of "in this browser", "Export" instead of "Download").
+ */
+export function setAppMode(on: boolean) {
+  appMode = on;
+}
+
 function lookup(key: string): string | undefined {
+  if (appMode) {
+    const app = DICTS[lang][`${key}@app`] ?? en[`${key}@app`];
+    if (app !== undefined) return app;
+  }
   return DICTS[lang][key] ?? en[key];
 }
 

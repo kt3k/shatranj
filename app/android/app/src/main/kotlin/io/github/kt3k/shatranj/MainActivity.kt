@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.view.ViewGroup
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.ValueCallback
@@ -15,6 +16,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
+import androidx.core.content.IntentCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import io.github.kt3k.gawa.GawaAssets
@@ -28,6 +30,37 @@ import kotlinx.serialization.Serializable
 
 @Serializable data class SaveFile(val name: String, val mimeType: String, val text: String)
 @Serializable data class ShareLink(val url: String, val title: String)
+@Serializable data class PutRecord(val id: String, val json: String)
+@Serializable data class RecordId(val id: String)
+@Serializable data class OpenedFile(val name: String, val text: String)
+
+/** Game records as JSON files in filesDir/records, one per record. */
+class RecordStore(base: File) {
+    private val dir = File(base, "records").apply { mkdirs() }
+    private val idPattern = Regex("^[A-Za-z0-9_-]{1,64}$")
+
+    private fun file(id: String): File {
+        // Ids come from the page (newId() in src/ui/library.ts).
+        if (!idPattern.matches(id)) throw GawaError("invalid_params", "bad record id")
+        return File(dir, "$id.json")
+    }
+
+    fun list(): List<String> =
+        dir.listFiles { f -> f.extension == "json" }?.mapNotNull {
+            runCatching { it.readText() }.getOrNull()
+        } ?: emptyList()
+
+    fun put(id: String, json: String) {
+        // Write then rename, so a crash never leaves a half-written record.
+        val tmp = File(dir, "$id.json.tmp")
+        tmp.writeText(json)
+        if (!tmp.renameTo(file(id))) throw GawaError("io", "could not save record")
+    }
+
+    fun delete(id: String) {
+        file(id).delete()
+    }
+}
 
 /**
  * Shows the bundled web app (assets/www, from dist/) at
@@ -38,6 +71,11 @@ class MainActivity : ComponentActivity() {
     private val scope = MainScope()
     private lateinit var webView: WebView
     private lateinit var bridge: GawaBridge
+
+    private lateinit var records: RecordStore
+
+    /** PGN files opened with the app, waiting for the page to take them. */
+    private val opened = mutableListOf<OpenedFile>()
 
     /** Pending `<input type="file">` request from the page. */
     private var fileCallback: ValueCallback<Array<Uri>>? = null
@@ -96,7 +134,17 @@ class MainActivity : ComponentActivity() {
         }
         setContentView(root)
 
+        records = RecordStore(filesDir)
         bridge = GawaBridge(webView, scope = scope)
+        // Game records live in the app's own storage, not in the WebView's.
+        bridge.router.register<Unit, List<String>>("records.list") { records.list() }
+        bridge.router.register<PutRecord, Unit>("records.put") { records.put(it.id, it.json) }
+        bridge.router.register<RecordId, Unit>("records.delete") { records.delete(it.id) }
+        bridge.router.register<Unit, List<OpenedFile>>("files.takeOpened") {
+            val files = opened.toList()
+            opened.clear()
+            files
+        }
         bridge.router.register<SaveFile, Unit>("files.save") { p -> shareFile(p) }
         bridge.router.register<ShareLink, Unit>("share.link") { p ->
             if (!p.url.startsWith("https://") && !p.url.startsWith("http://")) {
@@ -125,8 +173,34 @@ class MainActivity : ComponentActivity() {
             },
         )
 
+        if (savedInstanceState == null) receive(intent)
         if (savedInstanceState != null) webView.restoreState(savedInstanceState)
         if (webView.url == null) webView.loadUrl(GawaAssets.url())
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        receive(intent)
+    }
+
+    /** Reads a PGN file opened or shared with the app and tells the page. */
+    private fun receive(intent: Intent?) {
+        val uri: Uri = when (intent?.action) {
+            Intent.ACTION_VIEW -> intent.data
+            Intent.ACTION_SEND -> IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)
+            else -> null
+        } ?: return
+        try {
+            val name = contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+                ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
+                ?: uri.lastPathSegment ?: "game.pgn"
+            val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return
+            if (bytes.size > 5_000_000) return
+            opened += OpenedFile(name, String(bytes, Charsets.UTF_8))
+            bridge.emit("files.opened", null as String?)
+        } catch (e: Exception) {
+            // Unreadable file: nothing to import.
+        }
     }
 
     /** Writes a file (e.g. a PGN) to the cache and opens the share sheet,

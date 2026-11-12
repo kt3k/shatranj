@@ -16,6 +16,9 @@ targets:
     platform: iOS
     sources:
       - path: Sources
+        excludes: [PrivacyInfo.xcprivacy]
+      - path: Sources/PrivacyInfo.xcprivacy
+        buildPhase: resources
       - path: ../../dist
         type: folder
         buildPhase: resources
@@ -30,6 +33,26 @@ targets:
         # navigator.languages in WKWebView follows the app's localizations.
         CFBundleLocalizations: [en, ja, ar, fa, es, de, fr, ru, tr, zh-Hans, ko]
         CFBundleDevelopmentRegion: en
+        # No encryption beyond what the OS provides (no network at all).
+        ITSAppUsesNonExemptEncryption: false
+        # "Open in Shatranj" for .pgn files (imported into the records).
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: PGN chess game
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes: [io.github.kt3k.shatranj.pgn]
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: io.github.kt3k.shatranj.pgn
+            UTTypeDescription: PGN chess game
+            UTTypeConformsTo: [public.plain-text]
+            UTTypeTagSpecification:
+              public.filename-extension: [pgn]
+              public.mime-type: [
+                application/x-chess-pgn,
+                application/vnd.chess-pgn,
+              ]
+        # Opened files are copied in, not edited in place.
+        LSSupportsOpeningDocumentsInPlace: false
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false

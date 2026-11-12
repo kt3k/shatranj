@@ -6,6 +6,7 @@
  *   deno task dev              # build, watch and serve on http://localhost:8000
  */
 import { serveDir } from "@std/http/file-server";
+import { buildLicenses } from "./licenses.ts";
 
 const args = new Set(Deno.args);
 const watch = args.has("--watch");
@@ -139,7 +140,7 @@ async function buildAll() {
   await Deno.mkdir(DIST, { recursive: true });
   await copyDir("static", DIST);
   await Deno.writeTextFile(`${DIST}/.nojekyll`, "");
-  await Promise.all([buildJS(), buildCSS(), buildFonts()]);
+  await Promise.all([buildJS(), buildCSS(), buildFonts(), buildLicenses(DIST)]);
 }
 
 await buildAll();

@@ -136,10 +136,25 @@ Xcode の Signing & Capabilities で Team を選び、Bundle Identifier
 に取り付け、`src/ui/host.ts` の `HostMethods` を実装する。送信元オリジンの検証と
 メインフレーム限定は gawa が行う。
 
-| メソッド     | パラメータ                 | アプリ側の処理                                                                       |
-| ------------ | -------------------------- | ------------------------------------------------------------------------------------ |
-| `files.save` | `name`, `mimeType`, `text` | 一時ファイルに書き出し、共有シート / `ACTION_SEND` (または「ファイルに保存」) を開く |
-| `share.link` | `url`, `title`             | 共有シート / `ACTION_SEND` (`text/plain`) を開く                                     |
+| メソッド           | パラメータ                 | アプリ側の処理                                                                       |
+| ------------------ | -------------------------- | ------------------------------------------------------------------------------------ |
+| `files.save`       | `name`, `mimeType`, `text` | 一時ファイルに書き出し、共有シート / `ACTION_SEND` (または「ファイルに保存」) を開く |
+| `share.link`       | `url`, `title`             | 共有シート / `ACTION_SEND` (`text/plain`) を開く                                     |
+| `records.list`     | なし                       | 保存している棋譜 (JSON 文字列) をすべて返す                                          |
+| `records.put`      | `id`, `json`               | 棋譜を 1 件保存 (同じ `id` は上書き)。`id` は `[A-Za-z0-9_-]{1,64}`                  |
+| `records.delete`   | `id`                       | 棋譜を 1 件削除                                                                      |
+| `files.takeOpened` | なし                       | 「このアプリで開く」で受け取った PGN (`name`, `text`) を返して空にする               |
+
+イベント `files.opened` (データなし): PGN を受け取ったらページに知らせる。
+ページは起動時と受信時に `files.takeOpened` を呼び、棋譜に取り込む。
+
+**棋譜の保存先**: アプリでは棋譜をアプリ自身の保存領域に置く (iOS は Application
+Support/records、Android は filesDir/records に 1 件 1 ファイル)。 WebView の
+IndexedDB はシステムに消されうるため使わない。以前の版が IndexedDB
+に残した棋譜は、初回起動時にネイティブ側へ移して IndexedDB から消す。ブラウザ版
+(ブリッジなし、または `records.*` を持たない古いアプリ) は従来どおり IndexedDB。
+アプリ内では文言も「この端末に保存」「PGN を書き出す」など (`@app` 付きの訳語)
+に切り替わる。
 
 ブリッジがない場合、ページはブラウザ用の処理にフォールバックするが、WebView では
 PGN のダウンロードが動かない。
@@ -177,8 +192,17 @@ targetSdk 35 の既定動作)。余白はページ側の `env(safe-area-inset-*)
 - 共有リンクの Universal Links / App Links 化:
   `https://kt3k.github.io/shatranj/#g=…` をアプリで開き、ハッシュを WebView の
   URL に付けて読み込む (`hashchange` で受け取れる)。
-- 棋譜のネイティブストレージへの移行やバックアップ (現状は WebView の IndexedDB
-  のみ)。
-- iOS の `webViewWebContentProcessDidTerminate` で再読み込み。
-- iOS の `Info.plist` で対応言語 (`CFBundleLocalizations`) を宣言し、
-  `navigator.languages` が端末の言語を反映するようにする。
+- 棋譜のバックアップ (iCloud / Google ドライブ)。
+
+## ストア申請に関わるもの
+
+| 項目                     | 場所                                                                                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| プライバシーポリシー     | `static/privacy.html` → `https://kt3k.github.io/shatranj/privacy.html` (App Store Connect / Play Console に登録する URL)                                     |
+| ライセンス表記           | ビルド時に `scripts/licenses.ts` が `dist/licenses.html` を生成 (フォント・CSS は `node_modules` から、npm 外のものは `licenses/`)。ルール画面の下からリンク |
+| プライバシーマニフェスト | `app/ios/Sources/PrivacyInfo.xcprivacy` (追跡なし・収集データなし・理由の申告が必要な API の使用なし)                                                        |
+| 暗号化の申告             | `ITSAppUsesNonExemptEncryption: false` (`app/ios/project.yml`)                                                                                               |
+| PGN を開く               | iOS は `CFBundleDocumentTypes` / `UTImportedTypeDeclarations` (`.pgn`)、Android は `VIEW` / `SEND` の intent-filter                                          |
+
+App Store の「App のプライバシー」は「データの収集なし」。審査メモには「完全
+オフラインで動作し、外部コードを読み込まず、ログインは不要」と書く。

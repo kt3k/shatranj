@@ -1,9 +1,16 @@
 /**
- * The game library: saved game records in IndexedDB. Falls back to an
- * in-memory store when IndexedDB is unavailable (e.g. some private modes),
- * so the UI still works for the session.
+ * The game library: saved game records.
+ *
+ * - In a browser they live in IndexedDB, with an in-memory fallback when
+ *   IndexedDB is unavailable (e.g. some private modes) so the UI still works
+ *   for the session.
+ * - Inside an app shell they are kept by the app itself (`records.*` host
+ *   methods), not in the WebView's storage, which the system may clear.
+ *   Records an older version of the app left in IndexedDB are moved over
+ *   the first time.
  */
 import type { Color, Move } from "../engine/position.ts";
+import { host } from "./host.ts";
 
 export interface GameRecord {
   id: string;
@@ -61,9 +68,39 @@ function openDB(): Promise<IDBDatabase | null> {
   return dbPromise;
 }
 
-/** True when records survive a reload (IndexedDB works). */
+/** Native storage in the app shell, or null in a browser (or an app shell
+ * too old to keep records). Moves IndexedDB records over the first time. */
+let nativePromise: Promise<boolean> | null = null;
+function useNative(): Promise<boolean> {
+  nativePromise ??= (async () => {
+    if (!host.available) return false;
+    try {
+      await host.call("records.list");
+    } catch {
+      return false;
+    }
+    await moveFromIndexedDB();
+    return true;
+  })();
+  return nativePromise;
+}
+
+async function moveFromIndexedDB() {
+  try {
+    if (!(await openDB())) return;
+    const old = await tx<GameRecord[]>("readonly", (s) => s.getAll());
+    for (const rec of old) {
+      await host.call("records.put", { id: rec.id, json: JSON.stringify(rec) });
+      await tx("readwrite", (s) => s.delete(rec.id));
+    }
+  } catch (e) {
+    console.error("moving records to the app failed:", e);
+  }
+}
+
+/** True when records survive a reload. */
 export async function isPersistent(): Promise<boolean> {
-  return (await openDB()) !== null;
+  return (await useNative()) || (await openDB()) !== null;
 }
 
 function tx<T>(
@@ -83,13 +120,18 @@ function tx<T>(
 export async function putRecord(rec: GameRecord): Promise<void> {
   memory.set(rec.id, rec);
   try {
-    await tx("readwrite", (s) => s.put(rec));
+    if (await useNative()) {
+      await host.call("records.put", { id: rec.id, json: JSON.stringify(rec) });
+    } else await tx("readwrite", (s) => s.put(rec));
   } catch {
     // memory fallback already holds it
   }
 }
 
 export async function getRecord(id: string): Promise<GameRecord | undefined> {
+  if (await useNative()) {
+    return (await listRecords()).find((r) => r.id === id);
+  }
   try {
     return (await tx<GameRecord | undefined>("readonly", (s) => s.get(id))) ??
       memory.get(id);
@@ -101,17 +143,33 @@ export async function getRecord(id: string): Promise<GameRecord | undefined> {
 export async function deleteRecord(id: string): Promise<void> {
   memory.delete(id);
   try {
-    await tx("readwrite", (s) => s.delete(id));
+    if (await useNative()) await host.call("records.delete", { id });
+    else await tx("readwrite", (s) => s.delete(id));
   } catch {
     // ignore
   }
+}
+
+async function readAll(): Promise<GameRecord[]> {
+  if (await useNative()) {
+    const out: GameRecord[] = [];
+    for (const json of await host.call("records.list")) {
+      try {
+        out.push(JSON.parse(json));
+      } catch {
+        // skip a damaged record rather than losing the whole list
+      }
+    }
+    return out;
+  }
+  return await tx<GameRecord[]>("readonly", (s) => s.getAll());
 }
 
 /** All records, most recent first. */
 export async function listRecords(): Promise<GameRecord[]> {
   let all: GameRecord[];
   try {
-    all = await tx<GameRecord[]>("readonly", (s) => s.getAll());
+    all = await readAll();
     for (const r of memory.values()) {
       if (!all.some((a) => a.id === r.id)) all.push(r);
     }

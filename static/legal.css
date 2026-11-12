@@ -1,0 +1,64 @@
+/* Shared look of the privacy policy and licences pages. */
+:root {
+  color-scheme: light;
+  --bg: #faf5eb;
+  --fg: #1d2333;
+  --muted: #5b6272;
+  --rule: #e2d8c3;
+  --accent: #17397b;
+}
+/* theme.js sets .dark from the saved choice or the system setting. */
+html.dark {
+  color-scheme: dark;
+  --bg: #090f1c;
+  --fg: #e8e4da;
+  --muted: #a3a9b8;
+  --rule: #263049;
+  --accent: #e8b85a;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: max(1.5rem, env(safe-area-inset-top)) max(1.25rem,
+    env(safe-area-inset-right))
+    max(2.5rem, env(safe-area-inset-bottom)) max(1.25rem,
+    env(safe-area-inset-left));
+}
+a {
+  color: var(--accent);
+}
+.back {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+}
+h1 {
+  font-size: 1.6rem;
+  margin: 0 0 0.25rem;
+}
+h2 {
+  font-size: 1.15rem;
+  margin: 2rem 0 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--muted);
+  background: color-mix(in oklab, var(--rule) 35%, transparent);
+  padding: 0.75rem;
+  border-radius: 8px;
+}
