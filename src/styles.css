@@ -1789,3 +1789,175 @@ body:has(dialog[open]) .toast-msg[popover] {
 .turn-icon .piece .pc-band {
   stroke-width: 4;
 }
+
+/* ------------------------------------------------------ Piece sets */
+
+/* Rock crystal: the default shapes, clear crystal against smoky quartz,
+   set in gold. */
+.set-crystal.piece-ivory .pc-body {
+  fill: url(#crystal-clear);
+  stroke: #4f6a8c;
+}
+.set-crystal.piece-ebony .pc-body {
+  fill: url(#crystal-smoky);
+  stroke: #1d140c;
+}
+.dark .set-crystal.piece-ebony .pc-body {
+  stroke: #c9a25a;
+}
+.set-crystal .pc-band {
+  fill: #d4a43c;
+  stroke: #7a5612;
+}
+.set-crystal .pc-eye {
+  fill: #2c3e57;
+}
+.set-crystal.piece-ebony .pc-eye {
+  fill: #f0c76a;
+}
+
+/* Western chess: the mitre's cut. */
+.piece .pc-cut {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.piece-ivory .pc-cut {
+  stroke: var(--ivory-stroke);
+}
+.piece-ebony .pc-cut {
+  stroke: var(--ebony-line);
+}
+
+/* Arabian Nights: card cut-outs, ivory paper and black shadow figures. */
+.set-nights.piece-ivory .pc-body {
+  fill: #f1dfbb;
+  stroke: #3b2a1a;
+}
+.set-nights.piece-ebony .pc-body {
+  fill: #0e0f14;
+  stroke: #c9a25a;
+}
+
+/* Medallions (calligraphy) and discs (clear). */
+.piece .pc-ring {
+  fill: none;
+  stroke-width: 2.6;
+}
+/* Royal medallions (shāh, firzān) get a heavier ring. */
+.piece .pc-ring-royal {
+  stroke-width: 5;
+}
+.piece-ivory .pc-ring {
+  stroke: var(--ivory-line);
+}
+.piece-ebony .pc-ring {
+  stroke: var(--ebony-line);
+}
+.piece .pc-text {
+  stroke: none;
+}
+.piece .pc-kufic {
+  font-family: var(--font-arabic);
+  font-weight: 600;
+  font-size: 32px;
+}
+.piece-ivory .pc-text,
+.piece-ivory .pc-dot {
+  fill: var(--ivory-stroke);
+}
+.piece-ebony .pc-text,
+.piece-ebony .pc-dot {
+  fill: var(--ebony-line);
+}
+
+/* Clear: maximum contrast and a large letter, for small screens and low
+   vision. */
+.set-minimal.piece-ivory .pc-body {
+  fill: #ffffff;
+  stroke: #111827;
+  stroke-width: 4.5;
+}
+.set-minimal.piece-ebony .pc-body {
+  fill: #111827;
+  stroke: #111827;
+  stroke-width: 4.5;
+}
+.dark .set-minimal.piece-ebony .pc-body {
+  stroke: #e5e7eb;
+}
+.set-minimal.piece-ivory .pc-text,
+.set-minimal.piece-ivory .pc-dot {
+  fill: #111827;
+}
+.set-minimal.piece-ebony .pc-text,
+.set-minimal.piece-ebony .pc-dot {
+  fill: #ffffff;
+}
+.set-minimal.piece-ivory .pc-ring {
+  stroke: #111827;
+}
+.set-minimal.piece-ebony .pc-ring {
+  stroke: #ffffff;
+}
+.piece .pc-letter {
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 46px;
+}
+
+/* Piece design picker in the settings menu. */
+.piece-sets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.piece-set {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.4rem 0.25rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+  text-align: center;
+}
+.piece-set:hover {
+  background: var(--accent);
+}
+.piece-set:has(input:checked) {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold);
+  background: color-mix(in oklch, var(--gold) 12%, transparent);
+}
+.piece-set:has(input:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+.piece-set input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.piece-set-preview {
+  display: flex;
+  justify-content: center;
+  padding: 0.15rem 0.3rem;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--sq-light) 50%, var(--sq-dark) 50%);
+}
+.piece-set-preview .piece {
+  width: 1.9rem;
+  height: 1.9rem;
+}
+.piece-set-name {
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+/* Language and appearance sit in the header on wider screens. */
+@media (min-width: 640px) {
+  .settings-phone {
+    display: none;
+  }
+}

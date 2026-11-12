@@ -17,6 +17,13 @@ export const ko: Dict = {
   "theme.light": "라이트",
   "theme.dark": "다크",
   "theme.auto": "자동",
+  "settings.pieces": "기물 디자인",
+  "pieces.classic": "아바스",
+  "pieces.crystal": "수정",
+  "pieces.calligraphy": "서예",
+  "pieces.nights": "천일야화",
+  "pieces.western": "체스",
+  "pieces.minimal": "선명하게",
   "board.aria":
     "샤트란지 판. 화살표 키로 커서를 움직이고 Enter로 기물을 들거나 놓으세요.",
   "square.piece": "{square} {side} {piece}",

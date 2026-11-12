@@ -17,6 +17,13 @@ export const fr: Dict = {
   "theme.light": "Clair",
   "theme.dark": "Sombre",
   "theme.auto": "Auto",
+  "settings.pieces": "Pièces",
+  "pieces.classic": "Abbasside",
+  "pieces.crystal": "Cristal de roche",
+  "pieces.calligraphy": "Calligraphie",
+  "pieces.nights": "Mille et une nuits",
+  "pieces.western": "Échecs",
+  "pieces.minimal": "Lisible",
   "board.aria":
     "Échiquier de shatranj. Utilisez les flèches pour déplacer le curseur et Entrée pour prendre ou poser une pièce.",
   "square.piece": "{square} : {piece} {side}",

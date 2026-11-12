@@ -2,6 +2,7 @@ import {
   BLACK,
   type Color,
   EMPTY,
+  FARAS,
   type GameResult,
   type Move,
   moveFrom,
@@ -12,7 +13,13 @@ import {
   WHITE,
 } from "../engine/position.ts";
 import { LEVELS, VALUE } from "../engine/search.ts";
-import { PIECE_INFO, pieceSVG } from "./pieces.ts";
+import {
+  PIECE_INFO,
+  PIECE_SETS,
+  pieceSet,
+  pieceSVG,
+  setPieceSet,
+} from "./pieces.ts";
 import {
   CLASS_INFO,
   type Classification,
@@ -2568,6 +2575,26 @@ function wireSettingsMenu() {
   document.querySelectorAll<HTMLInputElement>('input[name="theme"]').forEach(
     (r) => r.addEventListener("change", () => setTheme(r.value as ThemeMode)),
   );
+  // Piece designs: a small preview of each (ivory shāh, ebony faras).
+  const sets = $("piece-sets");
+  sets.innerHTML = PIECE_SETS.map((id) =>
+    `<label class="piece-set"><input type="radio" name="piece-set" value="${id}"${
+      id === pieceSet() ? " checked" : ""
+    } /><span class="piece-set-preview">${pieceSVG(SHAH, id)}${
+      pieceSVG(-FARAS, id)
+    }</span><span class="piece-set-name" data-i18n="pieces.${id}"></span></label>`
+  ).join("");
+  sets.addEventListener("change", (e) => {
+    const id = (e.target as HTMLInputElement).value;
+    setPieceSet(id);
+    try {
+      localStorage.setItem("shatranj:pieces", id);
+    } catch {
+      // storage unavailable: applies for this visit
+    }
+    render();
+    renderRules();
+  });
   darkQuery.addEventListener("change", () => {
     if (themeMode() === "auto") applyTheme();
   });
@@ -2594,6 +2621,11 @@ function init() {
     },
   );
   wireSettingsMenu();
+  try {
+    setPieceSet(localStorage.getItem("shatranj:pieces") ?? "classic");
+  } catch {
+    // storage unavailable: default pieces
+  }
   setAppMode(host.available);
   applyLanguage(detectLang());
 

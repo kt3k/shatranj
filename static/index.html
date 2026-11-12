@@ -23,6 +23,27 @@
   <body class="girih-bg">
     <svg width="0" height="0" class="absolute" aria-hidden="true">
       <defs>
+        <!-- Rock crystal pieces: hard-edged bands read as facets. -->
+        <linearGradient id="crystal-clear" x1="0" y1="0" x2="1" y2="0.35">
+          <stop offset="0" stop-color="#ffffff" />
+          <stop offset="0.28" stop-color="#ffffff" />
+          <stop offset="0.28" stop-color="#dbe8f5" />
+          <stop offset="0.5" stop-color="#eef5fc" />
+          <stop offset="0.5" stop-color="#c7d9ec" />
+          <stop offset="0.74" stop-color="#e3eef8" />
+          <stop offset="0.74" stop-color="#b8cde4" />
+          <stop offset="1" stop-color="#d6e5f3" />
+        </linearGradient>
+        <linearGradient id="crystal-smoky" x1="0" y1="0" x2="1" y2="0.35">
+          <stop offset="0" stop-color="#8a6a4a" />
+          <stop offset="0.28" stop-color="#7a5c3e" />
+          <stop offset="0.28" stop-color="#4f3a27" />
+          <stop offset="0.5" stop-color="#5e4630" />
+          <stop offset="0.5" stop-color="#3a2a1c" />
+          <stop offset="0.74" stop-color="#4a3624" />
+          <stop offset="0.74" stop-color="#2c2016" />
+          <stop offset="1" stop-color="#3b2b1d" />
+        </linearGradient>
         <symbol id="star8" viewBox="0 0 100 100">
           <path
             d="M50 4 L64 22 L83 17 L78 36 L96 50 L78 64 L83 83 L64 78 L50 96 L36 78 L17 83 L22 64 L4 50 L22 36 L17 17 L36 22Z"
@@ -115,9 +136,9 @@
                 d="M12 2v2M12 20v2m-7.07-14.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
             </svg>
           </button>
-          <!-- Phones: language and appearance share one settings menu so
-               the title keeps its room. -->
-          <button type="button" class="btn sm:hidden" data-variant="ghost"
+          <!-- Settings: piece design everywhere; on phones also language and
+               appearance, so the title keeps its room. -->
+          <button type="button" class="btn" data-variant="ghost"
             data-size="icon" id="settings-btn" popovertarget="settings-menu"
             aria-haspopup="dialog" aria-label="Settings"
             data-i18n-aria="header.settings" data-i18n-title="header.settings">
@@ -138,12 +159,12 @@
       aria-labelledby="settings-title">
       <h2 id="settings-title" class="text-sm font-semibold"
         data-i18n="header.settings">Settings</h2>
-      <label class="settings-row">
+      <label class="settings-row settings-phone">
         <span class="text-xs font-medium text-muted-foreground"
           data-i18n="header.language">Language</span>
         <select class="lang-select select w-full"></select>
       </label>
-      <div class="settings-row">
+      <div class="settings-row settings-phone">
         <span class="text-xs font-medium text-muted-foreground"
           id="theme-label" data-i18n="theme.title">Appearance</span>
         <div class="seg" role="radiogroup" aria-labelledby="theme-label">
@@ -154,6 +175,12 @@
           <label><input type="radio" name="theme" value="auto" /><span
               data-i18n="theme.auto">Auto</span></label>
         </div>
+      </div>
+      <div class="settings-row">
+        <span class="text-xs font-medium text-muted-foreground"
+          id="pieces-label" data-i18n="settings.pieces">Pieces</span>
+        <div class="piece-sets" id="piece-sets" role="radiogroup"
+          aria-labelledby="pieces-label"></div>
       </div>
     </div>
 

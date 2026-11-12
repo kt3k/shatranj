@@ -18,6 +18,13 @@ export const de: Dict = {
   "theme.light": "Hell",
   "theme.dark": "Dunkel",
   "theme.auto": "Automatisch",
+  "settings.pieces": "Figuren",
+  "pieces.classic": "Abbasidisch",
+  "pieces.crystal": "Bergkristall",
+  "pieces.calligraphy": "Kalligrafie",
+  "pieces.nights": "1001 Nacht",
+  "pieces.western": "Schach",
+  "pieces.minimal": "Klar",
   "board.aria":
     "Schatrandsch-Brett. Bewege den Cursor mit den Pfeiltasten; mit Enter nimmst du eine Figur auf oder setzt sie ab.",
   "square.piece": "{square}: {piece} ({side})",

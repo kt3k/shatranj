@@ -17,6 +17,13 @@ export const cop: Dict = {
   "theme.light": "ⲟⲩⲟⲉⲓⲛ",
   "theme.dark": "ⲕⲁⲕⲉ",
   "theme.auto": "ⲙ̄ⲙⲓⲛ ⲙ̄ⲙⲟϥ",
+  "settings.pieces": "ⲡⲉⲓⲛⲉ ⲛ̄ⲛⲉⲥⲱⲃⲉ",
+  "pieces.classic": "ⲁⲃⲃⲁⲥⲓⲇ",
+  "pieces.crystal": "ⲕⲣⲩⲥⲧⲁⲗⲗⲟⲥ",
+  "pieces.calligraphy": "ⲥϩⲁⲓ",
+  "pieces.nights": "ϣⲟ ⲛ̄ⲟⲩϣⲏ",
+  "pieces.western": "ϣⲁⲧⲣⲁⲛϫ ⲙ̄ⲃⲣⲣⲉ",
+  "pieces.minimal": "ⲉϥⲟⲩⲟⲛϩ",
   "board.aria":
     "ⲡⲡⲓⲛⲁⲝ ⲙ̄ⲡϣⲁⲧⲣⲁⲛϫ. ⲁⲣⲓⲭⲣⲱ ⲛ̄ⲛ̄ⲥⲟⲧⲉ ⲉⲕⲓⲙ ⲙ̄ⲡⲥⲏⲙⲉⲓⲟⲛ, ⲁⲩⲱ ⲛ̄ Enter ⲉϥⲓ ⲏ ⲉⲕⲱ ⲛ̄ⲟⲩⲯⲏⲫⲟⲥ.",
   "square.piece": "{square}: {piece} ⲛ̄{side}",

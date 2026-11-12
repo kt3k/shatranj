@@ -17,6 +17,13 @@ export const tr: Dict = {
   "theme.light": "Açık",
   "theme.dark": "Koyu",
   "theme.auto": "Otomatik",
+  "settings.pieces": "Taşlar",
+  "pieces.classic": "Abbasi",
+  "pieces.crystal": "Kaya kristali",
+  "pieces.calligraphy": "Hat",
+  "pieces.nights": "Binbir Gece",
+  "pieces.western": "Satranç",
+  "pieces.minimal": "Sade",
   "board.aria":
     "Şatranc tahtası. İmleci ok tuşlarıyla hareket ettir, taşı almak ya da bırakmak için Enter'a bas.",
   "square.piece": "{square} {side} {piece}",

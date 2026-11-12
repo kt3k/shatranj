@@ -17,6 +17,13 @@ export const es: Dict = {
   "theme.light": "Claro",
   "theme.dark": "Oscuro",
   "theme.auto": "Automático",
+  "settings.pieces": "Piezas",
+  "pieces.classic": "Abasí",
+  "pieces.crystal": "Cristal de roca",
+  "pieces.calligraphy": "Caligrafía",
+  "pieces.nights": "Mil y una noches",
+  "pieces.western": "Ajedrez",
+  "pieces.minimal": "Clara",
   "board.aria":
     "Tablero de shatranj. Usa las flechas para mover el cursor y Enter para tomar o colocar una pieza.",
   "square.piece": "{square}: {piece} de {side}",
