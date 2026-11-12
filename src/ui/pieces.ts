@@ -4,39 +4,60 @@ import { ALFIL, BAIDAQ, FARAS, FERZ, RUKH, SHAH } from "../engine/position.ts";
  * Abstract, aniconic piece shapes in the manner of early Islamic shatranj sets
  * (e.g. the carved pieces of 8th–10th century Mesopotamia), drawn as SVG.
  */
+/*
+ * Design rules (piece review):
+ * - One height per rank of importance, so pieces read by silhouette alone:
+ *   shāh 5.5 > faras 12 > firzān 15 > fīl 28 > rukh 32 > baidaq 38 (top y).
+ * - Distinct outlines where shapes are related: the rukh is a straight,
+ *   wide block with a deep V cleft; the fīl is a dome with two tusks
+ *   sweeping up from its shoulders (ears on top read as a hare); the faras has an ear and a muzzle.
+ * - The two royal pieces (shāh, firzān) wear a coloured band; the others
+ *   carry no ornament, which only added noise at small sizes.
+ * - Pedestals scale with the piece instead of one plate for all.
+ */
 const BODY: Record<number, string> = {
   [SHAH]:
-    `<path class="pc-body" d="M29 81 L32 46 Q32 24 50 20 Q68 24 68 46 L71 81 Z"/>
-     <circle class="pc-body" cx="50" cy="14" r="6"/>
-     <path class="pc-line" d="M33 52 H67 M34 60 H66"/>`,
+    `<path class="pc-body" d="M32 80 L33.5 46 Q33.5 27 50 23 Q66.5 27 66.5 46 L68 80 Z"/>
+     <rect class="pc-band" x="28" y="44" width="44" height="8" rx="3.5"/>
+     <path class="pc-body" d="M46 24 V17 H54 V24 Z"/>
+     <circle class="pc-body" cx="50" cy="12" r="6.5"/>`,
   [FERZ]:
-    `<path class="pc-body" d="M33 81 L36 54 Q36 36 50 32 Q64 36 64 54 L67 81 Z"/>
-     <path class="pc-body" d="M50 17 L56 25 L50 32 L44 25 Z"/>
-     <path class="pc-line" d="M37 60 H63"/>`,
+    `<path class="pc-body" d="M36 80 L37.5 54 Q37.5 41 50 38 Q62.5 41 62.5 54 L64 80 Z"/>
+     <rect class="pc-band" x="32.5" y="52" width="35" height="6" rx="3"/>
+     <path class="pc-body" d="M50 15 L58 26.5 L50 38 L42 26.5 Z"/>`,
   [ALFIL]:
-    `<path class="pc-body" d="M31 81 L33 52 Q33 42 38 38 Q35 28 41 22 Q47 29 46 38 L54 38 Q53 29 59 22 Q65 28 62 38 Q67 42 67 52 L69 81 Z"/>
-     <path class="pc-line" d="M36 58 H64"/>`,
+    `<path class="pc-body" d="M34 80 L35 52 Q35 31 50 28 Q65 31 65 52 L66 80 Z"/>
+     <path class="pc-body" d="M37 50 Q26 45 24 31 Q32 35 38.5 41 Z"/>
+     <path class="pc-body" d="M63 50 Q74 45 76 31 Q68 35 61.5 41 Z"/>`,
   [FARAS]:
-    `<path class="pc-body" d="M32 81 L34 54 Q34 40 42 34 L36 20 Q52 18 61 29 Q69 39 66 54 L68 81 Z"/>
-     <circle class="pc-eye" cx="51" cy="33" r="3"/>
-     <path class="pc-line" d="M36 60 H64"/>`,
+    `<path class="pc-body" d="M33 80 L35 57 Q35 46 41 41 L29 36 Q28 29 34 26 L46 20 L50 12 L55 20.5 Q66 27 66.5 42 Q67 50 65 57 L67 80 Z"/>
+     <circle class="pc-eye" cx="45" cy="28" r="2.6"/>`,
   [RUKH]:
-    `<path class="pc-body" d="M29 81 L32 46 Q31 32 34 24 L46 24 Q47 33 50 38 Q53 33 54 24 L66 24 Q69 32 68 46 L71 81 Z"/>
-     <path class="pc-line" d="M33 52 H67"/>`,
+    `<path class="pc-body" d="M27 80 L28 32 L41 32 L50 47 L59 32 L72 32 L73 80 Z"/>`,
   [BAIDAQ]:
-    `<path class="pc-body" d="M36 81 L38 64 Q38 50 50 47 Q62 50 62 64 L64 81 Z"/>
-     <circle class="pc-body" cx="50" cy="41" r="5"/>`,
+    `<path class="pc-body" d="M37.5 80 L39 64 Q39 53 50 50 Q61 53 61 64 L62.5 80 Z"/>
+     <circle class="pc-body" cx="50" cy="44" r="5.5"/>`,
 };
 
-const PEDESTAL =
-  `<rect class="pc-body" x="22" y="79" width="56" height="10" rx="4"/>`;
+/** Pedestal width per piece (wider pieces stand on wider bases). */
+const BASE: Record<number, number> = {
+  [SHAH]: 54,
+  [FERZ]: 50,
+  [ALFIL]: 54,
+  [FARAS]: 52,
+  [RUKH]: 58,
+  [BAIDAQ]: 44,
+};
 
 export function pieceSVG(piece: number): string {
   const type = Math.abs(piece);
   const color = piece > 0 ? "ivory" : "ebony";
+  const w = BASE[type];
   return `<svg viewBox="0 0 100 100" class="piece piece-${color}" aria-hidden="true">${
     BODY[type]
-  }${PEDESTAL}</svg>`;
+  }<rect class="pc-body" x="${
+    50 - w / 2
+  }" y="79" width="${w}" height="10" rx="4"/></svg>`;
 }
 
 export const PIECE_INFO: Record<

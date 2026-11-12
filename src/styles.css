@@ -276,6 +276,18 @@
 .piece-ivory .pc-line {
   stroke: var(--ivory-line);
 }
+.piece .pc-band {
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+}
+.piece-ivory .pc-band {
+  fill: var(--ivory-line);
+  stroke: var(--ivory-stroke);
+}
+.piece-ebony .pc-band {
+  fill: var(--ebony-line);
+  stroke: var(--ebony-stroke);
+}
 .piece-ivory .pc-eye {
   fill: var(--ivory-stroke);
 }
