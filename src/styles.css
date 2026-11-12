@@ -1777,3 +1777,15 @@ body:has(dialog[open]) .toast-msg[popover] {
     display: none;
   }
 }
+
+/* Piece review 2: optical stroke compensation. At 16-26px the 3-unit
+   outline falls below one device pixel and the pieces blur into blobs, so
+   small renderings get heavier outlines. */
+.captured .piece .pc-body,
+.turn-icon .piece .pc-body {
+  stroke-width: 5;
+}
+.captured .piece .pc-band,
+.turn-icon .piece .pc-band {
+  stroke-width: 4;
+}
