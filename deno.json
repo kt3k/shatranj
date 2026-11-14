@@ -4,7 +4,9 @@
     "build": "deno run -A scripts/build.ts",
     "dev": "deno run -A scripts/build.ts --watch --serve",
     "test": "deno test src/",
-    "check": "deno check src/ scripts/ && deno lint && deno fmt --check"
+    "check": "deno run -A scripts/check_gawa_pin.ts && deno run -A scripts/gen_host.ts --check && deno check src/ scripts/ && deno lint && deno fmt --check",
+    "gen": "deno run -A scripts/gen_host.ts",
+    "bump-gawa": "deno run -A scripts/bump_gawa.ts"
   },
   "imports": {
     "@fontsource/inter": "npm:@fontsource/inter@^5.3.0",
@@ -16,7 +18,7 @@
     "@std/http": "jsr:@std/http@^1",
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.4",
     "basecoat-css": "npm:basecoat-css@^1.1.0",
-    "gawa": "https://raw.githubusercontent.com/kt3k/gawa/b1c2d6a344b5bb537b0816792b998479b25558d9/web/mod.ts",
+    "gawa": "https://raw.githubusercontent.com/kt3k/gawa/538ee451fd1e46b047d9490937318ae6bf9959f3/web/mod.ts",
     "tailwindcss": "npm:tailwindcss@^4.3.4"
   },
   "compilerOptions": {

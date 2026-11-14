@@ -25,10 +25,13 @@ the computer, right in your browser.
 Requires [Deno](https://deno.com) 2.x.
 
 ```sh
-deno install     # fetch npm deps (tailwindcss, basecoat-css)
-deno task dev    # build, watch and serve on http://localhost:8000
-deno task test   # engine tests
-deno task build  # production build into dist/
+deno install          # fetch npm deps (tailwindcss, basecoat-css)
+deno task dev         # build, watch and serve on http://localhost:8000
+deno task test        # engine, host, and library tests
+deno task check       # types, lint, format, gawa pin, generated bridge types
+deno task gen         # regenerate bridge types from schema/host.json
+deno task bump-gawa   # deno task bump-gawa <sha> — rewrite the three gawa pins
+deno task build       # production build into dist/
 ```
 
 Stack: Deno (`deno bundle`), Tailwind CSS v4,
@@ -37,8 +40,13 @@ Stack: Deno (`deno bundle`), Tailwind CSS v4,
 ## Embedding in a native app
 
 The `dist/` build can be bundled into an iOS / Android app and shown in a
-WebView. See [docs/app-packaging.md](docs/app-packaging.md) for what the app
-shell must provide, and
+WebView. The shell talks to the page through
+[gawa](https://github.com/kt3k/gawa). The commit is pinned in `deno.json`,
+`app/android/gradle.properties`, and `app/ios/project.yml` (kept in step by
+`deno task check`). Parameter types the schema generator can express come from
+`schema/host.json` (`deno task gen`). See
+[docs/app-packaging.md](docs/app-packaging.md) for what the app shell must
+provide, and
 [docs/native-webview-html-embedding.md](docs/native-webview-html-embedding.md)
 for general best practices.
 

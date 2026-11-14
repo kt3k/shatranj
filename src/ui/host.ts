@@ -4,9 +4,12 @@
  *
  * The web build runs unchanged in a browser. When it is embedded in an app
  * that attaches a gawa bridge, the methods in {@link HostMethods} are
- * handled natively. See docs/app-packaging.md.
+ * handled natively. Parameter types the schema generator can express live in
+ * {@link ./host.gen.ts}; the rest are written here. See docs/app-packaging.md
+ * and schema/host.json.
  */
 import { createBridge } from "gawa";
+import type { Methods as GeneratedMethods } from "./host.gen.ts";
 
 /** Public address of the web version, used for links shared from the app. */
 export const PUBLIC_URL = "https://kt3k.github.io/shatranj/";
@@ -14,21 +17,27 @@ export const PUBLIC_URL = "https://kt3k.github.io/shatranj/";
 /** Origins an app shell serves the bundled page from. */
 const APP_HOSTS = new Set(["appassets.androidplatform.net"]);
 
+/**
+ * A PGN the app received. gawa's schema generator has no object types, so
+ * `files.takeOpened` cannot be generated (schema/host.json).
+ */
+export type OpenedFile = { name: string; text: string };
+
 /** What an app shell implements. */
-export type HostMethods = {
-  /** Save (or share) a text file, e.g. a PGN. */
-  "files.save": (p: { name: string; mimeType: string; text: string }) => void;
-  /** Open the system share sheet for a link. */
-  "share.link": (p: { url: string; title: string }) => void;
-  /** Game records kept by the app (one JSON document per record). */
-  "records.list": () => string[];
-  "records.put": (p: { id: string; json: string }) => void;
-  "records.delete": (p: { id: string }) => void;
+export type HostMethods = GeneratedMethods & {
+  /**
+   * One stored record's JSON, or null when that id is absent.
+   * Nullable results are not in the schema generator's type table.
+   */
+  "records.get": (p: { id: string }) => string | null;
   /** PGN files opened with the app ("Open in Shatranj") since the last call. */
-  "files.takeOpened": () => { name: string; text: string }[];
+  "files.takeOpened": () => OpenedFile[];
 };
 
-/** Events the app shell sends. */
+/**
+ * Events the app shell sends. Payload-less event data is not in the schema
+ * generator's type table, so this stays hand-written.
+ */
 export type HostEvents = {
   /** A file was opened with the app; fetch it with `files.takeOpened`. */
   "files.opened": null;
@@ -46,11 +55,37 @@ export function callHost<K extends keyof HostMethods>(
   params: Parameters<HostMethods[K]>[0],
 ): boolean {
   if (!host.available) return false;
-  // deno-lint-ignore no-explicit-any
-  (host.call as any)(method, params).catch((e: Error) =>
+  host.call(method, params).catch((e: Error) =>
     console.error(`app shell: ${method} failed:`, e)
   );
   return true;
+}
+
+/** True while {@link drainOpenedFiles} is pulling files in. */
+let importingOpened = false;
+
+/**
+ * Pulls `files.takeOpened` until the shell has nothing left. A second call
+ * while one is in progress does nothing, so a `files.opened` event during
+ * an import does not run two imports at once.
+ */
+export async function drainOpenedFiles(
+  importBatch: (files: OpenedFile[]) => Promise<void>,
+  take: () => Promise<OpenedFile[]> = () => host.call("files.takeOpened"),
+): Promise<void> {
+  if (importingOpened) return;
+  importingOpened = true;
+  try {
+    for (;;) {
+      const files = await take();
+      if (files.length === 0) break;
+      await importBatch(files);
+    }
+  } catch (e) {
+    console.error("opening files from the app failed:", e);
+  } finally {
+    importingOpened = false;
+  }
 }
 
 /**

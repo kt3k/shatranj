@@ -37,10 +37,8 @@ final class Shell: NSObject, WKNavigationDelegate {
     /// The live shell, for files opened with the app.
     static weak var current: Shell?
 
-    struct SaveFile: Decodable { let name: String; let mimeType: String; let text: String }
-    struct ShareLink: Decodable { let url: String; let title: String }
-    struct PutRecord: Decodable { let id: String; let json: String }
-    struct RecordID: Decodable { let id: String }
+    /// files.takeOpened's result. gawa's schema generator has no object
+    /// types and does not emit result structs (schema/host.json).
     struct OpenedFile: Encodable { let name: String; let text: String }
 
     let records = RecordStore()
@@ -83,8 +81,11 @@ final class Shell: NSObject, WKNavigationDelegate {
         bridge.router.register("records.put") { [records] (p: PutRecord) async throws -> Void in
             try records.put(id: p.id, json: p.json)
         }
-        bridge.router.register("records.delete") { [records] (p: RecordID) async throws -> Void in
+        bridge.router.register("records.delete") { [records] (p: RecordId) async throws -> Void in
             try records.delete(id: p.id)
+        }
+        bridge.router.register("records.get") { [records] (p: RecordId) async throws -> String? in
+            try records.get(id: p.id)
         }
         bridge.router.register("files.takeOpened") { [weak self] () async throws -> [OpenedFile] in
             guard let self else { return [] }
@@ -106,7 +107,7 @@ final class Shell: NSObject, WKNavigationDelegate {
                 ?? String(data: data, encoding: .isoLatin1)
         else { return }
         opened.append(OpenedFile(name: url.lastPathComponent, text: text))
-        try? bridge.emit("files.opened", nil as String?)
+        try? bridge.emit("files.opened")
     }
 
     /// Presents the system share sheet (save to Files, AirDrop, Messages…).
@@ -177,6 +178,13 @@ final class RecordStore: Sendable {
 
     func put(id: String, json: String) throws {
         try json.write(to: try file(id), atomically: true, encoding: .utf8)
+    }
+
+    /// The record's JSON, or nil when that id is not stored.
+    func get(id: String) throws -> String? {
+        let url = try file(id)
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return try String(contentsOf: url, encoding: .utf8)
     }
 
     func delete(id: String) throws {

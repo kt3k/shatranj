@@ -41,7 +41,7 @@ import {
   toPGN,
 } from "../engine/record.ts";
 import { reviewMoves } from "../engine/analysis.ts";
-import { callHost, host, shareBase } from "./host.ts";
+import { callHost, drainOpenedFiles, host, shareBase } from "./host.ts";
 import {
   applyStatic,
   currentLang,
@@ -2189,25 +2189,14 @@ type FileFailure = PgnFailure & { file?: string };
  * from this site are the player's own, saves, and shows one summary.
  */
 /** Imports files the app shell received, in the records dialog. */
-let importingOpened = false;
 async function importOpenedFiles() {
-  if (importingOpened) return;
-  importingOpened = true;
-  try {
-    for (;;) {
-      const files = await host.call("files.takeOpened");
-      if (files.length === 0) break;
-      if (!$<HTMLDialogElement>("library-dialog").open) await openLibrary();
-      const r = await importSources(
-        files.map((f) => ({ text: f.text, file: f.name })),
-      );
-      if (!r.cancelled) showPasteReport(r.failures, false);
-    }
-  } catch (e) {
-    console.error("opening files from the app failed:", e);
-  } finally {
-    importingOpened = false;
-  }
+  await drainOpenedFiles(async (files) => {
+    if (!$<HTMLDialogElement>("library-dialog").open) await openLibrary();
+    const r = await importSources(
+      files.map((f) => ({ text: f.text, file: f.name })),
+    );
+    if (!r.cancelled) showPasteReport(r.failures, false);
+  });
 }
 
 async function importSources(

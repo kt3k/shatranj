@@ -6,11 +6,16 @@
  *   for the session.
  * - Inside an app shell they are kept by the app itself (`records.*` host
  *   methods), not in the WebView's storage, which the system may clear.
+ *   `host.has("records.list")` chooses: true uses the app, false stays on
+ *   IndexedDB, and null (a shell that does not list its methods) tries
+ *   `records.list` and treats `unknown_method` as not native.
  *   Records an older version of the app left in IndexedDB are moved over
- *   the first time.
+ *   the first time. `records.get` is used only when the shell lists it;
+ *   otherwise the record is taken from `records.list`.
  */
+import { GawaError } from "gawa";
+import { host as defaultHost } from "./host.ts";
 import type { Color, Move } from "../engine/position.ts";
-import { host } from "./host.ts";
 
 export interface GameRecord {
   id: string;
@@ -45,6 +50,42 @@ const STORE = "games";
 let dbPromise: Promise<IDBDatabase | null> | null = null;
 const memory = new Map<string, GameRecord>();
 
+type AppHost = typeof defaultHost;
+
+/** Set by tests. Production leaves both null and uses the real shell. */
+let hostOverride: AppHost | null = null;
+let legacyLibrary: LegacyLibrary | null = null;
+
+function appHost(): AppHost {
+  return hostOverride ?? defaultHost;
+}
+
+/**
+ * Records an older build left behind, before the app kept them itself.
+ * The default implementation is IndexedDB. Tests pass a stand-in because
+ * Deno has no IndexedDB.
+ */
+export type LegacyLibrary = {
+  readAll(): Promise<GameRecord[]>;
+  delete(id: string): Promise<void>;
+};
+
+/**
+ * Test seam. `host` is a bridge from `installMock` (the module's bridge is
+ * created at import, before a mock can attach). `legacy` is the pre-app
+ * record store. Omit either to use the real bridge and IndexedDB.
+ */
+export function testingReset(opts?: {
+  host?: AppHost | null;
+  legacy?: LegacyLibrary | null;
+}): void {
+  hostOverride = opts?.host ?? null;
+  legacyLibrary = opts?.legacy ?? null;
+  nativePromise = null;
+  dbPromise = null;
+  memory.clear();
+}
+
 function openDB(): Promise<IDBDatabase | null> {
   dbPromise ??= new Promise((resolve) => {
     try {
@@ -73,11 +114,21 @@ function openDB(): Promise<IDBDatabase | null> {
 let nativePromise: Promise<boolean> | null = null;
 function useNative(): Promise<boolean> {
   nativePromise ??= (async () => {
-    if (!host.available) return false;
-    try {
-      await host.call("records.list");
-    } catch {
-      return false;
+    const h = appHost();
+    if (!h.available) return false;
+    const supported = await h.has("records.list");
+    if (supported === false) return false;
+    if (supported === null) {
+      try {
+        await h.call("records.list");
+      } catch (e) {
+        // `unknown_method` is an older shell. Any other failure also means
+        // the probe did not succeed, so keep the web store.
+        if (!(e instanceof GawaError && e.code === "unknown_method")) {
+          console.error("records.list failed:", e);
+        }
+        return false;
+      }
     }
     await moveFromIndexedDB();
     return true;
@@ -85,13 +136,21 @@ function useNative(): Promise<boolean> {
   return nativePromise;
 }
 
+async function readAllIndexed(): Promise<GameRecord[]> {
+  if (!(await openDB())) return [];
+  return await tx<GameRecord[]>("readonly", (s) => s.getAll());
+}
+
 async function moveFromIndexedDB() {
+  const h = appHost();
   try {
-    if (!(await openDB())) return;
-    const old = await tx<GameRecord[]>("readonly", (s) => s.getAll());
+    const old = legacyLibrary
+      ? await legacyLibrary.readAll()
+      : await readAllIndexed();
     for (const rec of old) {
-      await host.call("records.put", { id: rec.id, json: JSON.stringify(rec) });
-      await tx("readwrite", (s) => s.delete(rec.id));
+      await h.call("records.put", { id: rec.id, json: JSON.stringify(rec) });
+      if (legacyLibrary) await legacyLibrary.delete(rec.id);
+      else await tx("readwrite", (s) => s.delete(rec.id));
     }
   } catch (e) {
     console.error("moving records to the app failed:", e);
@@ -121,7 +180,10 @@ export async function putRecord(rec: GameRecord): Promise<void> {
   memory.set(rec.id, rec);
   try {
     if (await useNative()) {
-      await host.call("records.put", { id: rec.id, json: JSON.stringify(rec) });
+      await appHost().call("records.put", {
+        id: rec.id,
+        json: JSON.stringify(rec),
+      });
     } else await tx("readwrite", (s) => s.put(rec));
   } catch {
     // memory fallback already holds it
@@ -130,6 +192,23 @@ export async function putRecord(rec: GameRecord): Promise<void> {
 
 export async function getRecord(id: string): Promise<GameRecord | undefined> {
   if (await useNative()) {
+    const h = appHost();
+    // Only a shell that lists records.get. null is an older shell: list.
+    if (await h.has("records.get") === true) {
+      try {
+        const json = await h.call("records.get", { id });
+        if (typeof json === "string") {
+          try {
+            return JSON.parse(json) as GameRecord;
+          } catch {
+            // damaged record: same as the list, which skips it
+          }
+        }
+        return memory.get(id);
+      } catch {
+        return (await listRecords()).find((r) => r.id === id);
+      }
+    }
     return (await listRecords()).find((r) => r.id === id);
   }
   try {
@@ -143,7 +222,7 @@ export async function getRecord(id: string): Promise<GameRecord | undefined> {
 export async function deleteRecord(id: string): Promise<void> {
   memory.delete(id);
   try {
-    if (await useNative()) await host.call("records.delete", { id });
+    if (await useNative()) await appHost().call("records.delete", { id });
     else await tx("readwrite", (s) => s.delete(id));
   } catch {
     // ignore
@@ -153,7 +232,7 @@ export async function deleteRecord(id: string): Promise<void> {
 async function readAll(): Promise<GameRecord[]> {
   if (await useNative()) {
     const out: GameRecord[] = [];
-    for (const json of await host.call("records.list")) {
+    for (const json of await appHost().call("records.list")) {
       try {
         out.push(JSON.parse(json));
       } catch {

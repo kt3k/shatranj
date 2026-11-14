@@ -28,10 +28,8 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.serialization.Serializable
 
-@Serializable data class SaveFile(val name: String, val mimeType: String, val text: String)
-@Serializable data class ShareLink(val url: String, val title: String)
-@Serializable data class PutRecord(val id: String, val json: String)
-@Serializable data class RecordId(val id: String)
+/** files.takeOpened's result. gawa's schema generator has no object types
+ *  and does not emit result classes (schema/host.json). */
 @Serializable data class OpenedFile(val name: String, val text: String)
 
 /** Game records as JSON files in filesDir/records, one per record. */
@@ -55,6 +53,12 @@ class RecordStore(base: File) {
         val tmp = File(dir, "$id.json.tmp")
         tmp.writeText(json)
         if (!tmp.renameTo(file(id))) throw GawaError("io", "could not save record")
+    }
+
+    /** The record's JSON, or null when that id is not stored. */
+    fun get(id: String): String? {
+        val f = file(id)
+        return if (f.exists()) f.readText() else null
     }
 
     fun delete(id: String) {
@@ -140,6 +144,7 @@ class MainActivity : ComponentActivity() {
         bridge.router.register<Unit, List<String>>("records.list") { records.list() }
         bridge.router.register<PutRecord, Unit>("records.put") { records.put(it.id, it.json) }
         bridge.router.register<RecordId, Unit>("records.delete") { records.delete(it.id) }
+        bridge.router.register<RecordId, String?>("records.get") { records.get(it.id) }
         bridge.router.register<Unit, List<OpenedFile>>("files.takeOpened") {
             val files = opened.toList()
             opened.clear()
@@ -197,7 +202,7 @@ class MainActivity : ComponentActivity() {
             val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return
             if (bytes.size > 5_000_000) return
             opened += OpenedFile(name, String(bytes, Charsets.UTF_8))
-            bridge.emit("files.opened", null as String?)
+            bridge.emit("files.opened")
         } catch (e: Exception) {
             // Unreadable file: nothing to import.
         }

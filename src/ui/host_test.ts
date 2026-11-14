@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { PUBLIC_URL, shareBase } from "./host.ts";
+import { callHost, PUBLIC_URL, shareBase } from "./host.ts";
 
 const at = (href: string) => new URL(href) as unknown as Location;
 
@@ -11,6 +11,17 @@ Deno.test("host: share links keep the page's own address on the web", () => {
   assertEquals(
     shareBase(at("http://localhost:8000/")),
     "http://localhost:8000/",
+  );
+});
+
+Deno.test("host: callHost does nothing in a browser", () => {
+  assertEquals(
+    callHost("files.save", {
+      name: "a.pgn",
+      mimeType: "application/x-chess-pgn",
+      text: "*",
+    }),
+    false,
   );
 });
 

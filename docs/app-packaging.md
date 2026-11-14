@@ -44,9 +44,11 @@ GitHub Actions の `android app` ワークフローが、main への push と手
 [`app/android`](../app/android) は gawa を使った最小のアプリシェル (Kotlin、
 minSdk 24 / targetSdk 35)。gawa の Android ライブラリは
 `app/android/gradle.properties` の `gawaRevision` のコミットを初回ビルド時に
-`app/android/.gawa/` へ clone してソースからビルドする (web の `deno.json` と
-iOS の `project.yml` と同じコミットに揃える)。必要なもの: JDK 17 と Android SDK
-(Android Studio に付属)。
+`app/android/.gawa/` へ clone してソースからビルドする。この `gawaRevision`、
+web の `deno.json` の `gawa`、iOS の `project.yml` の `revision`
+は同じコミットに する。`deno task check`
+がずれを失敗させ、`deno task bump-gawa <sha>` が三つを 書き換える。必要なもの:
+JDK 17 と Android SDK (Android Studio に付属)。
 
 ```sh
 deno install && deno task build      # dist/ を作る
@@ -131,9 +133,20 @@ Xcode の Signing & Capabilities で Team を選び、Bundle Identifier
 
 ### 2. gawa ブリッジとホストメソッド
 
-ネイティブとの通信には [gawa](https://github.com/kt3k/gawa) を使う (`deno.json`
-の `gawa` で版を固定)。アプリは `GawaBridge` を WebView
-に取り付け、`src/ui/host.ts` の `HostMethods` を実装する。送信元オリジンの検証と
+ネイティブとの通信には [gawa](https://github.com/kt3k/gawa) を使う。版は
+`deno.json` の `gawa`、`app/android/gradle.properties` の `gawaRevision`、
+`app/ios/project.yml` の `revision` で同じコミットに固定する
+(`deno task check`、 書き換えは `deno task bump-gawa <sha>`)。アプリは
+`GawaBridge` を WebView に取り付け、`src/ui/host.ts` の `HostMethods`
+を実装する。引数の型は [`schema/host.json`](../schema/host.json)
+から、ピンしたコミットの `schema/generate.ts` で生成する
+(`deno task gen`)。生成先は
+`src/ui/host.gen.ts`、`app/ios/Sources/HostTypes.swift`、
+`app/android/.../HostTypes.kt` で、CI は再生成して差分がないことを見る。
+生成器は `string` / `int` / `bool` / `string[]` / `void` と、メソッドの引数
+struct しか出せない。`records.get` の戻り値 (`string | null`)、
+`files.takeOpened` の `{ name, text }[]`、イベント `files.opened` (データなし)
+は手書きのまま (`schema/host.json` の `notExpressible`)。送信元オリジンの検証と
 メインフレーム限定は gawa が行う。
 
 | メソッド           | パラメータ                 | アプリ側の処理                                                                       |
@@ -143,6 +156,7 @@ Xcode の Signing & Capabilities で Team を選び、Bundle Identifier
 | `records.list`     | なし                       | 保存している棋譜 (JSON 文字列) をすべて返す                                          |
 | `records.put`      | `id`, `json`               | 棋譜を 1 件保存 (同じ `id` は上書き)。`id` は `[A-Za-z0-9_-]{1,64}`                  |
 | `records.delete`   | `id`                       | 棋譜を 1 件削除                                                                      |
+| `records.get`      | `id`                       | その棋譜の JSON 文字列を返す。無ければ null。`id` の規則は `records.delete` と同じ   |
 | `files.takeOpened` | なし                       | 「このアプリで開く」で受け取った PGN (`name`, `text`) を返して空にする               |
 
 イベント `files.opened` (データなし): PGN を受け取ったらページに知らせる。
@@ -151,8 +165,12 @@ Xcode の Signing & Capabilities で Team を選び、Bundle Identifier
 **棋譜の保存先**: アプリでは棋譜をアプリ自身の保存領域に置く (iOS は Application
 Support/records、Android は filesDir/records に 1 件 1 ファイル)。 WebView の
 IndexedDB はシステムに消されうるため使わない。以前の版が IndexedDB
-に残した棋譜は、初回起動時にネイティブ側へ移して IndexedDB から消す。ブラウザ版
-(ブリッジなし、または `records.*` を持たない古いアプリ) は従来どおり IndexedDB。
+に残した棋譜は、初回起動時にネイティブ側へ移して IndexedDB から消す。ページは
+`host.has("records.list")` で切り替える。`true` ならアプリの保存領域、`false`
+なら IndexedDB、`null` (`gawa.methods` を返さない古いシェル) なら `records.list`
+を呼び、`unknown_method` なら IndexedDB のまま。`records.get` は
+`host.has("records.get")` が `true` のときだけ使い、そうでなければ一覧から
+探す。ブラウザ版 (ブリッジなし) は従来どおり IndexedDB。
 アプリ内では文言も「この端末に保存」「PGN を書き出す」など (`@app` 付きの訳語)
 に切り替わる。
 

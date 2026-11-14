@@ -9,7 +9,7 @@ options:
 packages:
   Gawa:
     url: https://github.com/kt3k/gawa
-    revision: b1c2d6a344b5bb537b0816792b998479b25558d9
+    revision: 538ee451fd1e46b047d9490937318ae6bf9959f3
 targets:
   Shatranj:
     type: application
