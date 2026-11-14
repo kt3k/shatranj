@@ -26,11 +26,6 @@ import io.github.kt3k.gawa.GawaWebViewClient
 import java.io.File
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
-import kotlinx.serialization.Serializable
-
-/** files.takeOpened's result. gawa's schema generator has no object types
- *  and does not emit result classes (schema/host.json). */
-@Serializable data class OpenedFile(val name: String, val text: String)
 
 /** Game records as JSON files in filesDir/records, one per record. */
 class RecordStore(base: File) {

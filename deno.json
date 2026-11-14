@@ -18,7 +18,7 @@
     "@std/http": "jsr:@std/http@^1",
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.4",
     "basecoat-css": "npm:basecoat-css@^1.1.0",
-    "gawa": "https://raw.githubusercontent.com/kt3k/gawa/538ee451fd1e46b047d9490937318ae6bf9959f3/web/mod.ts",
+    "gawa": "https://raw.githubusercontent.com/kt3k/gawa/a531c2fe99c1022a3e2e400fcd3d3c425d3008b8/web/mod.ts",
     "tailwindcss": "npm:tailwindcss@^4.3.4"
   },
   "compilerOptions": {

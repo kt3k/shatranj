@@ -1,4 +1,17 @@
 {
+  "types": [
+    {
+      "name": "OpenedFile",
+      "fields": [
+        { "name": "name", "type": "string" },
+        { "name": "text", "type": "string" }
+      ]
+    },
+    {
+      "name": "RecordId",
+      "fields": [{ "name": "id", "type": "string" }]
+    }
+  ],
   "methods": [
     {
       "name": "files.save",
@@ -41,34 +54,21 @@
     },
     {
       "name": "records.delete",
-      "params": {
-        "name": "RecordId",
-        "fields": [{ "name": "id", "type": "string" }]
-      },
+      "params": { "name": "RecordId" },
       "result": "void"
-    }
-  ],
-  "events": [],
-  "notExpressible": [
+    },
     {
       "name": "records.get",
-      "params": {
-        "name": "RecordId",
-        "fields": [{ "name": "id", "type": "string" }]
-      },
-      "result": "string | null",
-      "why": "The generator's types are string, int, bool, string[], and void. It has no nullable result. Listing this method next to records.delete would also emit struct RecordId twice: a params name cannot be shared. iOS and Android use the RecordId generated for records.delete. The method stays in src/ui/host.ts."
+      "params": { "name": "RecordId" },
+      "result": "string | null"
     },
     {
       "name": "files.takeOpened",
       "params": null,
-      "result": "{ name: string, text: string }[]",
-      "why": "No object type and no array of objects. Swift and Kotlin output is parameter structs only, not Encodable result types, so OpenedFile stays hand-written in the app shells. The method stays in src/ui/host.ts."
-    },
-    {
-      "name": "files.opened",
-      "data": null,
-      "why": "Event data has no null (or other payload-less) type. HostEvents in src/ui/host.ts stays hand-written. The app calls emit(event) with no payload."
+      "result": "OpenedFile[]"
     }
+  ],
+  "events": [
+    { "name": "files.opened", "data": null }
   ]
 }

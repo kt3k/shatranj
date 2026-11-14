@@ -20,3 +20,8 @@ struct PutRecord: Decodable {
 struct RecordId: Decodable {
     let id: String
 }
+
+struct OpenedFile: Encodable {
+    let name: String
+    let text: String
+}

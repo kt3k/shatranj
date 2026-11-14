@@ -37,10 +37,6 @@ final class Shell: NSObject, WKNavigationDelegate {
     /// The live shell, for files opened with the app.
     static weak var current: Shell?
 
-    /// files.takeOpened's result. gawa's schema generator has no object
-    /// types and does not emit result structs (schema/host.json).
-    struct OpenedFile: Encodable { let name: String; let text: String }
-
     let records = RecordStore()
     /// Files opened with the app, waiting for the page to take them.
     private var opened: [OpenedFile] = []

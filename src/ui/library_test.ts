@@ -25,13 +25,7 @@ import {
   testingReset,
 } from "./library.ts";
 
-type Reply = Promise<string | undefined>;
-
-const g = {} as {
-  webkit: {
-    messageHandlers: { gawa: { postMessage: (body: string) => Reply } };
-  };
-};
+const g = {};
 const handlers: Record<string, (params: unknown) => unknown> = {};
 const store = new Map<string, string>();
 const mock = installMock({ global: g, handlers });
@@ -59,34 +53,6 @@ function installRecordHandlers(): void {
   handlers["records.get"] = (p) => store.get((p as { id: string }).id) ?? null;
 }
 
-let originalPost: ((body: string) => Reply) | null = null;
-
-/** An older shell: selected methods answer unknown_method, including gawa.methods. */
-function unknownMethod(methods: string[]): void {
-  const ios = g.webkit.messageHandlers.gawa;
-  originalPost = ios.postMessage;
-  ios.postMessage = (body: string) => {
-    const req = JSON.parse(body) as { method: string; id: number };
-    if (methods.includes(req.method)) {
-      return Promise.resolve(JSON.stringify({
-        gawa: 1,
-        id: req.id,
-        error: {
-          code: "unknown_method",
-          message: `unknown method: ${req.method}`,
-        },
-      }));
-    }
-    return originalPost!(body);
-  };
-}
-
-function restorePost(): void {
-  if (!originalPost) return;
-  g.webkit.messageHandlers.gawa.postMessage = originalPost;
-  originalPost = null;
-}
-
 function calls(): string[] {
   return mock.calls.map((c) => c.method).filter((m) => m !== "gawa.methods");
 }
@@ -103,8 +69,46 @@ async function withShell(
   try {
     await fn();
   } finally {
-    restorePost();
     testingReset();
+  }
+}
+
+/** An older shell: `gawa.methods` is `unknown_method`, so `host.has` is null. */
+async function withLegacy(
+  fn: (
+    legacyMock: ReturnType<typeof installMock>,
+    records: Map<string, string>,
+  ) => Promise<void>,
+  opts?: { records?: boolean },
+): Promise<void> {
+  const records = new Map<string, string>();
+  const global = {};
+  const legacyHandlers: Record<string, (params: unknown) => unknown> =
+    opts?.records === false ? {} : {
+      "records.list": () => [...records.values()],
+      "records.put": (p) => {
+        const { id, json } = p as { id: string; json: string };
+        records.set(id, json);
+      },
+      "records.delete": (p) => {
+        records.delete((p as { id: string }).id);
+      },
+      "records.get": (p) => records.get((p as { id: string }).id) ?? null,
+    };
+  const legacyMock = installMock({
+    global,
+    handlers: legacyHandlers,
+    legacyMethods: true,
+  });
+  const legacyBridge = createBridge<HostMethods, HostEvents>({ global });
+  testingReset({ host: legacyBridge });
+  try {
+    assertEquals(await legacyBridge.has("records.list"), null);
+    assertEquals(await legacyBridge.has("records.get"), null);
+    await fn(legacyMock, records);
+  } finally {
+    testingReset();
+    legacyMock.uninstall();
   }
 }
 
@@ -125,12 +129,10 @@ Deno.test("library: a browser with no IndexedDB keeps records in memory", async 
   }
 });
 
-Deno.test("host.has: true, false, and null", async () => {
+Deno.test("host.has: true and false", async () => {
   await withShell(async () => {
     assertEquals(await bridge.has("records.list"), true);
     assertEquals(await bridge.has("records.missing"), false);
-    unknownMethod(["gawa.methods"]);
-    assertEquals(await bridge.has("records.list"), null);
   });
 });
 
@@ -176,29 +178,33 @@ Deno.test("library: has false keeps the web store and does not call records.list
   }, { records: false });
 });
 
-Deno.test("library: unknown_method on records.list is not native", async () => {
-  await withShell(async () => {
-    unknownMethod(["gawa.methods", "records.list"]);
+Deno.test("library: legacyMethods makes has() null and probes records.list", async () => {
+  await withLegacy(async (legacyMock, records) => {
+    const rec = game("listed", 6);
+    await putRecord(rec);
+    legacyMock.calls.length = 0;
+    assertEquals(await getRecord("listed"), rec);
+    const methods = legacyMock.calls.map((c) => c.method).filter((m) =>
+      m !== "gawa.methods"
+    );
+    assertEquals(methods.includes("records.get"), false);
+    assertEquals(methods.includes("records.list"), true);
+    assertEquals(records.has("listed"), true);
+    assertEquals(await isPersistent(), true);
+  });
+});
+
+Deno.test("library: legacy shell without records.list stays on the web store", async () => {
+  await withLegacy(async (legacyMock) => {
     const rec = game("old-shell", 8);
     await putRecord(rec);
     assertEquals(await isPersistent(), false);
     assertEquals(await getRecord("old-shell"), rec);
-    assertEquals(store.size, 0);
-    assertEquals(calls().includes("records.put"), false);
-  });
-});
-
-Deno.test("library: null has with a working records.list uses the shell, not records.get", async () => {
-  await withShell(async () => {
-    unknownMethod(["gawa.methods"]);
-    const rec = game("listed", 6);
-    await putRecord(rec);
-    mock.calls.length = 0;
-    assertEquals(await getRecord("listed"), rec);
-    assertEquals(calls().includes("records.get"), false);
-    assertEquals(calls().includes("records.list"), true);
-    assertEquals(await isPersistent(), true);
-  });
+    assertEquals(
+      legacyMock.calls.some((c) => c.method === "records.put"),
+      false,
+    );
+  }, { records: false });
 });
 
 Deno.test("library: records.get null or damaged text misses, and list skips damaged JSON", async () => {

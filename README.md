@@ -43,10 +43,9 @@ The `dist/` build can be bundled into an iOS / Android app and shown in a
 WebView. The shell talks to the page through
 [gawa](https://github.com/kt3k/gawa). The commit is pinned in `deno.json`,
 `app/android/gradle.properties`, and `app/ios/project.yml` (kept in step by
-`deno task check`). Parameter types the schema generator can express come from
-`schema/host.json` (`deno task gen`). See
-[docs/app-packaging.md](docs/app-packaging.md) for what the app shell must
-provide, and
+`deno task check`). Bridge types are generated from `schema/host.json`
+(`deno task gen`). See [docs/app-packaging.md](docs/app-packaging.md) for what
+the app shell must provide, and
 [docs/native-webview-html-embedding.md](docs/native-webview-html-embedding.md)
 for general best practices.
 

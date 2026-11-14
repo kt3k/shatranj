@@ -4,12 +4,13 @@
  *
  * The web build runs unchanged in a browser. When it is embedded in an app
  * that attaches a gawa bridge, the methods in {@link HostMethods} are
- * handled natively. Parameter types the schema generator can express live in
- * {@link ./host.gen.ts}; the rest are written here. See docs/app-packaging.md
- * and schema/host.json.
+ * handled natively. Those types are generated from schema/host.json
+ * ({@link ./host.gen.ts}). See docs/app-packaging.md.
  */
 import { createBridge } from "gawa";
-import type { Methods as GeneratedMethods } from "./host.gen.ts";
+import type { Events, Methods, OpenedFile } from "./host.gen.ts";
+
+export type { OpenedFile };
 
 /** Public address of the web version, used for links shared from the app. */
 export const PUBLIC_URL = "https://kt3k.github.io/shatranj/";
@@ -17,31 +18,11 @@ export const PUBLIC_URL = "https://kt3k.github.io/shatranj/";
 /** Origins an app shell serves the bundled page from. */
 const APP_HOSTS = new Set(["appassets.androidplatform.net"]);
 
-/**
- * A PGN the app received. gawa's schema generator has no object types, so
- * `files.takeOpened` cannot be generated (schema/host.json).
- */
-export type OpenedFile = { name: string; text: string };
+/** What an app shell implements. Generated from schema/host.json. */
+export type HostMethods = Methods;
 
-/** What an app shell implements. */
-export type HostMethods = GeneratedMethods & {
-  /**
-   * One stored record's JSON, or null when that id is absent.
-   * Nullable results are not in the schema generator's type table.
-   */
-  "records.get": (p: { id: string }) => string | null;
-  /** PGN files opened with the app ("Open in Shatranj") since the last call. */
-  "files.takeOpened": () => OpenedFile[];
-};
-
-/**
- * Events the app shell sends. Payload-less event data is not in the schema
- * generator's type table, so this stays hand-written.
- */
-export type HostEvents = {
-  /** A file was opened with the app; fetch it with `files.takeOpened`. */
-  "files.opened": null;
-};
+/** Events the app shell sends. Generated from schema/host.json. */
+export type HostEvents = Events;
 
 /** The bridge to the app shell; `host.available` is false in a browser. */
 export const host = createBridge<HostMethods, HostEvents>();

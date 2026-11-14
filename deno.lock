@@ -439,7 +439,7 @@
     }
   },
   "remote": {
-    "https://raw.githubusercontent.com/kt3k/gawa/538ee451fd1e46b047d9490937318ae6bf9959f3/web/mod.ts": "6f46aa93e65934af74e5651a39c41f727ed3f533a8b0e12477020f863f02f370"
+    "https://raw.githubusercontent.com/kt3k/gawa/a531c2fe99c1022a3e2e400fcd3d3c425d3008b8/web/mod.ts": "e7a928f6eb56b049631fb8c9ad85f20e83c42671c93e466f909f2c847cd0babc"
   },
   "workspace": {
     "dependencies": [

@@ -14,3 +14,6 @@ data class PutRecord(val id: String, val json: String)
 
 @Serializable
 data class RecordId(val id: String)
+
+@Serializable
+data class OpenedFile(val name: String, val text: String)

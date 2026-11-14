@@ -138,16 +138,14 @@ Xcode の Signing & Capabilities で Team を選び、Bundle Identifier
 `app/ios/project.yml` の `revision` で同じコミットに固定する
 (`deno task check`、 書き換えは `deno task bump-gawa <sha>`)。アプリは
 `GawaBridge` を WebView に取り付け、`src/ui/host.ts` の `HostMethods`
-を実装する。引数の型は [`schema/host.json`](../schema/host.json)
-から、ピンしたコミットの `schema/generate.ts` で生成する
-(`deno task gen`)。生成先は
+を実装する。メソッドとイベントの型は [`schema/host.json`](../schema/host.json)
+に書き、ピンしたコミットの `schema/generate.ts` で生成する
+(`deno task gen`)。`records.get` (`string | null`)、`files.takeOpened`
+(`OpenedFile[]`)、イベント `files.opened` (データなし)
+もそのスキーマに含まれる。 生成先は
 `src/ui/host.gen.ts`、`app/ios/Sources/HostTypes.swift`、
 `app/android/.../HostTypes.kt` で、CI は再生成して差分がないことを見る。
-生成器は `string` / `int` / `bool` / `string[]` / `void` と、メソッドの引数
-struct しか出せない。`records.get` の戻り値 (`string | null`)、
-`files.takeOpened` の `{ name, text }[]`、イベント `files.opened` (データなし)
-は手書きのまま (`schema/host.json` の `notExpressible`)。送信元オリジンの検証と
-メインフレーム限定は gawa が行う。
+送信元オリジンの検証とメインフレーム限定は gawa が行う。
 
 | メソッド           | パラメータ                 | アプリ側の処理                                                                       |
 | ------------------ | -------------------------- | ------------------------------------------------------------------------------------ |
